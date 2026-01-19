@@ -1,0 +1,985 @@
+{
+  "@@locale": "en",
+
+  "welcomeMessage": "Welcome to Fitness Log",
+  "@welcomeMessage": {
+    "description": "Welcome message on initial setup screen"
+  },
+  "languageLabel": "Language",
+  "@languageLabel": {
+    "description": "Label for language selection"
+  },
+  "languageEnglish": "English",
+  "languageJapanese": "日本語",
+  "unitLabel": "Unit",
+  "@unitLabel": {
+    "description": "Label for unit selection"
+  },
+  "unitKg": "kg",
+  "unitLb": "lb",
+  "startButton": "Start",
+  "@startButton": {
+    "description": "Button to complete initial setup"
+  },
+
+  "appName": "Fitness Log",
+  "@appName": {
+    "description": "Application name"
+  },
+  "startWorkoutButton": "Start Workout",
+  "@startWorkoutButton": {
+    "description": "Button to start new workout session"
+  },
+  "resumeWorkoutButton": "Resume Workout",
+  "@resumeWorkoutButton": {
+    "description": "Button to resume in-progress workout"
+  },
+  "newWorkoutButton": "Start New",
+  "@newWorkoutButton": {
+    "description": "Button to start new workout when there's in-progress session"
+  },
+  "workoutInProgressSummary": "{exerciseCount} exercises, {setCount} sets",
+  "@workoutInProgressSummary": {
+    "description": "Summary of in-progress workout",
+    "placeholders": {
+      "exerciseCount": {
+        "type": "int"
+      },
+      "setCount": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsButton": "Settings",
+  "@settingsButton": {
+    "description": "Button to open settings"
+  },
+
+  "addExerciseButton": "Add Exercise",
+  "@addExerciseButton": {
+    "description": "Button to add exercise"
+  },
+  "completeButton": "Complete",
+  "@completeButton": {
+    "description": "Button to complete workout"
+  },
+  "previousRecord": "Previous: {records}",
+  "@previousRecord": {
+    "description": "Label for previous record",
+    "placeholders": {
+      "records": {
+        "type": "String"
+      }
+    }
+  },
+  "previousRecordNone": "Previous: —",
+  "@previousRecordNone": {
+    "description": "Label when there's no previous record"
+  },
+  "reproduceButton": "Reproduce Previous",
+  "@reproduceButton": {
+    "description": "Button to reproduce all sets from previous"
+  },
+  "addSetButton": "Add Set",
+  "@addSetButton": {
+    "description": "Button to add set"
+  },
+  "setLabel": "Set {number}",
+  "@setLabel": {
+    "description": "Label for set number",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "weightLabel": "Weight",
+  "@weightLabel": {
+    "description": "Label for weight input"
+  },
+  "repsLabel": "Reps",
+  "@repsLabel": {
+    "description": "Label for reps input"
+  },
+  "copyButton": "Copy",
+  "@copyButton": {
+    "description": "Button to copy from previous"
+  },
+  "deleteButton": "Delete",
+  "@deleteButton": {
+    "description": "Button to delete"
+  },
+  "timerLabel": "Timer",
+  "@timerLabel": {
+    "description": "Label for timer"
+  },
+  "timerStart": "Start",
+  "timerPause": "Pause",
+  "timerReset": "Reset",
+  "timerClose": "Close",
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title for settings screen"
+  },
+  "backButton": "Back",
+  "@backButton": {
+    "description": "Button to go back"
+  },
+
+  "workoutDetailTitle": "Workout Detail",
+  "@workoutDetailTitle": {
+    "description": "Title for workout detail screen"
+  },
+  "sessionTime": "{startTime} - {endTime}",
+  "@sessionTime": {
+    "description": "Session time range",
+    "placeholders": {
+      "startTime": {
+        "type": "String"
+      },
+      "endTime": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyStateMessage": "No workout recorded on this day.",
+  "@emptyStateMessage": {
+    "description": "Message when there's no workout"
+  },
+
+  "exerciseProgressTitle": "Exercise Progress",
+  "@exerciseProgressTitle": {
+    "description": "Title for exercise progress screen"
+  },
+  "topWeightLabel": "Top Weight",
+  "@topWeightLabel": {
+    "description": "Label for top weight metric"
+  },
+  "totalVolumeLabel": "Total Volume",
+  "@totalVolumeLabel": {
+    "description": "Label for total volume metric"
+  },
+  "emptyProgressMessage": "Not enough data to show graph. Keep recording your workouts!",
+  "@emptyProgressMessage": {
+    "description": "Message when there's not enough data for graph"
+  },
+
+  "deleteSetConfirmTitle": "Delete this set?",
+  "@deleteSetConfirmTitle": {
+    "description": "Title for delete set confirmation"
+  },
+  "deleteSetConfirmMessage": "Set {number}: {weight}{unit}/{reps} reps",
+  "@deleteSetConfirmMessage": {
+    "description": "Message for delete set confirmation",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "weight": {
+        "type": "double"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "cancelButton": "Cancel",
+  "confirmButton": "OK",
+
+  "errorMessage": "Error: {error}",
+  "@errorMessage": {
+    "description": "General error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "recentWorkoutsLabel": "Recent Workouts",
+  "@recentWorkoutsLabel": {
+    "description": "Label for recent workouts section"
+  },
+  "errorLoadingWorkouts": "Error loading workouts",
+  "@errorLoadingWorkouts": {
+    "description": "Error message when workouts fail to load"
+  },
+  "noWorkoutHistory": "No workout history yet",
+  "@noWorkoutHistory": {
+    "description": "Message when there's no workout history"
+  },
+  "unknownDate": "Unknown date",
+  "durationLabel": "Duration: {duration}",
+  "@durationLabel": {
+    "description": "Duration label with time",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours}h {minutes}min",
+  "@durationHoursMinutes": {
+    "description": "Duration format with hours and minutes",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "description": "Duration format with minutes only",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "workoutInProgress": "Workout in progress",
+  "startNewWorkoutButton": "Start New Workout",
+  "@startNewWorkoutButton": {
+    "description": "Button to start a new workout"
+  },
+  "editWorkoutButton": "Edit Workout",
+  "deleteWorkoutButton": "Delete Workout",
+  "setsCountLabel": "{count} sets",
+  "@setsCountLabel": {
+    "description": "Label for number of sets",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noSetsRecorded": "No sets recorded",
+  "deleteWorkoutDialogTitle": "Delete Workout",
+  "deleteWorkoutDialogMessage": "Are you sure you want to delete this workout? This action cannot be undone.",
+  "errorDeletingWorkout": "Error deleting workout: {error}",
+  "@errorDeletingWorkout": {
+    "description": "Error message when workout deletion fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "saveButton": "Save",
+  "@saveButton": {
+    "description": "Button to save settings"
+  },
+  "settingsSaved": "Settings saved",
+  "@settingsSaved": {
+    "description": "Message shown when settings are saved successfully"
+  },
+  "monthlyWorkoutCount": "{count} workouts",
+  "@monthlyWorkoutCount": {
+    "description": "Shows the number of workouts completed this month",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "thisMonthLabel": "This Month",
+  "@thisMonthLabel": {
+    "description": "Label for this month's workout count"
+  },
+  "streakLabel": "Streak",
+  "@streakLabel": {
+    "description": "Label for workout streak"
+  },
+  "streakDays": "{count} days",
+  "@streakDays": {
+    "description": "Shows the current workout streak in days",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchExercisePlaceholder": "Search exercises...",
+  "@searchExercisePlaceholder": {
+    "description": "Placeholder text for exercise search field"
+  },
+  "selectExerciseTitle": "Select Exercise",
+  "@selectExerciseTitle": {
+    "description": "Title for exercise selection modal"
+  },
+  "addCustomExerciseButton": "Add Custom Exercise",
+  "@addCustomExerciseButton": {
+    "description": "Button to add a custom exercise"
+  },
+  "customExerciseDialogTitle": "Add Custom Exercise",
+  "@customExerciseDialogTitle": {
+    "description": "Title for custom exercise input dialog"
+  },
+  "exerciseNameLabel": "Exercise Name",
+  "@exerciseNameLabel": {
+    "description": "Label for exercise name input"
+  },
+  "addButton": "Add",
+  "@addButton": {
+    "description": "Button to add item"
+  },
+  "historyTitle": "History",
+  "@historyTitle": {
+    "description": "Title for history screen"
+  },
+  "viewDetailsButton": "View Details",
+  "@viewDetailsButton": {
+    "description": "Button to view workout details"
+  },
+  "exerciseCount": "{count} exercises",
+  "@exerciseCount": {
+    "description": "Number of exercises in a workout",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setCount": "{count} sets",
+  "@setCount": {
+    "description": "Number of sets in a workout",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workoutSummaryTitle": "Workout on {date}",
+  "@workoutSummaryTitle": {
+    "description": "Title for workout summary",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noWorkoutsThisMonth": "No workouts this month",
+  "@noWorkoutsThisMonth": {
+    "description": "Message when there are no workouts in the current month"
+  },
+  "deleteExerciseDialogTitle": "Delete Exercise?",
+  "@deleteExerciseDialogTitle": {
+    "description": "Title for delete exercise confirmation dialog"
+  },
+  "deleteExerciseDialogMessage": "Are you sure you want to delete \"{exerciseName}\"? This will remove all sets for this exercise.",
+  "@deleteExerciseDialogMessage": {
+    "description": "Message for delete exercise confirmation dialog",
+    "placeholders": {
+      "exerciseName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCustomExerciseDialogTitle": "Delete Custom Exercise?",
+  "@deleteCustomExerciseDialogTitle": {
+    "description": "Title for delete custom exercise confirmation dialog"
+  },
+  "deleteCustomExerciseDialogMessage": "Are you sure you want to delete \"{exerciseName}\"? This action cannot be undone.",
+  "@deleteCustomExerciseDialogMessage": {
+    "description": "Message for delete custom exercise confirmation dialog",
+    "placeholders": {
+      "exerciseName": {
+        "type": "String"
+      }
+    }
+  },
+  "exerciseDeleted": "Deleted \"{exerciseName}\"",
+  "@exerciseDeleted": {
+    "description": "Snackbar message when exercise is deleted",
+    "placeholders": {
+      "exerciseName": {
+        "type": "String"
+      }
+    }
+  },
+  "exerciseHistoryTitle": "Exercise History",
+  "@exerciseHistoryTitle": {
+    "description": "Title for exercise history dialog"
+  },
+  "noHistoryAvailable": "No history available",
+  "@noHistoryAvailable": {
+    "description": "Message when there's no history for an exercise"
+  },
+  "today": "Today",
+  "@today": {
+    "description": "Label for today"
+  },
+  "yesterday": "Yesterday",
+  "@yesterday": {
+    "description": "Label for yesterday"
+  },
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "description": "Label for days ago",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeksAgo": "{count} weeks ago",
+  "@weeksAgo": {
+    "description": "Label for weeks ago",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthsAgo": "{count} months ago",
+  "@monthsAgo": {
+    "description": "Label for months ago",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearsAgo": "{count} years ago",
+  "@yearsAgo": {
+    "description": "Label for years ago",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlySummary": "Monthly Summary",
+  "@monthlySummary": {
+    "description": "Title for monthly summary section"
+  },
+  "totalDuration": "Total Duration",
+  "@totalDuration": {
+    "description": "Label for total training duration"
+  },
+  "totalSets": "Total Sets",
+  "@totalSets": {
+    "description": "Label for total sets count"
+  },
+  "totalVolume": "Total Volume",
+  "@totalVolume": {
+    "description": "Label for total volume (weight/reps)"
+  },
+  "totalTime": "Total Time",
+  "@totalTime": {
+    "description": "Label for total time (for time-based exercises)"
+  },
+  "setsUnit": "sets",
+  "@setsUnit": {
+    "description": "Unit for sets"
+  },
+  "topExercises": "Top Exercises",
+  "@topExercises": {
+    "description": "Title for most frequent exercises"
+  },
+  "timesUnit": "times",
+  "@timesUnit": {
+    "description": "Unit for frequency count"
+  },
+  "weeklyTrend": "Weekly Trend",
+  "@weeklyTrend": {
+    "description": "Title for weekly workout trend chart"
+  },
+  "memoLabel": "Memo",
+  "@memoLabel": {
+    "description": "Label for memo section"
+  },
+  "memoHistory": "Memo History",
+  "@memoHistory": {
+    "description": "Title for memo history section"
+  },
+  "noMemoRecorded": "No memo",
+  "@noMemoRecorded": {
+    "description": "Message when there's no memo"
+  },
+  "memoSearch": "Search Memos",
+  "@memoSearch": {
+    "description": "Title for memo search screen"
+  },
+  "memoSearchPlaceholder": "Search by keyword...",
+  "@memoSearchPlaceholder": {
+    "description": "Placeholder for memo search input"
+  },
+  "memoSearchNoResults": "No memos found",
+  "@memoSearchNoResults": {
+    "description": "Message when no memos match the search"
+  },
+  "memoSearchHint": "Enter a keyword to search your workout memos",
+  "@memoSearchHint": {
+    "description": "Hint text for memo search"
+  },
+
+  "previousLabel": "Previous:",
+  "@previousLabel": {
+    "description": "Label for previous record section"
+  },
+  "historyButton": "History",
+  "@historyButton": {
+    "description": "Button to view exercise history"
+  },
+  "reproducePreviousButton": "Reproduce Previous",
+  "@reproducePreviousButton": {
+    "description": "Button to reproduce previous sets"
+  },
+  "memoPlaceholder": "Add notes (e.g., form cues, how it felt...)",
+  "@memoPlaceholder": {
+    "description": "Placeholder text for memo input"
+  },
+  "showLess": "Show less",
+  "@showLess": {
+    "description": "Button to show less items"
+  },
+  "showMoreSets": "+{count} more",
+  "@showMoreSets": {
+    "description": "Button to show more sets",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteExerciseTooltip": "Delete exercise",
+  "@deleteExerciseTooltip": {
+    "description": "Tooltip for delete exercise button"
+  },
+
+  "weightTab": "Weight",
+  "@weightTab": {
+    "description": "Tab label for weight chart"
+  },
+  "repsTab": "Reps",
+  "@repsTab": {
+    "description": "Tab label for reps chart"
+  },
+  "volumeTab": "Volume",
+  "@volumeTab": {
+    "description": "Tab label for volume chart"
+  },
+  "noDataForExercise": "No workout data found for this exercise.",
+  "@noDataForExercise": {
+    "description": "Message when there's no data for exercise progress"
+  },
+  "summaryLabel": "Summary",
+  "@summaryLabel": {
+    "description": "Label for summary section"
+  },
+  "totalWorkouts": "Total Workouts",
+  "@totalWorkouts": {
+    "description": "Label for total workouts count"
+  },
+  "latestTopWeight": "Latest Top Weight",
+  "@latestTopWeight": {
+    "description": "Label for latest top weight"
+  },
+  "latestBestTime": "Latest Best Time",
+  "@latestBestTime": {
+    "description": "Label for latest best time"
+  },
+  "latestTopReps": "Latest Top Reps",
+  "@latestTopReps": {
+    "description": "Label for latest top reps"
+  },
+  "latestTopVolume": "Latest Top Volume",
+  "@latestTopVolume": {
+    "description": "Label for latest top volume"
+  },
+  "startingWeight": "Starting Weight",
+  "@startingWeight": {
+    "description": "Label for starting weight"
+  },
+  "startingBestTime": "Starting Best Time",
+  "@startingBestTime": {
+    "description": "Label for starting best time"
+  },
+  "startingTopReps": "Starting Top Reps",
+  "@startingTopReps": {
+    "description": "Label for starting top reps"
+  },
+  "startingTopVolume": "Starting Top Volume",
+  "@startingTopVolume": {
+    "description": "Label for starting top volume"
+  },
+  "improvement": "Improvement",
+  "@improvement": {
+    "description": "Label for improvement stat"
+  },
+  "repsUnit": "reps",
+  "@repsUnit": {
+    "description": "Unit for reps"
+  },
+  "noBodyPartWorkoutsThisMonth": "No {bodyPart} workouts recorded this month.",
+  "@noBodyPartWorkoutsThisMonth": {
+    "description": "Message when there are no workouts for a specific body part this month",
+    "placeholders": {
+      "bodyPart": {
+        "type": "String"
+      }
+    }
+  },
+
+  "distanceUnitLabel": "Distance Unit",
+  "@distanceUnitLabel": {
+    "description": "Label for distance unit selection"
+  },
+  "distanceUnitKm": "km",
+  "@distanceUnitKm": {
+    "description": "Kilometers unit"
+  },
+  "distanceUnitMile": "mile",
+  "@distanceUnitMile": {
+    "description": "Miles unit"
+  },
+  "timeTab": "Time",
+  "@timeTab": {
+    "description": "Tab label for time chart"
+  },
+  "distanceTab": "Distance",
+  "@distanceTab": {
+    "description": "Tab label for distance chart"
+  },
+  "paceTab": "Pace",
+  "@paceTab": {
+    "description": "Tab label for pace chart"
+  },
+  "latestBestDistance": "Latest Best Distance",
+  "@latestBestDistance": {
+    "description": "Label for latest best distance"
+  },
+  "startingBestDistance": "Starting Best Distance",
+  "@startingBestDistance": {
+    "description": "Label for starting best distance"
+  },
+
+  "paywallTitleHistory": "View your full history",
+  "@paywallTitleHistory": {
+    "description": "Paywall title for history unlock"
+  },
+  "paywallTitleChart": "See your progress in charts",
+  "@paywallTitleChart": {
+    "description": "Paywall title for chart access"
+  },
+  "paywallTitleTheme": "Personalize your theme",
+  "@paywallTitleTheme": {
+    "description": "Paywall title for theme customization"
+  },
+  "paywallTitleStats": "View detailed stats",
+  "@paywallTitleStats": {
+    "description": "Paywall title for stats access"
+  },
+  "paywallTitleExport": "Export your data",
+  "@paywallTitleExport": {
+    "description": "Paywall title for export feature"
+  },
+  "paywallBodyHistory": "Free shows your latest 20 sessions. Go Pro to unlock full history, charts, and stats to see your progress.",
+  "@paywallBodyHistory": {
+    "description": "Paywall body for history unlock"
+  },
+  "paywallBodyChart": "Track your growth with detailed charts and graphs. Available with Pro.",
+  "@paywallBodyChart": {
+    "description": "Paywall body for chart access"
+  },
+  "paywallBodyTheme": "Customize your app's look with your favorite colors. Available with Pro.",
+  "@paywallBodyTheme": {
+    "description": "Paywall body for theme customization"
+  },
+  "paywallBodyStats": "Get detailed weekly and monthly statistics. Available with Pro.",
+  "@paywallBodyStats": {
+    "description": "Paywall body for stats access"
+  },
+  "paywallBodyExport": "Export your workout data to CSV. Available with Pro.",
+  "@paywallBodyExport": {
+    "description": "Paywall body for export feature"
+  },
+  "paywallCtaTryPro": "Try Pro",
+  "@paywallCtaTryPro": {
+    "description": "CTA button text for trying Pro"
+  },
+  "paywallCtaNotNow": "Not now",
+  "@paywallCtaNotNow": {
+    "description": "Secondary CTA for dismissing paywall"
+  },
+  "paywallCompareHistory": "History",
+  "@paywallCompareHistory": {
+    "description": "Comparison table row for history"
+  },
+  "paywallCompareLast20": "Last 20",
+  "@paywallCompareLast20": {
+    "description": "Free tier history limit"
+  },
+  "paywallCompareUnlimited": "Unlimited",
+  "@paywallCompareUnlimited": {
+    "description": "Pro tier unlimited access"
+  },
+  "paywallCompareCharts": "Charts",
+  "@paywallCompareCharts": {
+    "description": "Comparison table row for charts"
+  },
+  "paywallCompareTheme": "Theme",
+  "@paywallCompareTheme": {
+    "description": "Comparison table row for theme"
+  },
+  "paywallCompareDefault": "Default",
+  "@paywallCompareDefault": {
+    "description": "Free tier default theme"
+  },
+  "paywallCompareCustom": "Custom",
+  "@paywallCompareCustom": {
+    "description": "Pro tier custom theme"
+  },
+  "lockedSessionHint": "Unlock full history with Pro",
+  "@lockedSessionHint": {
+    "description": "Hint for locked session"
+  },
+  "lockedSessionSubHint": "Free shows the latest 20 sessions. Go Pro to view everything.",
+  "@lockedSessionSubHint": {
+    "description": "Sub hint for locked session"
+  },
+  "proLabel": "Pro",
+  "@proLabel": {
+    "description": "Pro label"
+  },
+  "freeLabel": "Free",
+  "@freeLabel": {
+    "description": "Free label"
+  },
+  "paywallPriceMonthly": "¥250/month",
+  "@paywallPriceMonthly": {
+    "description": "Monthly price for Pro"
+  },
+  "paywallPriceYearly": "¥2,500/year",
+  "@paywallPriceYearly": {
+    "description": "Yearly price for Pro"
+  },
+  "paywallPriceOr": "or",
+  "@paywallPriceOr": {
+    "description": "Or separator between prices"
+  },
+  "shareWorkoutButton": "Share",
+  "@shareWorkoutButton": {
+    "description": "Button to share workout to SNS"
+  },
+  "shareWorkoutDialogTitle": "Share Workout",
+  "@shareWorkoutDialogTitle": {
+    "description": "Title for workout share dialog"
+  },
+  "copyToClipboard": "Copy to Clipboard",
+  "@copyToClipboard": {
+    "description": "Button to copy text to clipboard"
+  },
+  "copiedToClipboard": "Copied to Clipboard",
+  "@copiedToClipboard": {
+    "description": "Message when text is copied to clipboard"
+  },
+
+  "themeSettingsTitle": "Theme Settings",
+  "@themeSettingsTitle": {
+    "description": "Title for theme settings screen"
+  },
+  "presetThemesLabel": "Preset Themes",
+  "@presetThemesLabel": {
+    "description": "Label for preset themes section"
+  },
+  "customColorsLabel": "Custom Colors",
+  "@customColorsLabel": {
+    "description": "Label for custom colors section"
+  },
+  "primaryColorLabel": "Primary Color",
+  "@primaryColorLabel": {
+    "description": "Label for primary color"
+  },
+  "secondaryColorLabel": "Secondary Color",
+  "@secondaryColorLabel": {
+    "description": "Label for secondary color"
+  },
+  "previewLabel": "Preview",
+  "@previewLabel": {
+    "description": "Label for theme preview section"
+  },
+  "resetToDefaultLabel": "Reset to Default",
+  "@resetToDefaultLabel": {
+    "description": "Label for reset to default button"
+  },
+  "resetThemeConfirmMessage": "Reset theme settings to default?",
+  "@resetThemeConfirmMessage": {
+    "description": "Confirmation message for resetting theme"
+  },
+  "contrastWarning": "Low contrast may affect readability",
+  "@contrastWarning": {
+    "description": "Warning message for low contrast"
+  },
+  "themeLabel": "Theme",
+  "@themeLabel": {
+    "description": "Label for theme setting"
+  },
+  "invalidHexColor": "Invalid color code",
+  "@invalidHexColor": {
+    "description": "Error message for invalid hex color"
+  },
+  "hexColorHint": "e.g. #1976D2",
+  "@hexColorHint": {
+    "description": "Hint for hex color input"
+  },
+  "selectColor": "Select Color",
+  "@selectColor": {
+    "description": "Title for color picker"
+  },
+  "colorPalette": "Color Palette",
+  "@colorPalette": {
+    "description": "Tooltip for color palette button"
+  },
+  "colorCategoryBasic": "Basic",
+  "@colorCategoryBasic": {
+    "description": "Basic color category"
+  },
+  "colorCategoryRed": "Red",
+  "@colorCategoryRed": {
+    "description": "Red color category"
+  },
+  "colorCategoryPink": "Pink",
+  "@colorCategoryPink": {
+    "description": "Pink color category"
+  },
+  "colorCategoryPurple": "Purple",
+  "@colorCategoryPurple": {
+    "description": "Purple color category"
+  },
+  "colorCategoryBlue": "Blue",
+  "@colorCategoryBlue": {
+    "description": "Blue color category"
+  },
+  "colorCategoryGreen": "Green",
+  "@colorCategoryGreen": {
+    "description": "Green color category"
+  },
+  "colorCategoryOrange": "Orange",
+  "@colorCategoryOrange": {
+    "description": "Orange color category"
+  },
+  "colorCategoryBrown": "Brown",
+  "@colorCategoryBrown": {
+    "description": "Brown color category"
+  },
+
+  "paywallTitleBackup": "Backup your data",
+  "@paywallTitleBackup": {
+    "description": "Paywall title for backup feature"
+  },
+  "paywallBodyBackup": "Back up your data to transfer to a new device. Available with Pro.",
+  "@paywallBodyBackup": {
+    "description": "Paywall body for backup feature"
+  },
+
+  "backupLabel": "Backup",
+  "@backupLabel": {
+    "description": "Label for backup section"
+  },
+  "backupTitle": "Backup & Restore",
+  "@backupTitle": {
+    "description": "Title for backup screen"
+  },
+  "backupSectionTitle": "Create Backup",
+  "@backupSectionTitle": {
+    "description": "Title for backup creation section"
+  },
+  "backupSectionDescription": "Export all your workout data to a file",
+  "@backupSectionDescription": {
+    "description": "Description for backup section"
+  },
+  "createBackupButton": "Create Backup",
+  "@createBackupButton": {
+    "description": "Button to create backup"
+  },
+  "restoreSectionTitle": "Restore from Backup",
+  "@restoreSectionTitle": {
+    "description": "Title for restore section"
+  },
+  "restoreSectionDescription": "Import data from a backup file",
+  "@restoreSectionDescription": {
+    "description": "Description for restore section"
+  },
+  "restoreBackupButton": "Select Backup File",
+  "@restoreBackupButton": {
+    "description": "Button to select backup file"
+  },
+  "backupWarning": "Restoring will overwrite all current data. Make sure to backup current data first if needed.",
+  "@backupWarning": {
+    "description": "Warning about restore overwriting data"
+  },
+  "creatingBackup": "Creating backup...",
+  "@creatingBackup": {
+    "description": "Loading message while creating backup"
+  },
+  "backupCreated": "Backup created successfully",
+  "@backupCreated": {
+    "description": "Success message when backup is created"
+  },
+  "loadingBackup": "Loading backup file...",
+  "@loadingBackup": {
+    "description": "Loading message while reading backup"
+  },
+  "restoringData": "Restoring data...",
+  "@restoringData": {
+    "description": "Loading message while restoring data"
+  },
+  "restoreCompleted": "Data restored successfully",
+  "@restoreCompleted": {
+    "description": "Success message when restore is complete"
+  },
+  "invalidBackupFile": "Invalid backup file format",
+  "@invalidBackupFile": {
+    "description": "Error message for invalid backup file"
+  },
+  "incompatibleBackupVersion": "This backup version is not compatible",
+  "@incompatibleBackupVersion": {
+    "description": "Error message for incompatible backup version"
+  },
+  "restoreConfirmTitle": "Restore Data?",
+  "@restoreConfirmTitle": {
+    "description": "Title for restore confirmation dialog"
+  },
+  "restoreConfirmBackupDate": "Backup date: {date}",
+  "@restoreConfirmBackupDate": {
+    "description": "Shows backup date in confirmation",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreConfirmSessionCount": "Sessions: {count}",
+  "@restoreConfirmSessionCount": {
+    "description": "Shows session count in confirmation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreConfirmExerciseCount": "Exercises: {count}",
+  "@restoreConfirmExerciseCount": {
+    "description": "Shows exercise count in confirmation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreConfirmWarning": "Current data will be overwritten",
+  "@restoreConfirmWarning": {
+    "description": "Warning in restore confirmation"
+  },
+  "restoreButton": "Restore",
+  "@restoreButton": {
+    "description": "Button to confirm restore"
+  }
+}
