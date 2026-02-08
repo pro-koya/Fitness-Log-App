@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 9,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -39,6 +39,8 @@ class DatabaseHelper {
         distance_unit TEXT NOT NULL DEFAULT 'km',
         entitlement TEXT NOT NULL DEFAULT 'free',
         theme_settings TEXT,
+        setup_completed INTEGER NOT NULL DEFAULT 0,
+        tutorial_completed INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -140,7 +142,7 @@ class DatabaseHelper {
   Future<void> _insertInitialData(Database db) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-    // 1. Insert default settings
+    // 1. Insert default settings (setup_completed = 0 for new installs)
     await db.insert('settings', {
       'id': 1,
       'language': 'en',
@@ -148,32 +150,73 @@ class DatabaseHelper {
       'distance_unit': 'km',
       'entitlement': 'free',
       'theme_settings': null,
+      'setup_completed': 0,
+      'tutorial_completed': 0,
       'created_at': now,
       'updated_at': now,
     });
 
-    // 2. Insert standard exercises
+    // 2. Insert standard exercises (based on StandardExercise.md)
     final standardExercises = [
+      // Chest
       {'name': 'Bench Press', 'body_part': 'chest', 'record_type': 'reps'},
       {'name': 'Incline Bench Press', 'body_part': 'chest', 'record_type': 'reps'},
-      {'name': 'Dumbbell Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Dumbbell Bench Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Incline Dumbbell Bench Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Smith Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Incline Smith Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Dumbbell Fly', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Incline Dumbbell Fly', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Cable Fly', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Push-Up', 'body_part': 'chest', 'record_type': 'reps'},
+      // Back
+      {'name': 'Pull-Up', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Lat Pulldown', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Barbell Row', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Dumbbell Row', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Seated Row', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Deadlift', 'body_part': 'back', 'record_type': 'reps'},
+      // Legs
       {'name': 'Squat', 'body_part': 'legs', 'record_type': 'reps'},
       {'name': 'Leg Press', 'body_part': 'legs', 'record_type': 'reps'},
-      {'name': 'Deadlift', 'body_part': 'back', 'record_type': 'reps'},
-      {'name': 'Barbell Row', 'body_part': 'back', 'record_type': 'reps'},
-      {'name': 'Pull Up', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Leg Extension', 'body_part': 'legs', 'record_type': 'reps'},
+      {'name': 'Leg Curl', 'body_part': 'legs', 'record_type': 'reps'},
+      {'name': 'Lunge', 'body_part': 'legs', 'record_type': 'reps'},
+      {'name': 'Calf Raise', 'body_part': 'legs', 'record_type': 'reps'},
+      // Shoulders
       {'name': 'Shoulder Press', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Smith Shoulder Press', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Dumbbell Shoulder Press', 'body_part': 'shoulders', 'record_type': 'reps'},
       {'name': 'Lateral Raise', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Incline Lateral Raise', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Front Raise', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Rear Delt Raise', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Arnold Press', 'body_part': 'shoulders', 'record_type': 'reps'},
+      // Biceps
+      {'name': 'Biceps Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      {'name': 'Dumbbell Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      {'name': 'Incline Dumbbell Curl', 'body_part': 'biceps', 'record_type': 'reps'},
       {'name': 'Barbell Curl', 'body_part': 'biceps', 'record_type': 'reps'},
-      {'name': 'Tricep Extension', 'body_part': 'triceps', 'record_type': 'reps'},
-      // Cardio exercises
+      {'name': 'Hammer Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      {'name': 'Preacher Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      // Triceps
+      {'name': 'Triceps Pushdown', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'Skull Crusher', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'French Press', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'Dips', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'Overhead Triceps Extension', 'body_part': 'triceps', 'record_type': 'reps'},
+      // Abs
+      {'name': 'Sit-Up', 'body_part': 'abs', 'record_type': 'reps'},
+      {'name': 'Crunch', 'body_part': 'abs', 'record_type': 'reps'},
+      {'name': 'Leg Raise', 'body_part': 'abs', 'record_type': 'reps'},
+      {'name': 'Plank', 'body_part': 'abs', 'record_type': 'time'},
+      {'name': 'Russian Twist', 'body_part': 'abs', 'record_type': 'reps'},
+      // Cardio
       {'name': 'Running', 'body_part': 'cardio', 'record_type': 'cardio'},
       {'name': 'Walking', 'body_part': 'cardio', 'record_type': 'cardio'},
       {'name': 'Cycling', 'body_part': 'cardio', 'record_type': 'cardio'},
-      {'name': 'Rowing', 'body_part': 'cardio', 'record_type': 'cardio'},
-      {'name': 'Jump Rope', 'body_part': 'cardio', 'record_type': 'cardio'},
-      {'name': 'Swimming', 'body_part': 'cardio', 'record_type': 'cardio'},
-      {'name': 'Elliptical', 'body_part': 'cardio', 'record_type': 'cardio'},
+      {'name': 'Stationary Bike', 'body_part': 'cardio', 'record_type': 'cardio'},
+      {'name': 'Treadmill', 'body_part': 'cardio', 'record_type': 'cardio'},
     ];
 
     for (final exercise in standardExercises) {
@@ -209,6 +252,18 @@ class DatabaseHelper {
     if (oldVersion < 6) {
       // Migration from version 5 to 6: Add entitlement and theme_settings for Pro/Free plan
       await _migrateToVersion6(db);
+    }
+    if (oldVersion < 7) {
+      // Migration from version 6 to 7: Add setup_completed flag
+      await _migrateToVersion7(db);
+    }
+    if (oldVersion < 8) {
+      // Migration from version 7 to 8: Add new standard exercises from StandardExercise.md
+      await _migrateToVersion8(db);
+    }
+    if (oldVersion < 9) {
+      // Migration from version 8 to 9: Add tutorial_completed flag
+      await _migrateToVersion9(db);
     }
   }
 
@@ -383,6 +438,100 @@ class DatabaseHelper {
     await db.execute('''
       ALTER TABLE settings ADD COLUMN theme_settings TEXT
     ''');
+  }
+
+  /// Migrate to version 7 (add setup_completed flag)
+  Future<void> _migrateToVersion7(Database db) async {
+    // Add setup_completed column with default value 1 for existing users
+    // (they have already used the app, so skip the initial setup)
+    await db.execute('''
+      ALTER TABLE settings ADD COLUMN setup_completed INTEGER NOT NULL DEFAULT 1
+    ''');
+  }
+
+  /// Migrate to version 9 (add tutorial_completed flag)
+  Future<void> _migrateToVersion9(Database db) async {
+    // Add tutorial_completed column with default value 0 for existing users
+    // (they need to complete the interactive tutorial)
+    await db.execute('''
+      ALTER TABLE settings ADD COLUMN tutorial_completed INTEGER NOT NULL DEFAULT 0
+    ''');
+  }
+
+  /// Migrate to version 8 (add new standard exercises from StandardExercise.md)
+  Future<void> _migrateToVersion8(Database db) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    // New exercises to add (only add if they don't exist)
+    final newExercises = [
+      // Chest
+      {'name': 'Dumbbell Bench Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Incline Dumbbell Bench Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Smith Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Incline Smith Press', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Dumbbell Fly', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Incline Dumbbell Fly', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Cable Fly', 'body_part': 'chest', 'record_type': 'reps'},
+      {'name': 'Push-Up', 'body_part': 'chest', 'record_type': 'reps'},
+      // Back
+      {'name': 'Pull-Up', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Lat Pulldown', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Dumbbell Row', 'body_part': 'back', 'record_type': 'reps'},
+      {'name': 'Seated Row', 'body_part': 'back', 'record_type': 'reps'},
+      // Legs
+      {'name': 'Leg Extension', 'body_part': 'legs', 'record_type': 'reps'},
+      {'name': 'Leg Curl', 'body_part': 'legs', 'record_type': 'reps'},
+      {'name': 'Lunge', 'body_part': 'legs', 'record_type': 'reps'},
+      {'name': 'Calf Raise', 'body_part': 'legs', 'record_type': 'reps'},
+      // Shoulders
+      {'name': 'Smith Shoulder Press', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Dumbbell Shoulder Press', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Incline Lateral Raise', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Front Raise', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Rear Delt Raise', 'body_part': 'shoulders', 'record_type': 'reps'},
+      {'name': 'Arnold Press', 'body_part': 'shoulders', 'record_type': 'reps'},
+      // Biceps
+      {'name': 'Biceps Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      {'name': 'Dumbbell Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      {'name': 'Incline Dumbbell Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      {'name': 'Hammer Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      {'name': 'Preacher Curl', 'body_part': 'biceps', 'record_type': 'reps'},
+      // Triceps
+      {'name': 'Triceps Pushdown', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'Skull Crusher', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'French Press', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'Dips', 'body_part': 'triceps', 'record_type': 'reps'},
+      {'name': 'Overhead Triceps Extension', 'body_part': 'triceps', 'record_type': 'reps'},
+      // Abs
+      {'name': 'Sit-Up', 'body_part': 'abs', 'record_type': 'reps'},
+      {'name': 'Crunch', 'body_part': 'abs', 'record_type': 'reps'},
+      {'name': 'Leg Raise', 'body_part': 'abs', 'record_type': 'reps'},
+      {'name': 'Plank', 'body_part': 'abs', 'record_type': 'time'},
+      {'name': 'Russian Twist', 'body_part': 'abs', 'record_type': 'reps'},
+      // Cardio
+      {'name': 'Stationary Bike', 'body_part': 'cardio', 'record_type': 'cardio'},
+      {'name': 'Treadmill', 'body_part': 'cardio', 'record_type': 'cardio'},
+    ];
+
+    for (final exercise in newExercises) {
+      // Check if exercise already exists
+      final existing = await db.query(
+        'exercise_master',
+        where: 'name = ? AND is_custom = 0',
+        whereArgs: [exercise['name']],
+      );
+
+      if (existing.isEmpty) {
+        await db.insert('exercise_master', {
+          'name': exercise['name'],
+          'body_part': exercise['body_part'],
+          'is_custom': 0,
+          'record_type': exercise['record_type'],
+          'created_at': now,
+          'updated_at': now,
+        });
+      }
+    }
   }
 
   /// Close database

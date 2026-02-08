@@ -6,6 +6,8 @@ import '../../../data/localization/exercise_localization.dart';
 import '../../../data/localization/body_part_localization.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/settings_provider.dart';
+import '../../tutorial/providers/interactive_tutorial_provider.dart';
+import '../../tutorial/models/tutorial_step.dart';
 import 'set_row_widget.dart';
 import 'exercise_history_dialog.dart';
 
@@ -21,6 +23,7 @@ class ExerciseCardWidget extends ConsumerStatefulWidget {
   final Function(int setIndex) onDeleteSet;
   final VoidCallback onDeleteExercise;
   final Function(String? memo) onUpdateMemo;
+  final GlobalKey? tutorialSetInputKey; // Key for tutorial step 3
 
   const ExerciseCardWidget({
     super.key,
@@ -33,6 +36,7 @@ class ExerciseCardWidget extends ConsumerStatefulWidget {
     required this.onDeleteSet,
     required this.onDeleteExercise,
     required this.onUpdateMemo,
+    this.tutorialSetInputKey,
   });
 
   @override
@@ -156,18 +160,39 @@ class _ExerciseCardWidgetState extends ConsumerState<ExerciseCardWidget> {
             ...widget.exercise.sets.asMap().entries.map((entry) {
               final setIndex = entry.key;
               final set = entry.value;
-              final hasPreviousSet =
-                  setIndex < widget.exercise.previousSets.length;
+              // Can duplicate if current set has any values
+              final canDuplicate = set.weight != null ||
+                  set.reps != null ||
+                  (set.durationSeconds != null && set.durationSeconds! > 0) ||
+                  set.distance != null;
+
+              // Use tutorial key for first set if provided
+              final setKey = setIndex == 0 && widget.tutorialSetInputKey != null
+                  ? widget.tutorialSetInputKey!
+                  : ValueKey('set_${widget.exercise.workoutExerciseId}_$setIndex');
 
               return SetRowWidget(
-                key: ValueKey(
-                    'set_${widget.exercise.workoutExerciseId}_$setIndex'),
+                key: setKey,
                 set: set,
-                hasPreviousSet: hasPreviousSet,
+                canDuplicate: canDuplicate,
                 canDelete: widget.exercise.sets.length > 1,
-                onUpdate: (weight, reps, durationSeconds, distance) =>
-                    widget.onUpdateSet(setIndex, weight, reps, durationSeconds, distance),
-                onCopyFromPrevious: () => widget.onCopyFromPrevious(setIndex),
+                onUpdate: (weight, reps, durationSeconds, distance) {
+                  widget.onUpdateSet(setIndex, weight, reps, durationSeconds, distance);
+                  // When step 3 (input set) is active and user has entered both weight and reps, jump to step 6 (complete button)
+                  if (setIndex == 0 && widget.tutorialSetInputKey != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      final tutorialNotifier = ref.read(interactiveTutorialProvider.notifier);
+                      final tutorialState = ref.read(interactiveTutorialProvider);
+                      if (tutorialState.isActive &&
+                          tutorialState.currentStep == TutorialStep.workoutInputSet &&
+                          weight != null &&
+                          reps != null) {
+                        tutorialNotifier.completeStepAndJumpTo(TutorialStep.workoutComplete);
+                      }
+                    });
+                  }
+                },
+                onDuplicate: () => widget.onCopyFromPrevious(setIndex),
                 onDelete: () => widget.onDeleteSet(setIndex),
               );
             }),

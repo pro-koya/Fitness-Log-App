@@ -4,6 +4,7 @@ import '../../../data/dao/workout_exercise_dao.dart';
 import '../../../data/dao/set_record_dao.dart';
 import '../../../data/dao/exercise_master_dao.dart';
 import '../../../data/localization/exercise_localization.dart';
+import '../../../providers/database_providers.dart';
 import '../../../providers/settings_provider.dart';
 import '../models/workout_detail_model.dart';
 
@@ -14,6 +15,8 @@ final workoutDetailProvider = FutureProvider.family<WorkoutDetailModel?, int>(
     final exerciseDao = WorkoutExerciseDao();
     final setDao = SetRecordDao();
     final masterDao = ExerciseMasterDao();
+    // Watch database state to refresh when data is restored
+    ref.watch(databaseStateProvider);
     // Watch language provider to recalculate when language changes
     final currentLanguage = ref.watch(currentLanguageProvider);
 

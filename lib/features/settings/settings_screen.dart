@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/preset_theme.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/entitlement_provider.dart';
 import '../../providers/theme_settings_provider.dart';
+import '../../services/iap_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/feature_gate.dart';
 import '../paywall/paywall_service.dart';
@@ -180,6 +183,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                         // Backup Section
                         _buildBackupSection(l10n),
+                        const SizedBox(height: 32),
+
+                        // Restore Purchases Section
+                        _buildRestorePurchasesSection(l10n),
+
+                        // Subscription Management Section (Pro users only)
+                        _buildSubscriptionManagementSection(l10n),
+
+                        // Legal Links Section
+                        const SizedBox(height: 32),
+                        _buildLegalSection(l10n),
 
                         // Dev: Pro/Free toggle (only in debug mode)
                         if (kDebugMode) ...[
@@ -619,6 +633,344 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ],
     );
+  }
+
+  /// 購入復元セクション
+  Widget _buildRestorePurchasesSection(AppLocalizations? l10n) {
+    final entitlementState = ref.watch(entitlementProvider);
+    final iapState = ref.watch(iapServiceProvider);
+    final currentLanguage = ref.watch(currentLanguageProvider);
+
+    // Proユーザーの場合は表示しない
+    if (entitlementState.isPro) {
+      return const SizedBox.shrink();
+    }
+
+    final restoreTitle = currentLanguage == 'ja' ? '購入を復元' : 'Restore Purchases';
+    final restoreDescription = currentLanguage == 'ja'
+        ? '以前購入したProプランを復元'
+        : 'Restore previously purchased Pro plan';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(l10n?.paywallRestorePurchases ?? restoreTitle),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: iapState.isPurchasing ? null : () => _handleRestorePurchases(l10n),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                // アイコン
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.refresh,
+                    color: Colors.blue.shade600,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        restoreTitle,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        restoreDescription,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (iapState.isPurchasing)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  const Icon(Icons.chevron_right),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// サブスクリプション管理セクション（Proユーザー用）
+  Widget _buildSubscriptionManagementSection(AppLocalizations? l10n) {
+    final entitlementState = ref.watch(entitlementProvider);
+
+    // Proユーザー以外は表示しない
+    if (!entitlementState.isPro) {
+      return const SizedBox.shrink();
+    }
+
+    final title = l10n?.settingsManageSubscription ?? 'Manage Subscription';
+    final description = l10n?.settingsManageSubscriptionHint ?? 'Cancel or change your subscription';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        _buildSectionLabel(title),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: _openSubscriptionManagement,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                // アイコン
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.manage_accounts,
+                    color: Colors.orange.shade600,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.open_in_new, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// サブスクリプション管理ページを開く
+  Future<void> _openSubscriptionManagement() async {
+    Uri url;
+    if (Platform.isIOS) {
+      url = Uri.parse('https://apps.apple.com/account/subscriptions');
+    } else if (Platform.isAndroid) {
+      url = Uri.parse('https://play.google.com/store/account/subscriptions');
+    } else {
+      // 非対応プラットフォーム
+      return;
+    }
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open subscription settings: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 購入復元処理
+  Future<void> _handleRestorePurchases(AppLocalizations? l10n) async {
+    final currentLanguage = ref.read(currentLanguageProvider);
+    final restoringMsg = currentLanguage == 'ja' ? '復元中...' : 'Restoring...';
+    final successMsg = l10n?.paywallRestoreSuccess ?? 'Purchases restored';
+    final noSubMsg = l10n?.paywallRestoreNoSubscription ?? 'No active subscription found';
+    final errorMsg = l10n?.paywallSubscriptionError ?? 'Restore failed. Please try again.';
+
+    // ローディング表示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(restoringMsg),
+          ],
+        ),
+        duration: const Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final success = await ref.read(entitlementProvider.notifier).restorePurchases();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(successMsg),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(noSubMsg),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// 法的情報セクション
+  Widget _buildLegalSection(AppLocalizations? l10n) {
+    final currentLanguage = ref.watch(currentLanguageProvider);
+    final legalTitle = currentLanguage == 'ja' ? '法的情報' : 'Legal';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(legalTitle),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              // Terms of Use (EULA)
+              InkWell(
+                onTap: () => _openLegalUrl('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.description_outlined, color: Colors.grey.shade600, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n?.paywallTermsOfService ?? 'Terms of Use',
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ),
+                      Icon(Icons.open_in_new, size: 16, color: Colors.grey.shade500),
+                    ],
+                  ),
+                ),
+              ),
+              Divider(height: 1, color: Colors.grey.shade300),
+              // Privacy Policy
+              InkWell(
+                onTap: () {
+                  final url = currentLanguage == 'ja'
+                      ? 'https://lovely-kitty-76f.notion.site/2f60ff4893228039a89fed882469cdde?source=copy_link'
+                      : 'https://lovely-kitty-76f.notion.site/Privacy-Policy-2f60ff489322807398aac2e94993f0a9?source=copy_link';
+                  _openLegalUrl(url);
+                },
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.privacy_tip_outlined, color: Colors.grey.shade600, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n?.paywallPrivacyPolicy ?? 'Privacy Policy',
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ),
+                      Icon(Icons.open_in_new, size: 16, color: Colors.grey.shade500),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 法的情報のURLを外部ブラウザで開く
+  Future<void> _openLegalUrl(String url) async {
+    final uri = Uri.parse(url);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open link: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   /// 開発用セクション（デバッグモードのみ表示）

@@ -65,6 +65,26 @@ class WorkoutSessionNotifier
     }
   }
 
+  /// Delete session and all its data (exercises, set records). Used when ending tutorial.
+  Future<void> deleteSession(int sessionId) async {
+    try {
+      final sessionDao = ref.read(workoutSessionDaoProvider);
+      final exerciseDao = ref.read(workoutExerciseDaoProvider);
+      final setRecordDao = ref.read(setRecordDaoProvider);
+      final exercises = await exerciseDao.getExercisesBySessionId(sessionId);
+      for (final ex in exercises) {
+        await setRecordDao.deleteSetsByWorkoutExerciseId(ex.id!);
+      }
+      for (final ex in exercises) {
+        await exerciseDao.deleteWorkoutExercise(ex.id!);
+      }
+      await sessionDao.deleteSession(sessionId);
+      await _loadInProgressSession();
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
   /// Update session start and end times
   Future<void> updateSessionTimes(
     int sessionId,

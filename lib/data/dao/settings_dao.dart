@@ -95,4 +95,36 @@ class SettingsDao {
       settings.copyWith(themeSettings: themeSettingsJson),
     );
   }
+
+  /// Check if initial setup is completed
+  Future<bool> isSetupCompleted() async {
+    final settings = await getSettings();
+    return settings?.setupCompleted ?? false;
+  }
+
+  /// Mark initial setup as completed
+  Future<int> markSetupCompleted() async {
+    final settings = await getSettings();
+    if (settings == null) return 0;
+
+    return await updateSettings(
+      settings.copyWith(setupCompleted: true),
+    );
+  }
+
+  /// Check if tutorial is completed
+  Future<bool> isTutorialCompleted() async {
+    final settings = await getSettings();
+    return settings?.tutorialCompleted ?? false;
+  }
+
+  /// Mark tutorial as completed
+  Future<int> markTutorialCompleted() async {
+    final settings = await getSettings();
+    if (settings == null) return 0;
+
+    return await updateSettings(
+      settings.copyWith(tutorialCompleted: true),
+    );
+  }
 }

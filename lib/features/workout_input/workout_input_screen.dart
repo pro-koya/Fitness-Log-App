@@ -5,6 +5,9 @@ import '../../providers/database_providers.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/workout_session_provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../tutorial/providers/interactive_tutorial_provider.dart';
+import '../tutorial/models/tutorial_step.dart';
+import '../tutorial/widgets/tutorial_overlay.dart';
 import 'providers/workout_input_provider.dart';
 import 'widgets/exercise_card_widget.dart';
 import 'widgets/exercise_selector_modal.dart';
@@ -13,10 +16,12 @@ import 'widgets/timer_icon_button.dart';
 /// Workout input screen - most important screen
 class WorkoutInputScreen extends ConsumerStatefulWidget {
   final int sessionId;
+  final bool isTutorialMode;
 
   const WorkoutInputScreen({
     super.key,
     required this.sessionId,
+    this.isTutorialMode = false,
   });
 
   @override
@@ -27,6 +32,9 @@ class WorkoutInputScreen extends ConsumerStatefulWidget {
 class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   String? _lastUnit;
   bool _hasInitialized = false;
+  final GlobalKey _addExerciseButtonKey = GlobalKey();
+  final GlobalKey _setInputKey = GlobalKey();
+  final GlobalKey _completeButtonKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +48,19 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         // First time: check if exercises need to be loaded with correct unit
         _hasInitialized = true;
         _lastUnit = currentUnit;
-        
+
+        // When opened from tutorial "記録開始", advance from step 1 to step 2 here so the overlay stays on home until this screen is shown (no mysterious flash).
+        if (widget.isTutorialMode) {
+          final step = ref.read(interactiveTutorialProvider).currentStep;
+          if (step == TutorialStep.homeStartWorkout) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
+              }
+            });
+          }
+        }
+
         // If exercises are already loaded, check if they have correct unit
         if (workoutState.exercises.isNotEmpty) {
           final firstSet = workoutState.exercises.first.sets.isNotEmpty
@@ -95,18 +115,36 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
             TimerIconButton(),
           ],
         ),
-        body: workoutState.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : workoutState.exercises.isEmpty
-                ? _buildEmptyState()
-                : _buildExerciseList(workoutState),
+        body: Stack(
+          children: [
+            // In tutorial step 2, show empty state immediately (no loading) so user goes straight to "種目を追加"
+            _shouldShowLoading(workoutState)
+                ? const Center(child: CircularProgressIndicator())
+                : workoutState.exercises.isEmpty
+                    ? _buildEmptyState()
+                    : _buildExerciseList(workoutState),
+            // Tutorial overlay
+            _buildTutorialOverlay(context, ref, workoutState),
+          ],
+        ),
           bottomNavigationBar: _buildBottomBar(),
         ),
       ),
     );
   }
 
+  /// During tutorial step 2 (add exercise), show empty state immediately so user sees "種目を追加" without a loading step.
+  bool _shouldShowLoading(WorkoutInputState workoutState) {
+    if (!workoutState.isLoading) return false;
+    if (widget.isTutorialMode && workoutState.exercises.isEmpty) return false;
+    return true;
+  }
+
   Widget _buildEmptyState() {
+    final tutorialState = ref.watch(interactiveTutorialProvider);
+    final isStep2Active = tutorialState.isActive &&
+        tutorialState.currentStep == TutorialStep.workoutAddExercise;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -127,7 +165,14 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: _showExerciseSelector,
+            key: isStep2Active ? _addExerciseButtonKey : null,
+            onPressed: () async {
+              if (isStep2Active) {
+                // Complete step 2 when exercise selector is opened
+                ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
+              }
+              await _showExerciseSelector();
+            },
             icon: const Icon(Icons.add),
             label: const Text('Add Exercise'),
             style: ElevatedButton.styleFrom(
@@ -147,9 +192,15 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         final exercise = workoutState.exercises[index];
         final notifier = ref.read(workoutInputProvider(widget.sessionId).notifier);
 
+        final tutorialState = ref.watch(interactiveTutorialProvider);
+        final isStep3Active = tutorialState.isActive &&
+            tutorialState.currentStep == TutorialStep.workoutInputSet &&
+            index == 0;
+
         return ExerciseCardWidget(
           exercise: exercise,
           exerciseIndex: index,
+          tutorialSetInputKey: isStep3Active ? _setInputKey : null,
           onUpdateSet: (setIndex, weight, reps, durationSeconds, distance) {
             notifier.updateSet(index, setIndex,
                 weight: weight, reps: reps, durationSeconds: durationSeconds, distance: distance);
@@ -158,7 +209,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
             notifier.copyFromPrevious(index, setIndex);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Copied from previous set'),
+                content: Text('Set duplicated'),
                 duration: Duration(milliseconds: 800),
               ),
             );
@@ -227,12 +278,20 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
 
             // Complete button
             Expanded(
-              child: ElevatedButton(
-                onPressed: _completeWorkout,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('Complete'),
+              child: Builder(
+                builder: (context) {
+                  final tutorialState = ref.watch(interactiveTutorialProvider);
+                  final isStep6Active = tutorialState.isActive &&
+                      tutorialState.currentStep == TutorialStep.workoutComplete;
+                  return ElevatedButton(
+                    key: isStep6Active ? _completeButtonKey : null,
+                    onPressed: _completeWorkout,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text('Complete'),
+                  );
+                },
               ),
             ),
           ],
@@ -243,6 +302,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
 
   Future<void> _showExerciseSelector() async {
     final exerciseMasterDao = ref.read(exerciseMasterDaoProvider);
+    final tutorialState = ref.watch(interactiveTutorialProvider);
+    final isStep2Active = tutorialState.isActive &&
+        tutorialState.currentStep == TutorialStep.workoutAddExercise;
 
     if (!mounted) return;
 
@@ -251,6 +313,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
       isScrollControlled: true,
       builder: (context) => ExerciseSelectorModal(
         exerciseMasterDao: exerciseMasterDao,
+        isTutorialMode: isStep2Active,
       ),
     );
 
@@ -260,8 +323,94 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         final notifier =
             ref.read(workoutInputProvider(widget.sessionId).notifier);
         await notifier.addExercise(exercise);
+        
+        // Complete step 2 when exercise is added
+        if (isStep2Active) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
+            }
+          });
+        }
       }
     }
+  }
+
+  Widget _buildTutorialOverlay(
+    BuildContext context,
+    WidgetRef ref,
+    WorkoutInputState workoutState,
+  ) {
+    final tutorialState = ref.watch(interactiveTutorialProvider);
+    final currentLanguage = ref.watch(currentLanguageProvider);
+    final isJapanese = currentLanguage == 'ja';
+
+    // Check if tutorial was just completed
+    if (tutorialState.isCompleted && tutorialState.currentStep == null) {
+      // Save tutorial completion
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (mounted) {
+          await ref.read(settingsNotifierProvider.notifier).markTutorialCompleted();
+          ref.read(interactiveTutorialProvider.notifier).endTutorial();
+        }
+      });
+      return const SizedBox.shrink();
+    }
+
+    if (!tutorialState.isActive) {
+      return const SizedBox.shrink();
+    }
+
+    // Step 2: Add exercise button (empty state). In tutorial we show empty state immediately so !isLoading is not required.
+    if (tutorialState.currentStep == TutorialStep.workoutAddExercise &&
+        workoutState.exercises.isEmpty &&
+        (!workoutState.isLoading || widget.isTutorialMode)) {
+      return Positioned.fill(
+        child: TutorialOverlay(
+          targetKey: _addExerciseButtonKey,
+          tooltipMessage: isJapanese
+              ? '種目を追加しましょう'
+              : 'Add an exercise to start',
+          onSkip: () {
+            ref.read(interactiveTutorialProvider.notifier).skipTutorial();
+          },
+        ),
+      );
+    }
+
+    // Step 3: Input set (when exercise exists)
+    if (tutorialState.currentStep == TutorialStep.workoutInputSet &&
+        workoutState.exercises.isNotEmpty) {
+      return Positioned.fill(
+        child: TutorialOverlay(
+          targetKey: _setInputKey,
+          tooltipMessage: isJapanese
+              ? '重量と回数を入力しましょう'
+              : 'Enter weight and reps',
+          onSkip: () {
+            ref.read(interactiveTutorialProvider.notifier).skipTutorial();
+          },
+        ),
+      );
+    }
+
+    // Step 6: Complete button (after set input)
+    if (tutorialState.currentStep == TutorialStep.workoutComplete &&
+        workoutState.exercises.isNotEmpty) {
+      return Positioned.fill(
+        child: TutorialOverlay(
+          targetKey: _completeButtonKey,
+          tooltipMessage: isJapanese
+              ? '記録完了をタップしましょう'
+              : 'Tap Complete to finish',
+          onSkip: () {
+            ref.read(interactiveTutorialProvider.notifier).skipTutorial();
+          },
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   Future<void> _saveAndExit() async {
@@ -275,11 +424,56 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   }
 
   Future<void> _completeWorkout() async {
-    // Save all sets
+    // Use isTutorialMode so we always do tutorial completion (delete session, etc.) when this screen was opened in tutorial mode,
+    // even if tutorial state was reset (e.g. after hot reload).
+    final isTutorialMode = widget.isTutorialMode;
+    final tutorialState = ref.read(interactiveTutorialProvider);
+    final isTutorialActive = tutorialState.isActive;
+
+    if (isTutorialMode || isTutorialActive) {
+      // Remove tutorial overlay first so the completion dialog is not blocked
+      ref.read(interactiveTutorialProvider.notifier).endTutorial();
+      // Yield to next frame so overlay removal runs, then show dialog (OK button must be tappable)
+      await Future<void>.delayed(Duration.zero);
+      final l10n = AppLocalizations.of(context)!;
+      bool? confirmed;
+      if (mounted) {
+        confirmed = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.tutorialCompletionTitle),
+            content: Text(l10n.tutorialCompletionMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(l10n.confirmButton),
+              ),
+            ],
+          ),
+        );
+      }
+      if (!mounted || confirmed != true) return;
+
+      // Delete tutorial session and all its data so "記録中の続き" does not appear and tutorial data is removed
+      final sessionNotifier = ref.read(workoutSessionNotifierProvider.notifier);
+      await sessionNotifier.deleteSession(widget.sessionId);
+
+      if (!mounted) return;
+      await ref.read(settingsNotifierProvider.notifier).markTutorialCompleted();
+      // Invalidate workout input cache for this session so it doesn't hold stale data
+      ref.invalidate(workoutInputProvider(widget.sessionId));
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
+    // Normal flow: save and complete session
     final notifier = ref.read(workoutInputProvider(widget.sessionId).notifier);
     await notifier.saveAll();
 
-    // Complete session
     final sessionNotifier = ref.read(workoutSessionNotifierProvider.notifier);
     await sessionNotifier.completeSession(widget.sessionId);
 

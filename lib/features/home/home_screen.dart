@@ -12,26 +12,64 @@ import '../workout_input/widgets/timer_icon_button.dart';
 import '../workout_detail/workout_detail_screen.dart';
 import '../history/history_screen.dart';
 import '../memo_search/memo_search_screen.dart';
+import '../exercise_list/exercise_list_screen.dart';
+import '../tutorial/providers/interactive_tutorial_provider.dart';
+import '../tutorial/models/tutorial_step.dart';
+import '../tutorial/widgets/tutorial_overlay.dart';
 import 'widgets/locked_session_tile.dart';
 
 /// Home screen - main entry point after initial setup
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final GlobalKey _startWorkoutButtonKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final sessionAsync = ref.watch(workoutSessionNotifierProvider);
     final currentLanguage = ref.watch(currentLanguageProvider);
     final now = DateTime.now();
 
+    final tutorialState = ref.watch(interactiveTutorialProvider);
+    final isTutorialActive = tutorialState.isActive &&
+        tutorialState.currentStep == TutorialStep.homeStartWorkout;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appName),
+        title: const SizedBox.shrink(),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.settings),
+          tooltip: l10n.settingsTitle,
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            );
+          },
+        ),
         actions: [
-          TimerIconButton(),
-          IconButton(
-            icon: const Icon(Icons.search),
+          const TimerIconButton(),
+          _buildCompactIconButton(
+            icon: Icons.fitness_center,
+            tooltip: currentLanguage == 'ja' ? '種目一覧' : 'Exercises',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ExerciseListScreen(),
+                ),
+              );
+            },
+          ),
+          _buildCompactIconButton(
+            icon: Icons.search,
             tooltip: l10n.memoSearch,
             onPressed: () {
               Navigator.of(context).push(
@@ -41,8 +79,9 @@ class HomeScreen extends ConsumerWidget {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
+          _buildCompactIconButton(
+            icon: Icons.calendar_today,
+            tooltip: l10n.historyTitle,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -51,19 +90,11 @@ class HomeScreen extends ConsumerWidget {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
         ],
       ),
-      body: SafeArea(
+      body: Stack(
+        children: [
+          SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -121,6 +152,21 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
         ),
+          ),
+          // Tutorial overlay - must be Positioned.fill to correctly align spotlight
+          if (isTutorialActive)
+            Positioned.fill(
+              child: TutorialOverlay(
+                targetKey: _startWorkoutButtonKey,
+                tooltipMessage: currentLanguage == 'ja'
+                    ? 'このボタンをタップしてワークアウトを開始しましょう'
+                    : 'Tap this button to start your workout',
+                onSkip: () {
+                  ref.read(interactiveTutorialProvider.notifier).skipTutorial();
+                },
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -466,11 +512,16 @@ class HomeScreen extends ConsumerWidget {
     bool isSecondary = false,
   }) {
     final l10n = AppLocalizations.of(context)!;
+    final tutorialState = ref.watch(interactiveTutorialProvider);
+    final isTutorialActive = tutorialState.isActive &&
+        tutorialState.currentStep == TutorialStep.homeStartWorkout;
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
+        key: isTutorialActive ? _startWorkoutButtonKey : null,
         onPressed: () async {
+          // Do NOT complete step here: advancing would hide the overlay on home before push, causing a "mysterious" flash. Advance to step 2 after WorkoutInputScreen is shown.
           await _createNewSession(context, ref);
         },
         style: ElevatedButton.styleFrom(
@@ -506,7 +557,10 @@ class HomeScreen extends ConsumerWidget {
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => WorkoutInputScreen(sessionId: sessionId),
+        builder: (context) => WorkoutInputScreen(
+          sessionId: sessionId,
+          isTutorialMode: ref.read(interactiveTutorialProvider).isActive,
+        ),
       ),
     ).then((_) {
       // Refresh session list and recent workouts when returning
@@ -514,4 +568,24 @@ class HomeScreen extends ConsumerWidget {
       ref.invalidate(recentWorkoutItemsProvider);
     });
   }
+
+  /// Build compact icon button with reduced padding for AppBar
+  Widget _buildCompactIconButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      icon: Icon(icon, size: 22),
+      tooltip: tooltip,
+      onPressed: onPressed,
+      padding: const EdgeInsets.all(8),
+      constraints: const BoxConstraints(
+        minWidth: 36,
+        minHeight: 36,
+      ),
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
 }

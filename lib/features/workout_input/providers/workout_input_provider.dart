@@ -245,32 +245,27 @@ class WorkoutInputNotifier extends StateNotifier<WorkoutInputState> {
     _scheduleAutoSave();
   }
 
-  /// Copy from previous set and add as new row
+  /// Copy current set and add as new row (duplicate the set at setIndex)
   void copyFromPrevious(int exerciseIndex, int setIndex) {
     if (exerciseIndex >= state.exercises.length) return;
 
     final exercise = state.exercises[exerciseIndex];
-    if (exercise.previousSets.isEmpty) return;
+    if (setIndex >= exercise.sets.length) return;
 
-    final currentUnit = ref.read(currentUnitProvider);
-    final currentDistanceUnit = ref.read(currentDistanceUnitProvider);
+    // Get the current set to copy
+    final currentSet = exercise.sets[setIndex];
 
-    // Get previous set (same set number, or last set if not available)
-    final previousSet = setIndex < exercise.previousSets.length
-        ? exercise.previousSets[setIndex]
-        : exercise.previousSets.last;
-
-    // Create new set with previous values (convert to current unit)
+    // Create new set with current set's values
     final newSetNumber = exercise.sets.length + 1;
     final newSet = SetRecordModel(
       setNumber: newSetNumber,
-      weight: previousSet.getWeight(currentUnit), // Convert to current unit
-      reps: previousSet.reps,
-      durationSeconds: previousSet.durationSeconds,
-      distance: previousSet.getDistance(currentDistanceUnit), // Convert to current distance unit
-      unit: currentUnit,
-      distanceUnit: currentDistanceUnit,
-      recordType: exercise.exercise.recordType,
+      weight: currentSet.weight,
+      reps: currentSet.reps,
+      durationSeconds: currentSet.durationSeconds,
+      distance: currentSet.distance,
+      unit: currentSet.unit,
+      distanceUnit: currentSet.distanceUnit,
+      recordType: currentSet.recordType,
     );
 
     final updatedExercise = exercise.copyWith(

@@ -1,7 +1,7 @@
 {
   "@@locale": "ja",
 
-  "welcomeMessage": "Fitness Logへようこそ",
+  "welcomeMessage": "Liftlyへようこそ",
   "languageLabel": "言語",
   "languageEnglish": "English",
   "languageJapanese": "日本語",
@@ -10,7 +10,7 @@
   "unitLb": "lb",
   "startButton": "始める",
 
-  "appName": "Fitness Log",
+  "appName": "Liftly",
   "startWorkoutButton": "トレーニング開始",
   "resumeWorkoutButton": "記録中の続き",
   "newWorkoutButton": "新しく開始",
@@ -19,6 +19,8 @@
 
   "addExerciseButton": "種目を追加",
   "completeButton": "完了",
+  "tutorialCompletionTitle": "準備完了です！",
+  "tutorialCompletionMessage": "さあ、トレーニング記録を始めましょう。記録が終わったら「記録完了」をタップしてください。",
   "previousRecord": "前回：{records}",
   "previousRecordNone": "前回：—",
   "reproduceButton": "前回を再現",
@@ -182,8 +184,8 @@
   "lockedSessionSubHint": "無料版は直近20回まで。過去の成長を全部見返すにはProへ",
   "proLabel": "Pro",
   "freeLabel": "Free",
-  "paywallPriceMonthly": "¥250/月",
-  "paywallPriceYearly": "¥2,500/年",
+  "paywallPriceMonthly": "¥150/月",
+  "paywallPriceYearly": "¥1,500/年",
   "paywallPriceOr": "または",
 
   "shareWorkoutButton": "SNS共有",
@@ -258,5 +260,24 @@
     }
   },
   "restoreConfirmWarning": "現在のデータは全て上書きされます。この操作は取り消せません。",
-  "restoreButton": "復元する"
+  "restoreButton": "復元する",
+
+  "paywallSubscriptionMonthly": "月額",
+  "paywallSubscriptionYearly": "年額",
+  "paywallSubscriptionYearlySave": "17%お得",
+  "paywallSubscriptionPurchasing": "処理中...",
+  "paywallSubscriptionError": "購入に失敗しました。もう一度お試しください。",
+  "paywallRestorePurchases": "購入を復元",
+  "paywallRestoreSuccess": "購入を復元しました",
+  "paywallRestoreNoSubscription": "有効なサブスクリプションが見つかりません",
+  "paywallRestoring": "復元中...",
+  "paywallTermsOfService": "利用規約",
+  "paywallPrivacyPolicy": "プライバシーポリシー",
+  "paywallTrialTitle": "1ヶ月間無料でお試し",
+  "paywallTrialDescription": "Proの全機能を1ヶ月間無料でお試しいただけます。無料期間終了後は自動的に課金が開始されます。",
+  "paywallTrialNotice": "課金を避けるには、無料期間中にいつでも解約できます。",
+  "paywallCtaStartTrial": "無料で始める",
+  "settingsManageSubscription": "サブスクリプションを管理",
+  "settingsManageSubscriptionHint": "解約やプラン変更はこちら",
+  "paywallSubscriptionDisclaimer": "無料トライアル終了後、Apple IDアカウントに課金されます。サブスクリプションは現在の期間終了の24時間前までに解約しない限り自動更新されます。サブスクリプションの管理・解約はApple IDのアカウント設定から行えます。"
 }

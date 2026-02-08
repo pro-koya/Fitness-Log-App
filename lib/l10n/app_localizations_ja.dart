@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get welcomeMessage => 'Fitness Logへようこそ';
+  String get welcomeMessage => 'Liftlyへようこそ';
 
   @override
   String get languageLabel => '言語';
@@ -33,7 +33,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startButton => '始める';
 
   @override
-  String get appName => 'Fitness Log';
+  String get appName => 'Liftly';
 
   @override
   String get startWorkoutButton => 'トレーニング開始';
@@ -57,6 +57,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get completeButton => '完了';
+
+  @override
+  String get tutorialCompletionTitle => '準備完了です！';
+
+  @override
+  String get tutorialCompletionMessage =>
+      'さあ、トレーニング記録を始めましょう。記録が終わったら「記録完了」をタップしてください。';
 
   @override
   String previousRecord(String records) {
@@ -552,10 +559,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get freeLabel => 'Free';
 
   @override
-  String get paywallPriceMonthly => '¥250/月';
+  String get paywallPriceMonthly => '¥150/月';
 
   @override
-  String get paywallPriceYearly => '¥2,500/年';
+  String get paywallPriceYearly => '¥1,500/年';
 
   @override
   String get paywallPriceOr => 'または';
@@ -716,4 +723,60 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get restoreButton => '復元する';
+
+  @override
+  String get paywallSubscriptionMonthly => '月額';
+
+  @override
+  String get paywallSubscriptionYearly => '年額';
+
+  @override
+  String get paywallSubscriptionYearlySave => '17%お得';
+
+  @override
+  String get paywallSubscriptionPurchasing => '処理中...';
+
+  @override
+  String get paywallSubscriptionError => '購入に失敗しました。もう一度お試しください。';
+
+  @override
+  String get paywallRestorePurchases => '購入を復元';
+
+  @override
+  String get paywallRestoreSuccess => '購入を復元しました';
+
+  @override
+  String get paywallRestoreNoSubscription => '有効なサブスクリプションが見つかりません';
+
+  @override
+  String get paywallRestoring => '復元中...';
+
+  @override
+  String get paywallTermsOfService => '利用規約';
+
+  @override
+  String get paywallPrivacyPolicy => 'プライバシーポリシー';
+
+  @override
+  String get paywallTrialTitle => '1ヶ月間無料でお試し';
+
+  @override
+  String get paywallTrialDescription =>
+      'Proの全機能を1ヶ月間無料でお試しいただけます。無料期間終了後は自動的に課金が開始されます。';
+
+  @override
+  String get paywallTrialNotice => '課金を避けるには、無料期間中にいつでも解約できます。';
+
+  @override
+  String get paywallCtaStartTrial => '無料で始める';
+
+  @override
+  String get settingsManageSubscription => 'サブスクリプションを管理';
+
+  @override
+  String get settingsManageSubscriptionHint => '解約やプラン変更はこちら';
+
+  @override
+  String get paywallSubscriptionDisclaimer =>
+      '無料トライアル終了後、Apple IDアカウントに課金されます。サブスクリプションは現在の期間終了の24時間前までに解約しない限り自動更新されます。サブスクリプションの管理・解約はApple IDのアカウント設定から行えます。';
 }

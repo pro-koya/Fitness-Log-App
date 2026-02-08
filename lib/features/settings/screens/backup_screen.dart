@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../providers/database_providers.dart';
 import '../../../providers/workout_session_provider.dart';
 import '../../../services/backup_service.dart';
 import '../widgets/restore_confirm_dialog.dart';
@@ -375,6 +376,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         await backupService.restore(backup);
 
         // 復元完了後、関連するプロバイダーをリフレッシュ
+        // databaseStateProviderを更新することで、それをwatchしている全プロバイダーが再取得される
+        ref.read(databaseStateProvider.notifier).state++;
         ref.invalidate(recentWorkoutsProvider);
         ref.invalidate(recentWorkoutItemsProvider);
         ref.invalidate(workoutSessionNotifierProvider);

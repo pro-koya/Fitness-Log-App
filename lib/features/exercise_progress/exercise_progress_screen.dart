@@ -191,9 +191,9 @@ class ExerciseProgressScreen extends ConsumerWidget {
               ),
             ],
 
-            // Memo history section
+            // History section (workout records + memos)
             const SizedBox(height: 32),
-            _MemoHistorySection(exerciseId: exerciseId),
+            _HistorySection(exerciseId: exerciseId, recordType: recordType),
           ],
         ),
       ),
@@ -440,54 +440,244 @@ final _exerciseRecordTypeProvider = FutureProvider.family<String, int>(
   },
 );
 
-/// Widget for displaying memo history section
-class _MemoHistorySection extends ConsumerWidget {
+/// Widget for displaying history section with tabs (workout records + memos)
+class _HistorySection extends ConsumerWidget {
   final int exerciseId;
+  final String recordType;
 
-  const _MemoHistorySection({required this.exerciseId});
+  const _HistorySection({
+    required this.exerciseId,
+    required this.recordType,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
     final currentLanguage = ref.watch(currentLanguageProvider);
+    final isJapanese = currentLanguage == 'ja';
+    final workoutHistoryAsync = ref.watch(exerciseWorkoutHistoryProvider(exerciseId));
     final memoHistoryAsync = ref.watch(exerciseMemoHistoryProvider(exerciseId));
+
+    // Check if both are empty
+    final hasWorkoutHistory = workoutHistoryAsync.asData?.value.isNotEmpty ?? false;
+    final hasMemoHistory = memoHistoryAsync.asData?.value.isNotEmpty ?? false;
+
+    if (!hasWorkoutHistory && !hasMemoHistory) {
+      return const SizedBox.shrink();
+    }
+
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isJapanese ? '履歴' : 'History',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TabBar(
+            labelColor: Theme.of(context).colorScheme.primary,
+            tabs: [
+              Tab(text: isJapanese ? '筋トレ記録' : 'Workout'),
+              Tab(text: isJapanese ? 'メモ' : 'Memo'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 400,
+            child: TabBarView(
+              children: [
+                _buildWorkoutHistoryTab(context, ref, workoutHistoryAsync, currentLanguage),
+                _buildMemoHistoryTab(context, ref, memoHistoryAsync, currentLanguage),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkoutHistoryTab(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<WorkoutHistoryEntry>> workoutHistoryAsync,
+    String currentLanguage,
+  ) {
+    final unit = ref.watch(currentUnitProvider);
+    final distanceUnit = ref.watch(currentDistanceUnitProvider);
+    final isJapanese = currentLanguage == 'ja';
+    final isTimeMode = recordType == 'time';
+    final isCardioMode = recordType == 'cardio';
+
+    return workoutHistoryAsync.when(
+      data: (workoutHistory) {
+        if (workoutHistory.isEmpty) {
+          return Center(
+            child: Text(
+              isJapanese ? '記録がありません' : 'No workout records',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: workoutHistory.length,
+          itemBuilder: (context, index) {
+            final entry = workoutHistory[index];
+            return _buildWorkoutHistoryCard(
+              context,
+              entry,
+              currentLanguage,
+              unit,
+              distanceUnit,
+              isTimeMode: isTimeMode,
+              isCardioMode: isCardioMode,
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: Text(
+          'Error: $error',
+          style: TextStyle(color: Colors.red[400]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWorkoutHistoryCard(
+    BuildContext context,
+    WorkoutHistoryEntry entry,
+    String language,
+    String unit,
+    String distanceUnit, {
+    required bool isTimeMode,
+    required bool isCardioMode,
+  }) {
+    final isJapanese = language == 'ja';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date
+            Text(
+              DateFormatter.formatDate(entry.date, language),
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Sets
+            ...entry.sets.map((set) {
+              String setInfo;
+              if (isCardioMode) {
+                final time = _formatDuration(set.durationSeconds);
+                final distance = set.getDistance(distanceUnit);
+                final distanceStr = distance != null
+                    ? '${distance.toStringAsFixed(2)} $distanceUnit'
+                    : '-';
+                setInfo = '$time / $distanceStr';
+              } else if (isTimeMode) {
+                final weight = set.getWeight(unit);
+                final weightStr = weight != null ? '${_formatWeight(weight)} $unit' : '-';
+                final time = _formatDuration(set.durationSeconds);
+                setInfo = '$weightStr x $time';
+              } else {
+                final weight = set.getWeight(unit);
+                final weightStr = weight != null ? '${_formatWeight(weight)} $unit' : '-';
+                final repsStr = set.reps != null ? '${set.reps} ${isJapanese ? "回" : "reps"}' : '-';
+                setInfo = '$weightStr x $repsStr';
+              }
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 32,
+                      child: Text(
+                        'S${set.setNumber}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        setInfo,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatWeight(double weight) {
+    if (weight % 1 == 0) {
+      return weight.toInt().toString();
+    }
+    return weight.toStringAsFixed(1);
+  }
+
+  String _formatDuration(int? durationSeconds) {
+    if (durationSeconds == null || durationSeconds <= 0) return '-';
+    final minutes = durationSeconds ~/ 60;
+    final seconds = durationSeconds % 60;
+    if (minutes > 0) {
+      return '${minutes}m${seconds.toString().padLeft(2, '0')}s';
+    }
+    return '${seconds}s';
+  }
+
+  Widget _buildMemoHistoryTab(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<MemoHistoryEntry>> memoHistoryAsync,
+    String currentLanguage,
+  ) {
+    final isJapanese = currentLanguage == 'ja';
 
     return memoHistoryAsync.when(
       data: (memoHistory) {
         if (memoHistory.isEmpty) {
-          return const SizedBox.shrink();
+          return Center(
+            child: Text(
+              isJapanese ? 'メモがありません' : 'No memos',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.memoHistory,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...memoHistory.map((entry) => _buildMemoCard(
-              context,
-              entry,
-              currentLanguage,
-            )),
-          ],
+        return ListView.builder(
+          itemCount: memoHistory.length,
+          itemBuilder: (context, index) {
+            final entry = memoHistory[index];
+            return _buildMemoCard(context, entry, currentLanguage);
+          },
         );
       },
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: CircularProgressIndicator(),
-        ),
-      ),
-      error: (error, _) => Padding(
-        padding: const EdgeInsets.all(16.0),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
         child: Text(
           'Error: $error',
-          style: TextStyle(color: Colors.red[400], fontSize: 12),
+          style: TextStyle(color: Colors.red[400]),
         ),
       ),
     );

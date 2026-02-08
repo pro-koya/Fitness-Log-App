@@ -8,6 +8,8 @@ enum PresetTheme {
   midnightPurple,
   crimsonRed,
   oceanTeal,
+  slateGray,
+  carbonBlack,
   custom,
 }
 
@@ -27,6 +29,10 @@ extension PresetThemeExtension on PresetTheme {
         return 'Crimson Red';
       case PresetTheme.oceanTeal:
         return 'Ocean Teal';
+      case PresetTheme.slateGray:
+        return 'Slate Gray';
+      case PresetTheme.carbonBlack:
+        return 'Carbon Black';
       case PresetTheme.custom:
         return 'Custom';
     }
@@ -47,6 +53,10 @@ extension PresetThemeExtension on PresetTheme {
         return 'クリムゾンレッド';
       case PresetTheme.oceanTeal:
         return 'オーシャンティール';
+      case PresetTheme.slateGray:
+        return 'スレートグレー';
+      case PresetTheme.carbonBlack:
+        return 'カーボンブラック';
       case PresetTheme.custom:
         return 'カスタム';
     }
@@ -73,6 +83,10 @@ extension PresetThemeExtension on PresetTheme {
         return const Color(0xFFEF9A9A); // 以前のセカンダリ
       case PresetTheme.oceanTeal:
         return const Color(0xFF80CBC4); // 以前のセカンダリ
+      case PresetTheme.slateGray:
+        return const Color(0xFFB0BEC5); // Blue Grey 200（淡いグレー）
+      case PresetTheme.carbonBlack:
+        return const Color(0xFF616161); // Grey 700（ダークグレー）
       case PresetTheme.custom:
         return const Color(0xFF90CAF9);
     }
@@ -94,6 +108,10 @@ extension PresetThemeExtension on PresetTheme {
         return const Color(0xFFE57373); // 以前のプライマリ
       case PresetTheme.oceanTeal:
         return const Color(0xFF4DB6AC); // 以前のプライマリ
+      case PresetTheme.slateGray:
+        return const Color(0xFF78909C); // Blue Grey 400
+      case PresetTheme.carbonBlack:
+        return const Color(0xFF424242); // Grey 800
       case PresetTheme.custom:
         return const Color(0xFF64B5F6);
     }

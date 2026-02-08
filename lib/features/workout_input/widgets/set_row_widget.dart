@@ -5,19 +5,19 @@ import '../models/workout_exercise_model.dart';
 /// Set row widget for weight and reps/duration/distance input
 class SetRowWidget extends StatefulWidget {
   final SetRecordModel set;
-  final bool hasPreviousSet;
+  final bool canDuplicate;
   final bool canDelete;
   final Function(double? weight, int? reps, int? durationSeconds, double? distance) onUpdate;
-  final VoidCallback onCopyFromPrevious;
+  final VoidCallback onDuplicate;
   final VoidCallback onDelete;
 
   const SetRowWidget({
     super.key,
     required this.set,
-    required this.hasPreviousSet,
+    required this.canDuplicate,
     required this.canDelete,
     required this.onUpdate,
-    required this.onCopyFromPrevious,
+    required this.onDuplicate,
     required this.onDelete,
   });
 
@@ -234,16 +234,16 @@ class _SetRowWidgetState extends State<SetRowWidget> {
 
           const SizedBox(width: 4),
 
-          // Copy button
+          // Duplicate set button
           IconButton(
             icon: const Icon(Icons.content_copy),
             iconSize: 16,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 22, height: 22),
             visualDensity: VisualDensity.compact,
-            onPressed: widget.hasPreviousSet ? widget.onCopyFromPrevious : null,
-            color: widget.hasPreviousSet ? Colors.blue : Colors.grey,
-            tooltip: 'Copy from previous',
+            onPressed: widget.canDuplicate ? widget.onDuplicate : null,
+            color: widget.canDuplicate ? Colors.blue : Colors.grey,
+            tooltip: 'Duplicate set',
           ),
 
           // Delete button
@@ -339,16 +339,16 @@ class _SetRowWidgetState extends State<SetRowWidget> {
 
           const SizedBox(width: 4),
 
-          // Copy button
+          // Duplicate set button
           IconButton(
             icon: const Icon(Icons.content_copy),
             iconSize: 16,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 22, height: 22),
             visualDensity: VisualDensity.compact,
-            onPressed: widget.hasPreviousSet ? widget.onCopyFromPrevious : null,
-            color: widget.hasPreviousSet ? Colors.blue : Colors.grey,
-            tooltip: 'Copy from previous',
+            onPressed: widget.canDuplicate ? widget.onDuplicate : null,
+            color: widget.canDuplicate ? Colors.blue : Colors.grey,
+            tooltip: 'Duplicate set',
           ),
 
           // Delete button

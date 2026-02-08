@@ -8,6 +8,7 @@ import 'providers/timer_provider.dart';
 import 'providers/theme_settings_provider.dart';
 import 'features/initial_setup/initial_setup_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/tutorial/providers/interactive_tutorial_provider.dart';
 
 void main() {
   runApp(
@@ -59,7 +60,8 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     return MaterialApp(
       navigatorKey: _navigatorKey,
-      title: 'Fitness Log App',
+      title: 'Liftly',
+      debugShowCheckedModeBanner: false,
       theme: appTheme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -199,13 +201,13 @@ class AppStartupScreen extends ConsumerWidget {
 
     return settingsAsync.when(
       data: (settings) {
-        // If settings exist, go to Home Screen
-        // Otherwise, go to Initial Setup Screen
-        if (settings != null) {
-          return const HomeScreen();
-        } else {
+        // Show initial setup only on first launch (setup not completed)
+        if (settings == null || !settings.setupCompleted) {
           return const InitialSetupScreen();
         }
+        // Tutorial is started only once from InitialSetupScreen when user taps Start.
+        // Do not auto-start tutorial here so it doesn't run on every app launch.
+        return const HomeScreen();
       },
       loading: () => const Scaffold(
         body: Center(

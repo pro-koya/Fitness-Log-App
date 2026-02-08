@@ -62,6 +62,8 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsEntity?>> {
       final dao = ref.read(settingsDaoProvider);
       await dao.updateLanguage(language);
       await _loadSettings();
+      // Invalidate settingsProvider to refresh currentLanguageProvider
+      ref.invalidate(settingsProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -76,6 +78,8 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsEntity?>> {
       await dao.updateUnit(unit);
 
       await _loadSettings();
+      // Invalidate settingsProvider to refresh currentUnitProvider
+      ref.invalidate(settingsProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -86,6 +90,34 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsEntity?>> {
       final dao = ref.read(settingsDaoProvider);
       await dao.updateDistanceUnit(distanceUnit);
       await _loadSettings();
+      // Invalidate settingsProvider to refresh currentDistanceUnitProvider
+      ref.invalidate(settingsProvider);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  /// Mark initial setup as completed
+  Future<void> markSetupCompleted() async {
+    try {
+      final dao = ref.read(settingsDaoProvider);
+      await dao.markSetupCompleted();
+      await _loadSettings();
+      // Also invalidate the settingsProvider to refresh it
+      ref.invalidate(settingsProvider);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  /// Mark tutorial as completed
+  Future<void> markTutorialCompleted() async {
+    try {
+      final dao = ref.read(settingsDaoProvider);
+      await dao.markTutorialCompleted();
+      await _loadSettings();
+      // Also invalidate the settingsProvider to refresh it
+      ref.invalidate(settingsProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }

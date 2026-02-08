@@ -10,10 +10,12 @@ import '../../../providers/settings_provider.dart';
 /// Exercise selector modal with search and custom exercise support
 class ExerciseSelectorModal extends ConsumerStatefulWidget {
   final ExerciseMasterDao exerciseMasterDao;
+  final bool isTutorialMode;
 
   const ExerciseSelectorModal({
     super.key,
     required this.exerciseMasterDao,
+    this.isTutorialMode = false,
   });
 
   @override
@@ -391,6 +393,201 @@ class _ExerciseSelectorModalState
     }
   }
 
+  Future<void> _showEditCustomExerciseDialog(
+    ExerciseMasterEntity exercise,
+  ) async {
+    final currentLanguage = ref.read(currentLanguageProvider);
+    final nameController = TextEditingController(text: exercise.name);
+    String selectedBodyPart = exercise.bodyPart ?? BodyPartLocalization.other;
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Dialog(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              minWidth: 320,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    currentLanguage == 'ja' ? '種目を編集' : 'Edit Exercise',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Exercise name
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: currentLanguage == 'ja' ? '種目名' : 'Exercise Name',
+                      border: const OutlineInputBorder(),
+                    ),
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.words,
+                    onTapOutside: (_) {
+                      FocusScope.of(context).unfocus();
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Body part selection
+                  Text(
+                    currentLanguage == 'ja' ? '部位 *' : 'Body Part *',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: selectedBodyPart,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    items: BodyPartLocalization.allBodyParts.map((bodyPartKey) {
+                      final localizedName = BodyPartLocalization.getLocalizedName(
+                        bodyPartKey,
+                        currentLanguage,
+                      );
+                      return DropdownMenuItem(
+                        value: bodyPartKey,
+                        child: Text(localizedName),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          selectedBodyPart = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Record type info (read-only)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.grey.shade600,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            currentLanguage == 'ja'
+                                ? '記録タイプは変更できません'
+                                : 'Record type cannot be changed',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(currentLanguage == 'ja' ? 'キャンセル' : 'Cancel'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          final name = nameController.text.trim();
+                          if (name.isNotEmpty) {
+                            Navigator.of(context).pop({
+                              'name': name,
+                              'bodyPart': selectedBodyPart,
+                            });
+                          }
+                        },
+                        child: Text(currentLanguage == 'ja' ? '保存' : 'Save'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (result != null) {
+      await _updateCustomExercise(
+        exercise,
+        result['name']!,
+        result['bodyPart']!,
+      );
+    }
+  }
+
+  Future<void> _updateCustomExercise(
+    ExerciseMasterEntity exercise,
+    String name,
+    String bodyPart,
+  ) async {
+    final currentLanguage = ref.read(currentLanguageProvider);
+
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final updatedExercise = exercise.copyWith(
+        name: name,
+        bodyPart: bodyPart,
+        updatedAt: now,
+      );
+
+      await widget.exerciseMasterDao.updateExercise(updatedExercise);
+
+      // Reload exercises after update
+      await _loadExercises();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              currentLanguage == 'ja' ? '種目を更新しました' : 'Exercise updated',
+            ),
+            duration: const Duration(milliseconds: 1200),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating exercise: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -507,14 +704,28 @@ class _ExerciseSelectorModalState
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: 4),
+                                        IconButton(
+                                          icon: const Icon(Icons.edit_outlined),
+                                          onPressed: () {
+                                            _showEditCustomExerciseDialog(exercise);
+                                          },
+                                          color: Colors.grey.shade600,
+                                          tooltip: currentLanguage == 'ja'
+                                              ? '種目を編集'
+                                              : 'Edit exercise',
+                                          visualDensity: VisualDensity.compact,
+                                        ),
                                         IconButton(
                                           icon: const Icon(Icons.delete_outline),
                                           onPressed: () {
                                             _showDeleteCustomExerciseDialog(exercise);
                                           },
                                           color: Colors.grey.shade600,
-                                          tooltip: 'Delete custom exercise',
+                                          tooltip: currentLanguage == 'ja'
+                                              ? 'カスタム種目を削除'
+                                              : 'Delete custom exercise',
+                                          visualDensity: VisualDensity.compact,
                                         ),
                                       ],
                                     )

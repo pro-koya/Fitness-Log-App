@@ -6,6 +6,8 @@ class SettingsEntity {
   final String distanceUnit; // 'km' or 'mile'
   final String entitlement; // 'free' or 'pro'
   final String? themeSettings; // JSON string for theme customization
+  final bool setupCompleted; // Whether initial setup has been completed
+  final bool tutorialCompleted; // Whether interactive tutorial has been completed
   final int createdAt; // UNIX timestamp
   final int updatedAt; // UNIX timestamp
 
@@ -16,6 +18,8 @@ class SettingsEntity {
     required this.distanceUnit,
     this.entitlement = 'free',
     this.themeSettings,
+    this.setupCompleted = false,
+    this.tutorialCompleted = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -29,6 +33,8 @@ class SettingsEntity {
       distanceUnit: map['distance_unit'] as String? ?? 'km',
       entitlement: map['entitlement'] as String? ?? 'free',
       themeSettings: map['theme_settings'] as String?,
+      setupCompleted: (map['setup_completed'] as int? ?? 0) == 1,
+      tutorialCompleted: (map['tutorial_completed'] as int? ?? 0) == 1,
       createdAt: map['created_at'] as int,
       updatedAt: map['updated_at'] as int,
     );
@@ -43,6 +49,8 @@ class SettingsEntity {
       'distance_unit': distanceUnit,
       'entitlement': entitlement,
       'theme_settings': themeSettings,
+      'setup_completed': setupCompleted ? 1 : 0,
+      'tutorial_completed': tutorialCompleted ? 1 : 0,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
@@ -56,6 +64,8 @@ class SettingsEntity {
     String? distanceUnit,
     String? entitlement,
     String? themeSettings,
+    bool? setupCompleted,
+    bool? tutorialCompleted,
     int? createdAt,
     int? updatedAt,
   }) {
@@ -66,6 +76,8 @@ class SettingsEntity {
       distanceUnit: distanceUnit ?? this.distanceUnit,
       entitlement: entitlement ?? this.entitlement,
       themeSettings: themeSettings ?? this.themeSettings,
+      setupCompleted: setupCompleted ?? this.setupCompleted,
+      tutorialCompleted: tutorialCompleted ?? this.tutorialCompleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -73,7 +85,7 @@ class SettingsEntity {
 
   @override
   String toString() {
-    return 'SettingsEntity(id: $id, language: $language, unit: $unit, distanceUnit: $distanceUnit, entitlement: $entitlement, themeSettings: $themeSettings, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SettingsEntity(id: $id, language: $language, unit: $unit, distanceUnit: $distanceUnit, entitlement: $entitlement, themeSettings: $themeSettings, setupCompleted: $setupCompleted, tutorialCompleted: $tutorialCompleted, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -87,6 +99,8 @@ class SettingsEntity {
         other.distanceUnit == distanceUnit &&
         other.entitlement == entitlement &&
         other.themeSettings == themeSettings &&
+        other.setupCompleted == setupCompleted &&
+        other.tutorialCompleted == tutorialCompleted &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -99,6 +113,8 @@ class SettingsEntity {
         distanceUnit.hashCode ^
         entitlement.hashCode ^
         themeSettings.hashCode ^
+        setupCompleted.hashCode ^
+        tutorialCompleted.hashCode ^
         createdAt.hashCode ^
         updatedAt.hashCode;
   }

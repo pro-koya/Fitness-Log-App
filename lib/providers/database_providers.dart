@@ -7,6 +7,10 @@ import '../data/dao/workout_session_dao.dart';
 import '../data/dao/workout_exercise_dao.dart';
 import '../data/dao/set_record_dao.dart';
 
+/// Database state provider - increment to invalidate all dependent providers
+/// Use ref.invalidate(databaseStateProvider) after restore to refresh all data
+final databaseStateProvider = StateProvider<int>((ref) => 0);
+
 /// Provider for database instance
 final databaseProvider = FutureProvider<Database>((ref) async {
   return await DatabaseHelper.instance.database;

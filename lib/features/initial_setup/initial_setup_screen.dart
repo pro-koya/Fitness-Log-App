@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/settings_provider.dart';
+import '../tutorial/providers/interactive_tutorial_provider.dart';
 import '../home/home_screen.dart';
 
 /// Initial setup screen shown on first launch
@@ -14,6 +15,7 @@ class InitialSetupScreen extends ConsumerStatefulWidget {
 class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
   String _selectedLanguage = 'en';
   String _selectedUnit = 'kg';
+  String _selectedDistanceUnit = 'km';
 
   @override
   void initState() {
@@ -35,9 +37,18 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
     // Then update unit
     await notifier.updateUnit(_selectedUnit);
 
+    // Update distance unit
+    await notifier.updateDistanceUnit(_selectedDistanceUnit);
+
+    // Mark initial setup as completed (so we don't show this screen again on next launch)
+    await notifier.markSetupCompleted();
+
     if (!mounted) return;
 
-    // Navigate to Home Screen
+    // Start interactive tutorial (only once, when user completes initial setup)
+    ref.read(interactiveTutorialProvider.notifier).startTutorial();
+
+    // Navigate to Home Screen (tutorial overlay will be shown)
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => const HomeScreen(),
@@ -56,16 +67,24 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
               const Spacer(),
 
               // App Icon/Logo
-              const Icon(
-                Icons.fitness_center,
-                size: 80,
-                color: Colors.blue,
+              Image.asset(
+                'assets/icon/liftly-pro.png',
+                width: 80,
+                height: 80,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.fitness_center,
+                    size: 80,
+                    color: Colors.blue,
+                  );
+                },
               ),
               const SizedBox(height: 24),
 
               // Welcome Message
               const Text(
-                'Welcome to Fitness Log',
+                'Welcome to Liftly',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -80,10 +99,16 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
               _buildLanguageSelector(),
               const SizedBox(height: 32),
 
-              // Unit Selection
-              _buildSectionLabel('Unit / 単位'),
+              // Weight Unit Selection
+              _buildSectionLabel('Weight / 重さ'),
               const SizedBox(height: 12),
               _buildUnitSelector(),
+              const SizedBox(height: 32),
+
+              // Distance Unit Selection
+              _buildSectionLabel('Distance / 距離'),
+              const SizedBox(height: 12),
+              _buildDistanceUnitSelector(),
 
               const Spacer(),
 
@@ -206,6 +231,59 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
       onTap: () {
         setState(() {
           _selectedUnit = value;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.shade50 : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.blue : Colors.black87,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDistanceUnitSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildDistanceUnitOption('km', 'km'),
+          ),
+          Container(
+            width: 1,
+            height: 48,
+            color: Colors.grey.shade300,
+          ),
+          Expanded(
+            child: _buildDistanceUnitOption('mile', 'mile'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDistanceUnitOption(String label, String value) {
+    final isSelected = _selectedDistanceUnit == value;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedDistanceUnit = value;
         });
       },
       borderRadius: BorderRadius.circular(12),

@@ -166,3 +166,88 @@ final exerciseMemoHistoryProvider = FutureProvider.autoDispose.family<
     }).toList();
   },
 );
+
+/// Model for workout history entry (single session)
+class WorkoutHistoryEntry {
+  final int sessionId;
+  final DateTime date;
+  final List<WorkoutSetRecord> sets;
+
+  WorkoutHistoryEntry({
+    required this.sessionId,
+    required this.date,
+    required this.sets,
+  });
+}
+
+/// Model for a set record in workout history
+class WorkoutSetRecord {
+  final int setNumber;
+  final double? weightKg;
+  final double? weightLb;
+  final int? reps;
+  final int? durationSeconds;
+  final double? distanceMeters;
+
+  WorkoutSetRecord({
+    required this.setNumber,
+    this.weightKg,
+    this.weightLb,
+    this.reps,
+    this.durationSeconds,
+    this.distanceMeters,
+  });
+
+  /// Get weight in specified unit
+  double? getWeight(String unit) {
+    if (unit == 'lb') return weightLb;
+    return weightKg;
+  }
+
+  /// Get distance in specified unit
+  double? getDistance(String distanceUnit) {
+    if (distanceMeters == null) return null;
+    if (distanceUnit == 'mile') {
+      return distanceMeters! / 1609.34;
+    }
+    return distanceMeters! / 1000.0; // km
+  }
+}
+
+/// Provider for exercise workout history
+final exerciseWorkoutHistoryProvider = FutureProvider.autoDispose.family<
+    List<WorkoutHistoryEntry>, int>(
+  (ref, exerciseId) async {
+    final setDao = SetRecordDao();
+
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final historyData = await setDao.getAllHistoryForExercise(
+      exerciseId,
+      now,
+      limit: 20,
+    );
+
+    return historyData.map((data) {
+      final sessionId = data['sessionId'] as int;
+      final timestamp = data['completedAt'] as int;
+      final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+      final sets = (data['sets'] as List).map((setEntity) {
+        final s = setEntity as dynamic;
+        return WorkoutSetRecord(
+          setNumber: s.setNumber,
+          weightKg: s.weightKg,
+          weightLb: s.weightLb,
+          reps: s.reps,
+          durationSeconds: s.durationSeconds,
+          distanceMeters: s.distanceMeters,
+        );
+      }).toList();
+
+      return WorkoutHistoryEntry(
+        sessionId: sessionId,
+        date: date,
+        sets: sets,
+      );
+    }).toList();
+  },
+);

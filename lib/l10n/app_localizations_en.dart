@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get welcomeMessage => 'Welcome to Fitness Log';
+  String get welcomeMessage => 'Welcome to Liftly';
 
   @override
   String get languageLabel => 'Language';
@@ -33,7 +33,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startButton => 'Start';
 
   @override
-  String get appName => 'Fitness Log';
+  String get appName => 'Liftly';
 
   @override
   String get startWorkoutButton => 'Start Workout';
@@ -57,6 +57,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get completeButton => 'Complete';
+
+  @override
+  String get tutorialCompletionTitle => 'You\'re all set!';
+
+  @override
+  String get tutorialCompletionMessage =>
+      'You\'re ready to start logging your workouts. Tap Complete when you finish a session.';
 
   @override
   String previousRecord(String records) {
@@ -558,10 +565,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get freeLabel => 'Free';
 
   @override
-  String get paywallPriceMonthly => '¥250/month';
+  String get paywallPriceMonthly => '¥150/month';
 
   @override
-  String get paywallPriceYearly => '¥2,500/year';
+  String get paywallPriceYearly => '¥1,500/year';
 
   @override
   String get paywallPriceOr => 'or';
@@ -725,4 +732,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreButton => 'Restore';
+
+  @override
+  String get paywallSubscriptionMonthly => 'Monthly';
+
+  @override
+  String get paywallSubscriptionYearly => 'Yearly';
+
+  @override
+  String get paywallSubscriptionYearlySave => 'Save 17%';
+
+  @override
+  String get paywallSubscriptionPurchasing => 'Processing...';
+
+  @override
+  String get paywallSubscriptionError => 'Purchase failed. Please try again.';
+
+  @override
+  String get paywallRestorePurchases => 'Restore Purchases';
+
+  @override
+  String get paywallRestoreSuccess => 'Purchases restored';
+
+  @override
+  String get paywallRestoreNoSubscription => 'No active subscription found';
+
+  @override
+  String get paywallRestoring => 'Restoring...';
+
+  @override
+  String get paywallTermsOfService => 'Terms of Service';
+
+  @override
+  String get paywallPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get paywallTrialTitle => 'Start your 1-month free trial';
+
+  @override
+  String get paywallTrialDescription =>
+      'Try all Pro features free for 1 month. After the trial ends, your subscription will automatically begin.';
+
+  @override
+  String get paywallTrialNotice =>
+      'To avoid being charged, cancel anytime during the free trial period.';
+
+  @override
+  String get paywallCtaStartTrial => 'Start Free Trial';
+
+  @override
+  String get settingsManageSubscription => 'Manage Subscription';
+
+  @override
+  String get settingsManageSubscriptionHint =>
+      'Cancel or change your subscription';
+
+  @override
+  String get paywallSubscriptionDisclaimer =>
+      'Payment will be charged to your Apple ID account at the end of the free trial. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your Apple ID account settings.';
 }

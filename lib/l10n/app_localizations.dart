@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// Welcome message on initial setup screen
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Fitness Log'**
+  /// **'Welcome to Liftly'**
   String get welcomeMessage;
 
   /// Label for language selection
@@ -149,7 +149,7 @@ abstract class AppLocalizations {
   /// Application name
   ///
   /// In en, this message translates to:
-  /// **'Fitness Log'**
+  /// **'Liftly'**
   String get appName;
 
   /// Button to start new workout session
@@ -193,6 +193,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Complete'**
   String get completeButton;
+
+  /// Title of tutorial completion dialog
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all set!'**
+  String get tutorialCompletionTitle;
+
+  /// Message shown when tutorial is completed
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re ready to start logging your workouts. Tap Complete when you finish a session.'**
+  String get tutorialCompletionMessage;
 
   /// Label for previous record
   ///
@@ -1078,13 +1090,13 @@ abstract class AppLocalizations {
   /// Monthly price for Pro
   ///
   /// In en, this message translates to:
-  /// **'¥250/month'**
+  /// **'¥150/month'**
   String get paywallPriceMonthly;
 
   /// Yearly price for Pro
   ///
   /// In en, this message translates to:
-  /// **'¥2,500/year'**
+  /// **'¥1,500/year'**
   String get paywallPriceYearly;
 
   /// Or separator between prices
@@ -1392,6 +1404,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore'**
   String get restoreButton;
+
+  /// Monthly subscription option
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get paywallSubscriptionMonthly;
+
+  /// Yearly subscription option
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get paywallSubscriptionYearly;
+
+  /// Yearly subscription save percentage
+  ///
+  /// In en, this message translates to:
+  /// **'Save 17%'**
+  String get paywallSubscriptionYearlySave;
+
+  /// Message while purchase is processing
+  ///
+  /// In en, this message translates to:
+  /// **'Processing...'**
+  String get paywallSubscriptionPurchasing;
+
+  /// Error message when purchase fails
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase failed. Please try again.'**
+  String get paywallSubscriptionError;
+
+  /// Button to restore previous purchases
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get paywallRestorePurchases;
+
+  /// Message when purchases are restored
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases restored'**
+  String get paywallRestoreSuccess;
+
+  /// Message when no subscription is found
+  ///
+  /// In en, this message translates to:
+  /// **'No active subscription found'**
+  String get paywallRestoreNoSubscription;
+
+  /// Message while restoring purchases
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring...'**
+  String get paywallRestoring;
+
+  /// Terms of service link
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get paywallTermsOfService;
+
+  /// Privacy policy link
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get paywallPrivacyPolicy;
+
+  /// Trial period title
+  ///
+  /// In en, this message translates to:
+  /// **'Start your 1-month free trial'**
+  String get paywallTrialTitle;
+
+  /// Trial period description
+  ///
+  /// In en, this message translates to:
+  /// **'Try all Pro features free for 1 month. After the trial ends, your subscription will automatically begin.'**
+  String get paywallTrialDescription;
+
+  /// Notice about cancellation during trial
+  ///
+  /// In en, this message translates to:
+  /// **'To avoid being charged, cancel anytime during the free trial period.'**
+  String get paywallTrialNotice;
+
+  /// CTA button text for starting trial
+  ///
+  /// In en, this message translates to:
+  /// **'Start Free Trial'**
+  String get paywallCtaStartTrial;
+
+  /// Settings menu item for managing subscription
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get settingsManageSubscription;
+
+  /// Hint text for manage subscription
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel or change your subscription'**
+  String get settingsManageSubscriptionHint;
+
+  /// Subscription disclaimer for paywall
+  ///
+  /// In en, this message translates to:
+  /// **'Payment will be charged to your Apple ID account at the end of the free trial. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your Apple ID account settings.'**
+  String get paywallSubscriptionDisclaimer;
 }
 
 class _AppLocalizationsDelegate

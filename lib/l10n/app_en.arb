@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
 
-  "welcomeMessage": "Welcome to Fitness Log",
+  "welcomeMessage": "Welcome to Liftly",
   "@welcomeMessage": {
     "description": "Welcome message on initial setup screen"
   },
@@ -22,7 +22,7 @@
     "description": "Button to complete initial setup"
   },
 
-  "appName": "Fitness Log",
+  "appName": "Liftly",
   "@appName": {
     "description": "Application name"
   },
@@ -62,6 +62,14 @@
   "completeButton": "Complete",
   "@completeButton": {
     "description": "Button to complete workout"
+  },
+  "tutorialCompletionTitle": "You're all set!",
+  "@tutorialCompletionTitle": {
+    "description": "Title of tutorial completion dialog"
+  },
+  "tutorialCompletionMessage": "You're ready to start logging your workouts. Tap Complete when you finish a session.",
+  "@tutorialCompletionMessage": {
+    "description": "Message shown when tutorial is completed"
   },
   "previousRecord": "Previous: {records}",
   "@previousRecord": {
@@ -752,11 +760,11 @@
   "@freeLabel": {
     "description": "Free label"
   },
-  "paywallPriceMonthly": "¥250/month",
+  "paywallPriceMonthly": "¥150/month",
   "@paywallPriceMonthly": {
     "description": "Monthly price for Pro"
   },
-  "paywallPriceYearly": "¥2,500/year",
+  "paywallPriceYearly": "¥1,500/year",
   "@paywallPriceYearly": {
     "description": "Yearly price for Pro"
   },
@@ -981,5 +989,78 @@
   "restoreButton": "Restore",
   "@restoreButton": {
     "description": "Button to confirm restore"
+  },
+
+  "paywallSubscriptionMonthly": "Monthly",
+  "@paywallSubscriptionMonthly": {
+    "description": "Monthly subscription option"
+  },
+  "paywallSubscriptionYearly": "Yearly",
+  "@paywallSubscriptionYearly": {
+    "description": "Yearly subscription option"
+  },
+  "paywallSubscriptionYearlySave": "Save 17%",
+  "@paywallSubscriptionYearlySave": {
+    "description": "Yearly subscription save percentage"
+  },
+  "paywallSubscriptionPurchasing": "Processing...",
+  "@paywallSubscriptionPurchasing": {
+    "description": "Message while purchase is processing"
+  },
+  "paywallSubscriptionError": "Purchase failed. Please try again.",
+  "@paywallSubscriptionError": {
+    "description": "Error message when purchase fails"
+  },
+  "paywallRestorePurchases": "Restore Purchases",
+  "@paywallRestorePurchases": {
+    "description": "Button to restore previous purchases"
+  },
+  "paywallRestoreSuccess": "Purchases restored",
+  "@paywallRestoreSuccess": {
+    "description": "Message when purchases are restored"
+  },
+  "paywallRestoreNoSubscription": "No active subscription found",
+  "@paywallRestoreNoSubscription": {
+    "description": "Message when no subscription is found"
+  },
+  "paywallRestoring": "Restoring...",
+  "@paywallRestoring": {
+    "description": "Message while restoring purchases"
+  },
+  "paywallTermsOfService": "Terms of Service",
+  "@paywallTermsOfService": {
+    "description": "Terms of service link"
+  },
+  "paywallPrivacyPolicy": "Privacy Policy",
+  "@paywallPrivacyPolicy": {
+    "description": "Privacy policy link"
+  },
+  "paywallTrialTitle": "Start your 1-month free trial",
+  "@paywallTrialTitle": {
+    "description": "Trial period title"
+  },
+  "paywallTrialDescription": "Try all Pro features free for 1 month. After the trial ends, your subscription will automatically begin.",
+  "@paywallTrialDescription": {
+    "description": "Trial period description"
+  },
+  "paywallTrialNotice": "To avoid being charged, cancel anytime during the free trial period.",
+  "@paywallTrialNotice": {
+    "description": "Notice about cancellation during trial"
+  },
+  "paywallCtaStartTrial": "Start Free Trial",
+  "@paywallCtaStartTrial": {
+    "description": "CTA button text for starting trial"
+  },
+  "settingsManageSubscription": "Manage Subscription",
+  "@settingsManageSubscription": {
+    "description": "Settings menu item for managing subscription"
+  },
+  "settingsManageSubscriptionHint": "Cancel or change your subscription",
+  "@settingsManageSubscriptionHint": {
+    "description": "Hint text for manage subscription"
+  },
+  "paywallSubscriptionDisclaimer": "Payment will be charged to your Apple ID account at the end of the free trial. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your Apple ID account settings.",
+  "@paywallSubscriptionDisclaimer": {
+    "description": "Subscription disclaimer for paywall"
   }
 }

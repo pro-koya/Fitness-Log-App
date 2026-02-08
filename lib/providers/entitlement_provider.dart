@@ -1,17 +1,37 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/entitlement.dart';
+import '../services/iap_service.dart';
 import 'database_providers.dart';
 
 /// 課金状態を管理するNotifier
 ///
-/// 現在はスタブ実装で、開発用の切り替えのみサポート。
-/// 後でIAPに接続する際に実装を差し替える。
+/// IAPServiceと連携して実際の購入状態を管理
 class EntitlementNotifier extends StateNotifier<EntitlementState> {
   EntitlementNotifier(this._ref) : super(const EntitlementState()) {
-    _loadFromStorage();
+    _initialize();
   }
 
   final Ref _ref;
+
+  /// 初期化
+  Future<void> _initialize() async {
+    // ストレージから課金状態を読み込む
+    await _loadFromStorage();
+
+    // IAPサービスに購入状態変更コールバックを設定
+    _ref.read(iapServiceProvider.notifier).setOnPurchaseStatusChanged(
+      (isPro, subscriptionType) async {
+        if (isPro) {
+          state = state.copyWith(
+            entitlement: Entitlement.pro,
+            subscriptionType: subscriptionType,
+          );
+          await _saveToStorage();
+        }
+      },
+    );
+  }
 
   /// ストレージから課金状態を読み込む
   Future<void> _loadFromStorage() async {
@@ -40,60 +60,119 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
     }
   }
 
-  /// 開発用: Pro/Free切り替え
+  /// 開発用: Pro/Free切り替え（デバッグモードのみ）
   Future<void> togglePro() async {
+    if (!kDebugMode) return;
     state = state.copyWith(
       entitlement: state.isPro ? Entitlement.free : Entitlement.pro,
     );
     await _saveToStorage();
   }
 
-  /// 開発用: Proに設定
+  /// 開発用: Proに設定（デバッグモードのみ）
   Future<void> setPro() async {
+    if (!kDebugMode) return;
     state = state.copyWith(entitlement: Entitlement.pro);
     await _saveToStorage();
   }
 
-  /// 開発用: Freeに設定
+  /// 開発用: Freeに設定（デバッグモードのみ）
   Future<void> setFree() async {
+    if (!kDebugMode) return;
     state = state.copyWith(entitlement: Entitlement.free);
     await _saveToStorage();
   }
 
-  /// 課金状態を確認（IAP接続後に実装）
+  /// 課金状態を確認
   Future<void> checkEntitlement() async {
-    // TODO: IAP購入状態を確認
-    await _loadFromStorage();
+    // IAP購入状態を確認
+    final iapState = _ref.read(iapServiceProvider);
+    if (iapState.hasActiveSubscription) {
+      // サブスクリプションタイプを判定
+      String? subscriptionType;
+      if (iapState.purchasedProductIds.contains(IAPProductIds.monthlySubscription)) {
+        subscriptionType = 'monthly';
+      } else if (iapState.purchasedProductIds.contains(IAPProductIds.yearlySubscription)) {
+        subscriptionType = 'yearly';
+      }
+
+      state = state.copyWith(
+        entitlement: Entitlement.pro,
+        subscriptionType: subscriptionType,
+      );
+      await _saveToStorage();
+    } else {
+      await _loadFromStorage();
+    }
   }
 
-  /// 月額購入（IAP接続後に実装）
-  Future<bool> purchaseMonthly() async {
-    // TODO: 月額購入フロー
-    // スタブ: 常に成功としてProに設定
-    state = state.copyWith(
-      entitlement: Entitlement.pro,
-      subscriptionType: 'monthly',
-    );
-    await _saveToStorage();
-    return true;
+  /// 月額購入
+  Future<PurchaseResult> purchaseMonthly() async {
+    final iapState = _ref.read(iapServiceProvider);
+
+    // IAP利用不可の場合（デバッグモード時はスタブ動作）
+    if (iapState.status != IAPStatus.available) {
+      if (kDebugMode) {
+        // デバッグモード: スタブとしてProに設定
+        state = state.copyWith(
+          entitlement: Entitlement.pro,
+          subscriptionType: 'monthly',
+        );
+        await _saveToStorage();
+        return PurchaseResult.success;
+      }
+      return PurchaseResult.error;
+    }
+
+    // 実際のIAP購入
+    final result = await _ref.read(iapServiceProvider.notifier).purchaseMonthly();
+    return result;
   }
 
-  /// 年額購入（IAP接続後に実装）
-  Future<bool> purchaseYearly() async {
-    // TODO: 年額購入フロー
-    // スタブ: 常に成功としてProに設定
-    state = state.copyWith(
-      entitlement: Entitlement.pro,
-      subscriptionType: 'yearly',
-    );
-    await _saveToStorage();
-    return true;
+  /// 年額購入
+  Future<PurchaseResult> purchaseYearly() async {
+    final iapState = _ref.read(iapServiceProvider);
+
+    // IAP利用不可の場合（デバッグモード時はスタブ動作）
+    if (iapState.status != IAPStatus.available) {
+      if (kDebugMode) {
+        // デバッグモード: スタブとしてProに設定
+        state = state.copyWith(
+          entitlement: Entitlement.pro,
+          subscriptionType: 'yearly',
+        );
+        await _saveToStorage();
+        return PurchaseResult.success;
+      }
+      return PurchaseResult.error;
+    }
+
+    // 実際のIAP購入
+    final result = await _ref.read(iapServiceProvider.notifier).purchaseYearly();
+    return result;
   }
 
-  /// 購入復元（IAP接続後に実装）
+  /// 購入復元
   Future<bool> restorePurchases() async {
-    // TODO: 購入復元
-    await _loadFromStorage();
+    final iapState = _ref.read(iapServiceProvider);
+
+    // IAP利用不可の場合
+    if (iapState.status != IAPStatus.available) {
+      if (kDebugMode) {
+        // デバッグモード: ストレージから読み込み
+        await _loadFromStorage();
+        return state.isPro;
+      }
+      return false;
+    }
+
+    // 実際の購入復元（fire-and-forget: 結果はstreamで非同期に届く）
+    final success = await _ref.read(iapServiceProvider.notifier).restorePurchases();
+    if (success) {
+      // ストリームイベントが処理されるのを少し待つ
+      await Future.delayed(const Duration(milliseconds: 500));
+      await checkEntitlement();
+    }
     return state.isPro;
   }
 }
