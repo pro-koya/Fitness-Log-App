@@ -117,6 +117,15 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
+              // P1-5: Proの価値の一文
+              Text(
+                l10n.proValueOneLiner,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontStyle: FontStyle.italic,
+                    ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
 
               // 機能説明（元のreason-based説明）
@@ -308,29 +317,32 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     String monthlyPrice,
     String yearlyPrice,
   ) {
-    return Row(
-      children: [
-        // 月額オプション
-        Expanded(
-          child: _buildSubscriptionOption(
-            type: SubscriptionType.monthly,
-            label: l10n.paywallSubscriptionMonthly,
-            price: monthlyPrice,
-            isSelected: _selectedType == SubscriptionType.monthly,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 月額オプション
+          Expanded(
+            child: _buildSubscriptionOption(
+              type: SubscriptionType.monthly,
+              label: l10n.paywallSubscriptionMonthly,
+              price: monthlyPrice,
+              isSelected: _selectedType == SubscriptionType.monthly,
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        // 年額オプション
-        Expanded(
-          child: _buildSubscriptionOption(
-            type: SubscriptionType.yearly,
-            label: l10n.paywallSubscriptionYearly,
-            price: yearlyPrice,
-            isSelected: _selectedType == SubscriptionType.yearly,
-            badge: l10n.paywallSubscriptionYearlySave,
+          const SizedBox(width: 12),
+          // 年額オプション
+          Expanded(
+            child: _buildSubscriptionOption(
+              type: SubscriptionType.yearly,
+              label: l10n.paywallSubscriptionYearly,
+              price: yearlyPrice,
+              isSelected: _selectedType == SubscriptionType.yearly,
+              badge: l10n.paywallSubscriptionYearlySave,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -522,7 +534,7 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
   IconData _getIcon() {
     switch (widget.reason) {
       case PaywallReason.historyLocked:
-        return Icons.history;
+        return Icons.block; // 履歴制限廃止のため未使用。フォールバックで広告アイコン
       case PaywallReason.chart:
         return Icons.show_chart;
       case PaywallReason.theme:
@@ -531,13 +543,15 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
         return Icons.analytics;
       case PaywallReason.backup:
         return Icons.backup;
+      case PaywallReason.ads:
+        return Icons.block;
     }
   }
 
   String _getTitle(AppLocalizations l10n) {
     switch (widget.reason) {
       case PaywallReason.historyLocked:
-        return l10n.paywallTitleHistory;
+        return l10n.paywallTitleAds; // 履歴制限廃止のため未使用
       case PaywallReason.chart:
         return l10n.paywallTitleChart;
       case PaywallReason.theme:
@@ -546,13 +560,15 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
         return l10n.paywallTitleStats;
       case PaywallReason.backup:
         return l10n.paywallTitleBackup;
+      case PaywallReason.ads:
+        return l10n.paywallTitleAds;
     }
   }
 
   String _getBody(AppLocalizations l10n) {
     switch (widget.reason) {
       case PaywallReason.historyLocked:
-        return l10n.paywallBodyHistory;
+        return l10n.paywallBodyAds; // 履歴制限廃止のため未使用
       case PaywallReason.chart:
         return l10n.paywallBodyChart;
       case PaywallReason.theme:
@@ -561,6 +577,8 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
         return l10n.paywallBodyStats;
       case PaywallReason.backup:
         return l10n.paywallBodyBackup;
+      case PaywallReason.ads:
+        return l10n.paywallBodyAds;
     }
   }
 }

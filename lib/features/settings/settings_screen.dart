@@ -642,9 +642,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
     }
 
-    // Freeユーザー: Proへアップグレード
+    // Freeユーザー: Proへアップグレード (P1-5: Proの価値の一文を表示)
     final upgradeTitle = l10n?.settingsUpgradeToPro ?? 'Upgrade to Pro';
     final upgradeDescription = l10n?.settingsProPlanDescription ?? 'Hide ads, full history, theme, backup & more';
+    final proOneLiner = l10n?.proValueOneLiner ?? 'Sync across devices & no ads';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -696,6 +697,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.blue.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        proOneLiner,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.blue.shade800,
                         ),
                       ),
                     ],
