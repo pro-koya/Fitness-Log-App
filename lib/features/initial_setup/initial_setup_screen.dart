@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/settings_provider.dart';
 import '../tutorial/providers/interactive_tutorial_provider.dart';
-import '../home/home_screen.dart';
+import '../main_tab/main_tab_screen.dart';
 
 /// Initial setup screen shown on first launch
 class InitialSetupScreen extends ConsumerStatefulWidget {
@@ -49,10 +49,10 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
     // Start interactive tutorial (only once, when user completes initial setup)
     ref.read(interactiveTutorialProvider.notifier).startTutorial();
 
-    // Navigate to Home Screen (tutorial overlay will be shown)
+    // Navigate to main tab (Home tab; tutorial overlay will be shown)
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => const HomeScreen(),
+        builder: (context) => const MainTabScreen(),
       ),
     );
   }

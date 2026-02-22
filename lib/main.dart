@@ -12,7 +12,7 @@ import 'providers/theme_settings_provider.dart';
 import 'services/timer_persistence_service.dart';
 import 'services/timer_notification_service.dart';
 import 'features/initial_setup/initial_setup_screen.dart';
-import 'features/home/home_screen.dart';
+import 'features/main_tab/main_tab_screen.dart';
 import 'features/tutorial/providers/interactive_tutorial_provider.dart';
 
 void main() async {
@@ -224,7 +224,8 @@ class AppStartupScreen extends ConsumerWidget {
         }
         // Tutorial is started only once from InitialSetupScreen when user taps Start.
         // Do not auto-start tutorial here so it doesn't run on every app launch.
-        return const HomeScreen();
+        // P1-4: ボトムナビで記録・履歴・設定を切り替える
+        return const MainTabScreen();
       },
       loading: () => const Scaffold(
         body: Center(

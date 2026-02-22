@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../data/dao/body_weight_dao.dart';
 import '../../data/dao/workout_session_dao.dart';
 import '../../data/dao/workout_exercise_dao.dart';
 import '../../data/dao/set_record_dao.dart';
@@ -9,11 +10,12 @@ import '../../data/localization/exercise_localization.dart';
 import '../../data/localization/body_part_localization.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/settings_provider.dart';
-import '../../utils/feature_gate.dart';
 import '../workout_input/widgets/timer_icon_button.dart';
-import '../paywall/paywall_service.dart';
-import '../paywall/models/paywall_reason.dart';
+import '../ads/widgets/banner_ad_widget.dart';
 import 'widgets/workout_summary_sheet.dart';
+import 'all_records_screen.dart';
+import '../exercise_list/exercise_list_screen.dart';
+import '../memo_search/memo_search_screen.dart';
 
 /// History screen with calendar view
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -29,53 +31,24 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Map<DateTime, List<WorkoutSessionEntity>> _workoutDays = {};
   bool _isLoading = true;
 
-  // Monthly summary data
+  // Monthly summary data (for the calendar's focused month)
   int _totalDuration = 0;
   int _totalSets = 0;
   double _totalVolume = 0.0;
   int _totalTime = 0; // Total time in seconds for time-based exercises
   double _totalDistance = 0.0; // Total distance in meters for cardio exercises
+  double? _monthlyAverageWeight; // Average body weight for the focused month
   List<Map<String, dynamic>> _topExercises = [];
   List<Map<String, int>> _weeklyData = [];
 
   // Body part filter
   String? _selectedBodyPart; // null means "all"
 
-  // セッションIDからグローバルインデックスへのマッピング（ロック判定用）
-  Map<int, int> _sessionIndexMap = {};
-
   @override
   void initState() {
     super.initState();
     _loadWorkouts();
     _loadMonthlySummary();
-    _loadSessionIndexMap();
-  }
-
-  /// 全completedセッションのグローバルインデックスを読み込む（ロック判定用）
-  Future<void> _loadSessionIndexMap() async {
-    try {
-      final allSessions = await WorkoutSessionDao().getCompletedSessions();
-      final map = <int, int>{};
-      for (var i = 0; i < allSessions.length; i++) {
-        if (allSessions[i].id != null) {
-          map[allSessions[i].id!] = i;
-        }
-      }
-      setState(() {
-        _sessionIndexMap = map;
-      });
-    } catch (e) {
-      // エラー時は空マップのまま
-    }
-  }
-
-  /// セッションがロックされているかチェック
-  bool _isSessionLocked(WorkoutSessionEntity workout) {
-    final gate = ref.read(featureGateProvider);
-    final index = _sessionIndexMap[workout.id];
-    if (index == null) return false;
-    return gate.isSessionLocked(index);
   }
 
   Future<void> _loadWorkouts() async {
@@ -152,6 +125,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         _focusedDay.year,
         _focusedDay.month,
       );
+      final unit = ref.read(currentUnitProvider);
+      final avgWeight = await BodyWeightDao().getAverageWeightForMonth(
+        _focusedDay.year,
+        _focusedDay.month,
+        unit,
+      );
 
       setState(() {
         _totalDuration = duration;
@@ -159,6 +138,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         _totalVolume = volume;
         _totalTime = totalTime;
         _totalDistance = totalDistance;
+        _monthlyAverageWeight = avgWeight;
         _topExercises = topExercises;
         _weeklyData = weeklyData;
       });
@@ -177,12 +157,69 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       appBar: AppBar(
         title: Text(l10n.historyTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.list_alt),
+            tooltip: l10n.allRecordsTitle,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AllRecordsScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.fitness_center),
+            tooltip: l10n.exerciseListTooltip,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ExerciseListScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: l10n.memoSearch,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const MemoSearchScreen(),
+                ),
+              );
+            },
+          ),
           TimerIconButton(),
         ],
       ),
       body: Column(
         children: [
-          // Calendar
+          // Quick month buttons + month/year picker
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: Row(
+              children: [
+                // 先月 | 今月 | 来月
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildMonthQuickButton(l10n.lastMonthShort, () => _jumpToMonth(-1)),
+                    const SizedBox(width: 6),
+                    _buildMonthQuickButton(l10n.thisMonthShort, () => _jumpToMonth(0)),
+                    const SizedBox(width: 6),
+                    _buildMonthQuickButton(l10n.nextMonthShort, () => _jumpToMonth(1)),
+                  ],
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _showMonthYearPicker,
+                  icon: const Icon(Icons.calendar_month, size: 20),
+                  label: Text(l10n.selectMonthYear),
+                ),
+              ],
+            ),
+          ),
           TableCalendar(
             firstDay: DateTime(2020, 1, 1),
             lastDay: DateTime(2030, 12, 31),
@@ -231,7 +268,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
           const Divider(),
 
-          // Monthly summary section
+          // Monthly summary section (data is for the calendar's focused month)
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -275,8 +312,119 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     ),
                   ),
           ),
+          // Banner ad (Free users only)
+          const BannerAdWidget(),
         ],
       ),
+    );
+  }
+
+  Widget _buildMonthQuickButton(String label, VoidCallback onPressed) {
+    return FilledButton.tonal(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Text(label, style: const TextStyle(fontSize: 13)),
+    );
+  }
+
+  void _jumpToMonth(int offset) {
+    final now = DateTime.now();
+    final target = DateTime(now.year, now.month + offset, 1);
+    setState(() => _focusedDay = target);
+    _loadWorkouts();
+    _loadMonthlySummary();
+  }
+
+  Future<void> _showMonthYearPicker() async {
+    final l10n = AppLocalizations.of(context)!;
+    final isJa = ref.watch(currentLanguageProvider) == 'ja';
+    int selectedYear = _focusedDay.year;
+    int selectedMonth = _focusedDay.month;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final years = List.generate(11, (i) => 2020 + i);
+            final monthNames = isJa
+                ? ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return AlertDialog(
+              title: Text(l10n.selectMonthYear),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isJa ? '年' : 'Year',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    DropdownButton<int>(
+                      value: selectedYear,
+                      isExpanded: true,
+                      items: years.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                      onChanged: (v) {
+                        if (v != null) setDialogState(() => selectedYear = v);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      isJa ? '月' : 'Month',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: List.generate(12, (i) {
+                        final month = i + 1;
+                        final isSelected = selectedMonth == month;
+                        return ChoiceChip(
+                          label: Text(monthNames[i]),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) setDialogState(() => selectedMonth = month);
+                          },
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.cancelButton),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    setState(() {
+                      _focusedDay = DateTime(selectedYear, selectedMonth, 1);
+                    });
+                    _loadWorkouts();
+                    _loadMonthlySummary();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(l10n.saveButton),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -286,23 +434,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       0,
       (sum, sessions) => sum + sessions.length,
     );
+    final unit = ref.watch(currentUnitProvider);
+    final weightStr = _monthlyAverageWeight != null
+        ? '${_monthlyAverageWeight!.toStringAsFixed(1)} $unit'
+        : '--';
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: FutureBuilder<int>(
-              future: WorkoutSessionDao().getCurrentStreak(),
-              builder: (context, snapshot) {
-                final streak = snapshot.data ?? 0;
-                return _buildStatCard(
-                  icon: Icons.local_fire_department,
-                  color: Colors.orange,
-                  title: l10n.streakLabel,
-                  value: l10n.streakDays(streak),
-                );
-              },
+            child: _buildStatCard(
+              icon: Icons.monitor_weight_outlined,
+              color: Colors.teal,
+              title: l10n.averageWeightLabel,
+              value: weightStr,
             ),
           ),
           const SizedBox(width: 12),
@@ -844,13 +990,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Future<void> _showSingleWorkoutSummary(
     WorkoutSessionEntity workout,
   ) async {
-    // ロックされているセッションの場合はPaywallを表示
-    if (_isSessionLocked(workout)) {
-      if (!mounted) return;
-      await showPaywall(context, reason: PaywallReason.historyLocked);
-      return;
-    }
-
     // Get exercise and set counts
     final workoutExerciseDao = WorkoutExerciseDao();
     final exercises = await workoutExerciseDao.getExercisesBySessionId(
@@ -897,33 +1036,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             );
             final timeStr =
                 '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
-
-            final isLocked = _isSessionLocked(workout);
-
             return ListTile(
-              leading: Icon(
-                isLocked ? Icons.lock : Icons.fitness_center,
-                color: isLocked ? Colors.grey : null,
-              ),
-              title: Text(
-                'Workout at $timeStr',
-                style: TextStyle(
-                  color: isLocked ? Colors.grey : null,
-                ),
-              ),
-              subtitle: isLocked
-                  ? Text(
-                      l10n.lockedSessionHint,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue.shade600,
-                      ),
-                    )
-                  : null,
+              leading: const Icon(Icons.fitness_center),
+              title: Text('Workout at $timeStr'),
               trailing: Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: isLocked ? Colors.grey.shade400 : null,
+                color: Colors.grey.shade400,
               ),
               onTap: () {
                 Navigator.of(context).pop();
