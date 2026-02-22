@@ -149,7 +149,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: CircularProgressIndicator(),
                 ),
                 error: (error, stack) => Center(
-                  child: Text(l10n.errorMessage(error.toString())),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.errorLoadFailed,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                          onPressed: () => ref.invalidate(workoutSessionNotifierProvider),
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: Text(l10n.retryButton),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
 
@@ -351,9 +371,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
-        child: Text(
-          l10n.errorLoadingWorkouts,
-          style: TextStyle(color: Colors.grey[600]),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
+              const SizedBox(height: 12),
+              Text(
+                l10n.errorLoadFailed,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              ),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () => ref.invalidate(recentWorkoutItemsProvider),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: Text(l10n.retryButton),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -15,6 +15,7 @@ import '../paywall/paywall_service.dart';
 import '../paywall/models/paywall_reason.dart';
 import '../workout_input/workout_input_screen.dart';
 import '../workout_input/widgets/timer_icon_button.dart';
+import '../ads/widgets/banner_ad_widget.dart';
 
 class WorkoutDetailScreen extends ConsumerWidget {
   final int sessionId;
@@ -37,7 +38,6 @@ class WorkoutDetailScreen extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          TimerIconButton(),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: l10n.editWorkoutButton,
@@ -70,6 +70,7 @@ class WorkoutDetailScreen extends ConsumerWidget {
             tooltip: l10n.deleteWorkoutButton,
             onPressed: () => _showDeleteDialog(context, ref),
           ),
+          TimerIconButton(),
         ],
       ),
       body: workoutDetailAsync.when(
@@ -83,17 +84,23 @@ class WorkoutDetailScreen extends ConsumerWidget {
           child: CircularProgressIndicator(),
         ),
         error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Colors.red,
-              ),
-              const SizedBox(height: 16),
-              Text(l10n.errorMessage(error.toString())),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.errorLoadFailed,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -130,75 +137,83 @@ class WorkoutDetailScreen extends ConsumerWidget {
     final date = workoutDetail.session.completedAt != null
         ? DateTime.fromMillisecondsSinceEpoch(workoutDetail.session.completedAt! * 1000)
         : null;
-    
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Date and session time card with edit button
-            Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date and session time card with edit button
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Date
-                          if (date != null)
-                            Text(
-                              DateFormatter.formatDate(date, currentLanguage),
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          const SizedBox(height: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Date
+                                if (date != null)
+                                  Text(
+                                    DateFormatter.formatDate(date, currentLanguage),
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                const SizedBox(height: 8),
 
-                          // Session time
-                          if (workoutDetail.getFormattedSessionTime().isNotEmpty)
-                            Text(
-                              workoutDetail.getFormattedSessionTime(),
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[700],
-                              ),
+                                // Session time
+                                if (workoutDetail.getFormattedSessionTime().isNotEmpty)
+                                  Text(
+                                    workoutDetail.getFormattedSessionTime(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                              ],
                             ),
+                          ),
+                          // Edit button
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined, size: 20),
+                            onPressed: () => _showEditDateTimeDialog(
+                              context,
+                              ref,
+                              workoutDetail,
+                            ),
+                            tooltip: 'Edit time',
+                            color: Colors.grey.shade600,
+                          ),
                         ],
                       ),
                     ),
-                    // Edit button
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20),
-                      onPressed: () => _showEditDateTimeDialog(
-                        context,
-                        ref,
-                        workoutDetail,
-                      ),
-                      tooltip: 'Edit time',
-                      color: Colors.grey.shade600,
-                    ),
-                  ],
-                ),
+                  ),
+
+                  // Exercise list
+                  if (workoutDetail.exercises.isEmpty)
+                    _buildEmptyState(context)
+                  else
+                    ...workoutDetail.exercises.map((exerciseDetail) {
+                      return _buildExerciseCard(context, ref, exerciseDetail);
+                    }),
+                ],
               ),
             ),
-
-            // Exercise list
-            if (workoutDetail.exercises.isEmpty)
-              _buildEmptyState(context)
-            else
-              ...workoutDetail.exercises.map((exerciseDetail) {
-                return _buildExerciseCard(context, ref, exerciseDetail);
-              }),
-          ],
+          ),
         ),
-      ),
+        // Banner ad (Fixed at bottom, Free users only)
+        const BannerAdWidget(),
+      ],
     );
   }
 
@@ -495,11 +510,22 @@ class WorkoutDetailScreen extends ConsumerWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(l10n.shareWorkoutDialogTitle),
-          content: SingleChildScrollView(
-            child: SelectableText(
-              shareText,
-              style: const TextStyle(fontSize: 14),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 240),
+                child: SingleChildScrollView(
+                  child: SelectableText(
+                    shareText,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const BannerAdWidget(),
+            ],
           ),
           actions: [
             TextButton(

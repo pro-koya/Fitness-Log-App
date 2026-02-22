@@ -4,6 +4,7 @@ import '../../data/localization/exercise_localization.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/database_providers.dart';
 import '../../providers/settings_provider.dart';
+import '../../utils/chart_aggregation.dart';
 import '../../utils/date_formatter.dart';
 import 'providers/exercise_progress_provider.dart';
 import 'widgets/progress_chart_widget.dart';
@@ -54,7 +55,15 @@ class ExerciseProgressScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error loading settings: $error')),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              AppLocalizations.of(context)!.errorLoadFailed,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -73,9 +82,10 @@ class ExerciseProgressScreen extends ConsumerWidget {
     Widget buildMetricSection({
       required String chartMode,
     }) {
+      final period = ref.watch(exerciseProgressPeriodProvider(exerciseId));
       final progressAsync = ref.watch(
         exerciseProgressProvider(
-          ExerciseProgressQuery(exerciseId: exerciseId, metric: chartMode),
+          ExerciseProgressQuery(exerciseId: exerciseId, metric: chartMode, period: period),
         ),
       );
 
@@ -99,6 +109,7 @@ class ExerciseProgressScreen extends ConsumerWidget {
                 unit: unit,
                 chartMode: chartMode,
                 distanceUnit: distanceUnit,
+                xAxisBucket: workoutBucketForPeriod(period),
               ),
               const SizedBox(height: 32),
               _buildSummaryStats(
@@ -112,7 +123,15 @@ class ExerciseProgressScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              AppLocalizations.of(context)!.errorLoadFailed,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
       );
     }
 
@@ -137,7 +156,9 @@ class ExerciseProgressScreen extends ConsumerWidget {
                         Tab(text: l10n.paceTab),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    _buildPeriodFilterChips(context, ref),
+                    const SizedBox(height: 12),
                     SizedBox(
                       height: 520,
                       child: TabBarView(
@@ -152,6 +173,8 @@ class ExerciseProgressScreen extends ConsumerWidget {
                 ),
               ),
             ] else if (isTimeMode) ...[
+              _buildPeriodFilterChips(context, ref),
+              const SizedBox(height: 12),
               buildMetricSection(
                 chartMode: 'time',
               ),
@@ -169,7 +192,9 @@ class ExerciseProgressScreen extends ConsumerWidget {
                         Tab(text: l10n.volumeTab),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    _buildPeriodFilterChips(context, ref),
+                    const SizedBox(height: 12),
                     SizedBox(
                       height: 520,
                       child: TabBarView(
@@ -196,6 +221,39 @@ class ExerciseProgressScreen extends ConsumerWidget {
             _HistorySection(exerciseId: exerciseId, recordType: recordType),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPeriodFilterChips(BuildContext context, WidgetRef ref) {
+    final currentPeriod = ref.watch(exerciseProgressPeriodProvider(exerciseId));
+    final periods = ProgressPeriod.values.where((p) => p != ProgressPeriod.oneWeek).toList();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: periods.map((period) {
+          final isSelected = period == currentPeriod;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text(period.label),
+              selected: isSelected,
+              onSelected: (_) {
+                ref.read(exerciseProgressPeriodProvider(exerciseId).notifier).state = period;
+              },
+              selectedColor: Theme.of(context).colorScheme.primaryContainer,
+              checkmarkColor: Theme.of(context).colorScheme.primary,
+              labelStyle: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[700],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -441,7 +499,7 @@ final _exerciseRecordTypeProvider = FutureProvider.family<String, int>(
 );
 
 /// Widget for displaying history section with tabs (workout records + memos)
-class _HistorySection extends ConsumerWidget {
+class _HistorySection extends ConsumerStatefulWidget {
   final int exerciseId;
   final String recordType;
 
@@ -451,11 +509,21 @@ class _HistorySection extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HistorySection> createState() => _HistorySectionState();
+}
+
+class _HistorySectionState extends ConsumerState<_HistorySection> {
+  final GlobalKey _sectionKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentLanguage = ref.watch(currentLanguageProvider);
     final isJapanese = currentLanguage == 'ja';
-    final workoutHistoryAsync = ref.watch(exerciseWorkoutHistoryProvider(exerciseId));
-    final memoHistoryAsync = ref.watch(exerciseMemoHistoryProvider(exerciseId));
+    final currentSort = ref.watch(exerciseHistorySortProvider(widget.exerciseId));
+    final historyQuery = ExerciseHistoryQuery(exerciseId: widget.exerciseId, sortOption: currentSort);
+    final workoutHistoryAsync = ref.watch(exerciseWorkoutHistoryProvider(historyQuery));
+    final memoHistoryAsync = ref.watch(exerciseMemoHistoryProvider(historyQuery));
 
     // Check if both are empty
     final hasWorkoutHistory = workoutHistoryAsync.asData?.value.isNotEmpty ?? false;
@@ -468,14 +536,21 @@ class _HistorySection extends ConsumerWidget {
     return DefaultTabController(
       length: 2,
       child: Column(
+        key: _sectionKey,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            isJapanese ? '履歴' : 'History',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isJapanese ? '履歴' : 'History',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              _buildSortSelector(context, l10n, currentSort),
+            ],
           ),
           const SizedBox(height: 8),
           TabBar(
@@ -490,8 +565,8 @@ class _HistorySection extends ConsumerWidget {
             height: 400,
             child: TabBarView(
               children: [
-                _buildWorkoutHistoryTab(context, ref, workoutHistoryAsync, currentLanguage),
-                _buildMemoHistoryTab(context, ref, memoHistoryAsync, currentLanguage),
+                _buildWorkoutHistoryTab(context, workoutHistoryAsync, currentLanguage),
+                _buildMemoHistoryTab(context, memoHistoryAsync, currentLanguage),
               ],
             ),
           ),
@@ -500,17 +575,152 @@ class _HistorySection extends ConsumerWidget {
     );
   }
 
+  /// Scroll to history section
+  void _scrollToHistorySection() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_sectionKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _sectionKey.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  /// Build sort selector dropdown
+  Widget _buildSortSelector(
+    BuildContext context,
+    AppLocalizations l10n,
+    HistorySortOption currentSort,
+  ) {
+    final options = _getSortOptionsForType(widget.recordType);
+
+    return PopupMenuButton<HistorySortOption>(
+      tooltip: l10n.sortLabel,
+      onSelected: (option) {
+        ref.read(exerciseHistorySortProvider(widget.exerciseId).notifier).state = option;
+        _scrollToHistorySection();
+      },
+      itemBuilder: (context) => options.map((option) {
+        return PopupMenuItem(
+          value: option,
+          child: Row(
+            children: [
+              if (option == currentSort)
+                Icon(
+                  Icons.check,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                )
+              else
+                const SizedBox(width: 16),
+              const SizedBox(width: 8),
+              Text(_getSortOptionLabel(l10n, option)),
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.sort,
+              size: 16,
+              color: Colors.grey.shade600,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _getSortOptionLabel(l10n, currentSort),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 16,
+              color: Colors.grey.shade600,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Get available sort options based on record type
+  List<HistorySortOption> _getSortOptionsForType(String recordType) {
+    switch (recordType) {
+      case 'time':
+        return [
+          HistorySortOption.dateDesc,
+          HistorySortOption.dateAsc,
+          HistorySortOption.timeDesc,
+          HistorySortOption.timeAsc,
+        ];
+      case 'cardio':
+        return [
+          HistorySortOption.dateDesc,
+          HistorySortOption.dateAsc,
+          HistorySortOption.timeDesc,
+          HistorySortOption.timeAsc,
+          HistorySortOption.distanceDesc,
+          HistorySortOption.distanceAsc,
+        ];
+      default: // 'reps'
+        return [
+          HistorySortOption.dateDesc,
+          HistorySortOption.dateAsc,
+          HistorySortOption.weightDesc,
+          HistorySortOption.weightAsc,
+          HistorySortOption.repsDesc,
+          HistorySortOption.repsAsc,
+        ];
+    }
+  }
+
+  /// Get localized label for sort option
+  String _getSortOptionLabel(AppLocalizations l10n, HistorySortOption option) {
+    switch (option) {
+      case HistorySortOption.dateDesc:
+        return l10n.sortByDateDesc;
+      case HistorySortOption.dateAsc:
+        return l10n.sortByDateAsc;
+      case HistorySortOption.weightDesc:
+        return l10n.sortByWeightDesc;
+      case HistorySortOption.weightAsc:
+        return l10n.sortByWeightAsc;
+      case HistorySortOption.repsDesc:
+        return l10n.sortByRepsDesc;
+      case HistorySortOption.repsAsc:
+        return l10n.sortByRepsAsc;
+      case HistorySortOption.timeDesc:
+        return l10n.sortByTimeDesc;
+      case HistorySortOption.timeAsc:
+        return l10n.sortByTimeAsc;
+      case HistorySortOption.distanceDesc:
+        return l10n.sortByDistanceDesc;
+      case HistorySortOption.distanceAsc:
+        return l10n.sortByDistanceAsc;
+    }
+  }
+
   Widget _buildWorkoutHistoryTab(
     BuildContext context,
-    WidgetRef ref,
     AsyncValue<List<WorkoutHistoryEntry>> workoutHistoryAsync,
     String currentLanguage,
   ) {
     final unit = ref.watch(currentUnitProvider);
     final distanceUnit = ref.watch(currentDistanceUnitProvider);
     final isJapanese = currentLanguage == 'ja';
-    final isTimeMode = recordType == 'time';
-    final isCardioMode = recordType == 'cardio';
+    final isTimeMode = widget.recordType == 'time';
+    final isCardioMode = widget.recordType == 'cardio';
 
     return workoutHistoryAsync.when(
       data: (workoutHistory) {
@@ -541,9 +751,12 @@ class _HistorySection extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: Text(
-          'Error: $error',
-          style: TextStyle(color: Colors.red[400]),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            AppLocalizations.of(context)!.errorLoadFailed,
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );
@@ -648,7 +861,6 @@ class _HistorySection extends ConsumerWidget {
 
   Widget _buildMemoHistoryTab(
     BuildContext context,
-    WidgetRef ref,
     AsyncValue<List<MemoHistoryEntry>> memoHistoryAsync,
     String currentLanguage,
   ) {
@@ -675,9 +887,12 @@ class _HistorySection extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: Text(
-          'Error: $error',
-          style: TextStyle(color: Colors.red[400]),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            AppLocalizations.of(context)!.errorLoadFailed,
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );

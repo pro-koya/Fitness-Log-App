@@ -180,6 +180,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get errorLoadFailed => '読み込みに失敗しました。もう一度お試しください。';
+
+  @override
+  String get retryButton => '再試行';
+
+  @override
   String get recentWorkoutsLabel => '最近の記録';
 
   @override

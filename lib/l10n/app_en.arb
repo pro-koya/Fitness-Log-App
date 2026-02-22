@@ -215,6 +215,8 @@
       }
     }
   },
+  "errorLoadFailed": "Something went wrong. Please try again.",
+  "retryButton": "Retry",
   "recentWorkoutsLabel": "Recent Workouts",
   "@recentWorkoutsLabel": {
     "description": "Label for recent workouts section"

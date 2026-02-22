@@ -206,9 +206,13 @@ class _MemoSearchScreenState extends ConsumerState<MemoSearchScreen> {
         child: CircularProgressIndicator(),
       ),
       error: (error, _) => Center(
-        child: Text(
-          'Error: $error',
-          style: TextStyle(color: Colors.red[400]),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            AppLocalizations.of(context)!.errorLoadFailed,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[700]),
+          ),
         ),
       ),
     );

@@ -153,8 +153,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: settingsAsync.when(
         data: (settings) {
           if (settings == null) {
-            return const Center(
-              child: Text('No settings found'),
+            final msg = l10n?.errorLoadFailed ?? 'Something went wrong. Please try again.';
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
+                    const SizedBox(height: 12),
+                    Text(msg, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () => ref.invalidate(settingsProvider),
+                      icon: const Icon(Icons.refresh, size: 18),
+                      label: Text(l10n?.retryButton ?? 'Retry'),
+                    ),
+                  ],
+                ),
+              ),
             );
           }
 
@@ -285,7 +302,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: CircularProgressIndicator(),
         ),
         error: (error, stack) => Center(
-          child: Text('Error: $error'),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
+                const SizedBox(height: 12),
+                Text(
+                  l10n?.errorLoadFailed ?? 'Something went wrong. Please try again.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                TextButton.icon(
+                  onPressed: () => ref.invalidate(settingsProvider),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text(l10n?.retryButton ?? 'Retry'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

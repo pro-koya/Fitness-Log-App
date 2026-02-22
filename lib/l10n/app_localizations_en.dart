@@ -182,6 +182,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get errorLoadFailed => 'Something went wrong. Please try again.';
+
+  @override
+  String get retryButton => 'Retry';
+
+  @override
   String get recentWorkoutsLabel => 'Recent Workouts';
 
   @override

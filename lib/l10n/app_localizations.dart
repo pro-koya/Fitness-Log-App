@@ -409,6 +409,18 @@ abstract class AppLocalizations {
   /// **'Error: {error}'**
   String errorMessage(String error);
 
+  /// No description provided for @errorLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errorLoadFailed;
+
+  /// No description provided for @retryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryButton;
+
   /// Label for recent workouts section
   ///
   /// In en, this message translates to:

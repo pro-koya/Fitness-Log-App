@@ -59,6 +59,8 @@
   "confirmButton": "OK",
 
   "errorMessage": "エラー：{error}",
+  "errorLoadFailed": "読み込みに失敗しました。もう一度お試しください。",
+  "retryButton": "再試行",
   "recentWorkoutsLabel": "最近の記録",
   "errorLoadingWorkouts": "記録の読み込みに失敗しました",
   "noWorkoutHistory": "まだトレーニング履歴がありません",

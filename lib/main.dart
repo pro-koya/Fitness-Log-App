@@ -1,20 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/supabase_config.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/settings_provider.dart';
 import 'providers/timer_provider.dart';
 import 'providers/theme_settings_provider.dart';
+import 'services/timer_persistence_service.dart';
+import 'services/timer_notification_service.dart';
 import 'features/initial_setup/initial_setup_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/tutorial/providers/interactive_tutorial_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
+
+  if (SupabaseConfig.isConfigured) {
+    await Supabase.initialize(
+      url: SupabaseConfig.url,
+      anonKey: SupabaseConfig.anonKey,
+    );
+  }
+
+  final prefs = await SharedPreferences.getInstance();
+  final timerPersistence = TimerPersistenceService(prefs);
+
   runApp(
-    // Wrap the entire app with ProviderScope for Riverpod
-    const ProviderScope(
-      child: MyApp(),
+    ProviderScope(
+      overrides: [
+        timerPersistenceServiceOverride.overrideWith((ref) => timerPersistence),
+      ],
+      child: const MyApp(),
     ),
   );
 }
@@ -74,18 +94,15 @@ class _MyAppState extends ConsumerState<MyApp> {
     final navigatorContext = _navigatorKey.currentContext;
     if (navigatorContext == null || !mounted) return;
 
-    // Vibrate 3 times with short intervals
-    for (int i = 0; i < 3; i++) {
-      HapticFeedback.mediumImpact();
-      if (i < 2) {
-        await Future.delayed(const Duration(milliseconds: 200));
-      }
+    final settings = ref.read(timerSettingsProvider);
+    await TimerNotificationService.play(settings);
+
+    if (navigatorContext.mounted) {
+      await _showTimerFinishedDialog(navigatorContext);
     }
+  }
 
-    // Play system alert sound
-    SystemSound.play(SystemSoundType.alert);
-
-    // Show enhanced dialog using navigator context
+  Future<void> _showTimerFinishedDialog(BuildContext navigatorContext) async {
     await showDialog(
       context: navigatorContext,
       barrierDismissible: true,
@@ -214,22 +231,40 @@ class AppStartupScreen extends ConsumerWidget {
           child: CircularProgressIndicator(),
         ),
       ),
-      error: (error, stack) => Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Colors.red,
+      error: (error, stack) {
+        final l10n = AppLocalizations.of(context)!;
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.errorLoadFailed,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: () => ref.invalidate(settingsProvider),
+                      icon: const Icon(Icons.refresh, size: 20),
+                      label: Text(l10n.retryButton),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
