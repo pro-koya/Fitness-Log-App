@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,12 +10,23 @@ import '../../providers/entitlement_provider.dart';
 import '../../providers/theme_settings_provider.dart';
 import '../../services/iap_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/database_providers.dart';
+import '../../services/seed_workout_data_service.dart';
+import '../../services/seed_body_weight_data_service.dart';
 import '../../utils/feature_gate.dart';
+import '../../providers/sync_providers.dart';
+import '../../providers/workout_session_provider.dart';
+import '../../services/supabase_auth_service.dart';
+import '../../core/supabase_config.dart';
 import '../paywall/paywall_service.dart';
 import '../paywall/models/paywall_reason.dart';
 import '../workout_input/widgets/timer_icon_button.dart';
 import 'screens/theme_settings_screen.dart';
+import 'screens/timer_notification_settings_screen.dart';
 import 'screens/backup_screen.dart';
+import '../import_kintore_memo/import_screen.dart';
+import '../ads/widgets/banner_ad_widget.dart';
+import 'package:intl/intl.dart';
 
 /// Settings screen for changing language and unit
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -30,6 +42,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String? _selectedUnit;
   String? _selectedDistanceUnit;
   bool _isSaving = false;
+  /// 同期中は 'push' または 'pull'。押した方のボタンにだけインジケーターを表示する
+  String? _syncingOperation;
+  bool _isGoogleSigningIn = false;
 
   @override
   void initState() {
@@ -177,6 +192,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         _buildDistanceUnitSelector(_selectedDistanceUnit ?? settings.distanceUnit),
                         const SizedBox(height: 32),
 
+                        // Timer notification section
+                        _buildTimerSection(l10n),
+                        const SizedBox(height: 32),
+
                         // Theme Section
                         _buildThemeSection(l10n),
                         const SizedBox(height: 32),
@@ -185,11 +204,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         _buildBackupSection(l10n),
                         const SizedBox(height: 32),
 
+                        // Pro Sync Section (Pro only)
+                        _buildSyncSection(l10n),
+                        const SizedBox(height: 32),
+
+                        // KintoreMemo Import Section
+                        _buildKintoreMemoImportSection(l10n),
+                        const SizedBox(height: 32),
+
+                        // Plan Section (Upgrade to Pro / Manage subscription) — バックアップの下
+                        _buildPlanSection(l10n),
+                        const SizedBox(height: 32),
+
                         // Restore Purchases Section
                         _buildRestorePurchasesSection(l10n),
-
-                        // Subscription Management Section (Pro users only)
-                        _buildSubscriptionManagementSection(l10n),
 
                         // Legal Links Section
                         const SizedBox(height: 32),
@@ -207,6 +235,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
               ),
+              // Banner ad (Free users only)
+              const BannerAdWidget(),
               // Save Button
               Container(
                 padding: const EdgeInsets.all(16.0),
@@ -434,6 +464,216 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Widget _buildTimerSection(AppLocalizations? l10n) {
+    final lang = ref.watch(currentLanguageProvider);
+    final isJa = lang == 'ja';
+    final title = isJa ? 'タイマー終了時の通知' : 'Timer notification';
+    final description = isJa ? 'バイブ・音の設定' : 'Vibration & sound settings';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(title),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const TimerNotificationSettingsScreen(),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.timer, color: Colors.blue.shade600),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Colors.grey.shade600),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// プランセクション（Proへのアップグレード or サブスク管理）
+  Widget _buildPlanSection(AppLocalizations? l10n) {
+    final entitlementState = ref.watch(entitlementProvider);
+    final isPro = entitlementState.isPro;
+
+    final sectionTitle = l10n?.settingsPlanSection ?? 'Plan';
+
+    if (isPro) {
+      // Proユーザー: サブスクリプション管理
+      final title = l10n?.settingsManageSubscription ?? 'Manage Subscription';
+      final description = l10n?.settingsManageSubscriptionHint ?? 'Cancel or change your subscription';
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionLabel(sectionTitle),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: _openSubscriptionManagement,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.manage_accounts,
+                      color: Colors.orange.shade600,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.open_in_new, size: 20),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Freeユーザー: Proへアップグレード
+    final upgradeTitle = l10n?.settingsUpgradeToPro ?? 'Upgrade to Pro';
+    final upgradeDescription = l10n?.settingsProPlanDescription ?? 'Hide ads, full history, theme, backup & more';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(sectionTitle),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: () async {
+            await showPaywall(context, reason: PaywallReason.ads);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.blue.shade200),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.blue.shade50,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.star_outline,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        upgradeTitle,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        upgradeDescription,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Colors.blue.shade700),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   /// テーマセクション（Pro機能）
   Widget _buildThemeSection(AppLocalizations? l10n) {
     final gate = ref.watch(featureGateProvider);
@@ -447,7 +687,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     // テーマ名の表示
     final themeName = themeSettings.isCustom
-        ? (currentLanguage == 'ja' ? 'カスタム' : 'Custom')
+        ? (l10n?.themeCustomLabel ?? 'Custom')
         : themeSettings.preset.getLocalizedName(currentLanguage);
 
     return Column(
@@ -537,12 +777,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// バックアップセクション（Pro機能）
   Widget _buildBackupSection(AppLocalizations? l10n) {
     final gate = ref.watch(featureGateProvider);
-    final currentLanguage = ref.watch(currentLanguageProvider);
-
-    final backupTitle = currentLanguage == 'ja' ? 'バックアップ / 復元' : 'Backup & Restore';
-    final backupDescription = currentLanguage == 'ja'
-        ? 'データを保存して別の端末に移行'
-        : 'Save data to transfer to another device';
+    final backupTitle = l10n?.backupTitle ?? 'Backup & Restore';
+    final backupDescription = l10n?.backupSettingsDescription ?? 'Save data to transfer to another device';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -635,26 +871,391 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// 同期の確認ダイアログを表示し、「実行する」なら push または pull を実行する
+  Future<void> _runSyncAfterConfirm(
+    BuildContext context,
+    AppLocalizations? l10n, {
+    required bool isPush,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final loc = AppLocalizations.of(ctx);
+        return AlertDialog(
+          title: Text(loc?.syncConfirmTitle ?? 'Confirm'),
+          content: Text(
+            isPush
+                ? (loc?.syncConfirmPushMessage ?? 'All cloud data will be replaced by this device\'s data.')
+                : (loc?.syncConfirmPullMessage ?? 'All device data will be replaced by cloud data.'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(loc?.cancelButton ?? 'Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(loc?.syncConfirmExecute ?? 'Execute'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
+    final operation = isPush ? 'push' : 'pull';
+    setState(() => _syncingOperation = operation);
+    Timer? safetyTimer;
+    safetyTimer = Timer(const Duration(seconds: 91), () {
+      if (mounted) {
+        setState(() => _syncingOperation = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n?.syncSyncFailedWithReason('Sync timed out') ?? 'Sync timed out'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    });
+    try {
+      final sync = ref.read(syncServiceProvider);
+      final String? err;
+      if (isPush) {
+        err = await sync.syncNow().timeout(
+          const Duration(seconds: 90),
+          onTimeout: () => 'Sync timed out',
+        );
+      } else {
+        err = await sync.pullFromServer().timeout(
+          const Duration(seconds: 90),
+          onTimeout: () => 'Sync timed out',
+        );
+      }
+      safetyTimer.cancel();
+      ref.invalidate(lastSyncedAtProvider);
+      ref.invalidate(recentWorkoutItemsProvider);
+      ref.invalidate(recentWorkoutsProvider);
+      ref.invalidate(allCompletedSessionsProvider);
+      if (!context.mounted) return;
+      if (err != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n?.syncSyncFailedWithReason(err) ?? 'Sync failed: $err'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n?.syncSyncSuccess ?? 'Sync completed'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e, st) {
+      debugPrint('[Sync UI] catch: e=$e $st');
+      safetyTimer.cancel();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n?.syncSyncFailedWithReason(e.toString()) ?? 'Sync failed: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      // ignore: invalid_null_aware_operator -- ダイアログでキャンセル時は未代入で null
+      safetyTimer?.cancel();
+      if (mounted) setState(() => _syncingOperation = null);
+    }
+  }
+
+  /// Pro 同期セクション（Pro のみ表示）
+  Widget _buildSyncSection(AppLocalizations? l10n) {
+    final gate = ref.watch(featureGateProvider);
+    if (!gate.canSync) return const SizedBox.shrink();
+
+    // OAuth リダイレクト直後に再描画されるよう、認証状態の変化を watch する
+    ref.watch(authStateChangesProvider);
+    final auth = ref.watch(supabaseAuthServiceProvider);
+    final lastSyncedAsync = ref.watch(lastSyncedAtProvider);
+    final isConfigured = SupabaseConfig.isConfigured;
+
+    final sectionTitle = l10n?.syncSectionTitle ?? 'Sync (Pro)';
+    final sectionDesc = l10n?.syncSectionDescription ?? 'Save data to the cloud for use across devices';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          sectionTitle,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                sectionDesc,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              if (!isConfigured)
+                Text(
+                  l10n?.syncNotConfigured ?? 'Supabase not configured',
+                  style: TextStyle(fontSize: 13, color: Colors.orange.shade700),
+                )
+              else ...[
+                Text(
+                  auth.isSignedIn
+                      ? (auth.currentUserEmail ?? '')
+                      : (l10n?.syncNotSignedIn ?? 'Not signed in'),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: auth.isSignedIn ? Colors.grey.shade800 : Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (auth.isSignedIn) ...[
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: _syncingOperation != null ? null : () async {
+                          await auth.signOut();
+                          ref.invalidate(lastSyncedAtProvider);
+                          if (mounted) setState(() {});
+                        },
+                        child: Text(l10n?.syncSignOut ?? 'Sign out'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _syncingOperation != null ? null : () => _runSyncAfterConfirm(
+                            context,
+                            l10n,
+                            isPush: true,
+                          ),
+                          child: _syncingOperation == 'push'
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(l10n?.syncPushShort ?? '反映'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _syncingOperation != null ? null : () => _runSyncAfterConfirm(
+                            context,
+                            l10n,
+                            isPush: false,
+                          ),
+                          child: _syncingOperation == 'pull'
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(l10n?.syncPullShort ?? '取得'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n?.syncManualHint ?? 'Sync is manual.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ] else ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _isGoogleSigningIn
+                          ? null
+                          : () => _signInWithGoogle(),
+                      icon: _isGoogleSigningIn
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            )
+                          : const Icon(Icons.g_mobiledata, size: 24),
+                      label: Text(
+                        _isGoogleSigningIn
+                            ? (l10n?.syncSigningIn ?? 'Signing in...')
+                            : (l10n?.syncSignInWithGoogle ?? 'Sign in with Google'),
+                      ),
+                    ),
+                  ),
+                ],
+                lastSyncedAsync.when(
+                  data: (epoch) {
+                    if (epoch == null) return const SizedBox.shrink();
+                    final dt = DateTime.fromMillisecondsSinceEpoch(epoch * 1000);
+                    final timeStr = DateFormat('yyyy/MM/dd HH:mm').format(dt);
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        l10n?.syncLastSynced(timeStr) ?? 'Last synced: $timeStr',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Google でログイン（SSO）。ブラウザ／システム認証画面が開き、完了後にアプリに戻る。
+  Future<void> _signInWithGoogle() async {
+    final l10n = AppLocalizations.of(context)!;
+    final auth = ref.read(supabaseAuthServiceProvider);
+    if (_isGoogleSigningIn) return;
+    setState(() => _isGoogleSigningIn = true);
+    try {
+      final res = await auth.signInWithGoogle();
+      if (!mounted) return;
+      if (res is AuthFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text((res as AuthFailure).message),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGoogleSigningIn = false);
+    }
+  }
+
+  /// 筋トレMemoインポートセクション
+  Widget _buildKintoreMemoImportSection(AppLocalizations? l10n) {
+    final title = l10n?.importKintoreMemoTitle ?? 'Import from KintoreMemo';
+    final description = l10n?.importKintoreMemoDescription ?? 'Import default.realm exported via iMazing etc.';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(l10n?.importFromOtherAppsLabel ?? 'Import from other apps'),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ImportKintoreMemoScreen(),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.file_download,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   /// 購入復元セクション
   Widget _buildRestorePurchasesSection(AppLocalizations? l10n) {
     final entitlementState = ref.watch(entitlementProvider);
     final iapState = ref.watch(iapServiceProvider);
-    final currentLanguage = ref.watch(currentLanguageProvider);
 
     // Proユーザーの場合は表示しない
     if (entitlementState.isPro) {
       return const SizedBox.shrink();
     }
 
-    final restoreTitle = currentLanguage == 'ja' ? '購入を復元' : 'Restore Purchases';
-    final restoreDescription = currentLanguage == 'ja'
-        ? '以前購入したProプランを復元'
-        : 'Restore previously purchased Pro plan';
+    final restoreTitle = l10n?.paywallRestorePurchases ?? 'Restore Purchases';
+    final restoreDescription = l10n?.paywallRestoreDescription ?? 'Restore previously purchased Pro plan';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionLabel(l10n?.paywallRestorePurchases ?? restoreTitle),
+        _buildSectionLabel(restoreTitle),
         const SizedBox(height: 12),
         InkWell(
           onTap: iapState.isPurchasing ? null : () => _handleRestorePurchases(l10n),
@@ -719,80 +1320,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// サブスクリプション管理セクション（Proユーザー用）
-  Widget _buildSubscriptionManagementSection(AppLocalizations? l10n) {
-    final entitlementState = ref.watch(entitlementProvider);
-
-    // Proユーザー以外は表示しない
-    if (!entitlementState.isPro) {
-      return const SizedBox.shrink();
-    }
-
-    final title = l10n?.settingsManageSubscription ?? 'Manage Subscription';
-    final description = l10n?.settingsManageSubscriptionHint ?? 'Cancel or change your subscription';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 32),
-        _buildSectionLabel(title),
-        const SizedBox(height: 12),
-        InkWell(
-          onTap: _openSubscriptionManagement,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                // アイコン
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.manage_accounts,
-                    color: Colors.orange.shade600,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.open_in_new, size: 20),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   /// サブスクリプション管理ページを開く
   Future<void> _openSubscriptionManagement() async {
     Uri url;
@@ -811,9 +1338,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final msg = AppLocalizations.of(context)?.subscriptionManagementOpenError ?? 'Could not open subscription settings';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open subscription settings: $e'),
+            content: Text(msg),
             backgroundColor: Colors.red,
           ),
         );
@@ -823,8 +1351,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// 購入復元処理
   Future<void> _handleRestorePurchases(AppLocalizations? l10n) async {
-    final currentLanguage = ref.read(currentLanguageProvider);
-    final restoringMsg = currentLanguage == 'ja' ? '復元中...' : 'Restoring...';
+    final restoringMsg = l10n?.paywallRestoring ?? 'Restoring...';
     final successMsg = l10n?.paywallRestoreSuccess ?? 'Purchases restored';
     final noSubMsg = l10n?.paywallRestoreNoSubscription ?? 'No active subscription found';
     final errorMsg = l10n?.paywallSubscriptionError ?? 'Restore failed. Please try again.';
@@ -886,8 +1413,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// 法的情報セクション
   Widget _buildLegalSection(AppLocalizations? l10n) {
-    final currentLanguage = ref.watch(currentLanguageProvider);
-    final legalTitle = currentLanguage == 'ja' ? '法的情報' : 'Legal';
+    final legalTitle = l10n?.legalTitle ?? 'Legal';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -926,7 +1452,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Privacy Policy
               InkWell(
                 onTap: () {
-                  final url = currentLanguage == 'ja'
+                  final locale = Localizations.localeOf(context);
+                  final url = locale.languageCode == 'ja'
                       ? 'https://lovely-kitty-76f.notion.site/2f60ff4893228039a89fed882469cdde?source=copy_link'
                       : 'https://lovely-kitty-76f.notion.site/Privacy-Policy-2f60ff489322807398aac2e94993f0a9?source=copy_link';
                   _openLegalUrl(url);
@@ -1061,7 +1588,171 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 16),
+          _buildSeedTestDataButton(),
+          const SizedBox(height: 8),
+          _buildSeedBodyWeightDataButton(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSeedBodyWeightDataButton() {
+    return _SeedBodyWeightDataButton(
+      onSeeded: () {
+        ref.invalidate(databaseStateProvider);
+      },
+    );
+  }
+
+  Widget _buildSeedTestDataButton() {
+    return _SeedTestDataButton(
+      onSeeded: () {
+        ref.invalidate(databaseStateProvider);
+      },
+    );
+  }
+}
+
+/// 体重記録テストデータ投入ボタン（デバッグ用）
+class _SeedBodyWeightDataButton extends StatefulWidget {
+  final VoidCallback onSeeded;
+
+  const _SeedBodyWeightDataButton({required this.onSeeded});
+
+  @override
+  State<_SeedBodyWeightDataButton> createState() =>
+      _SeedBodyWeightDataButtonState();
+}
+
+class _SeedBodyWeightDataButtonState extends State<_SeedBodyWeightDataButton> {
+  bool _isLoading = false;
+
+  Future<void> _seedData() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+    try {
+      final service = SeedBodyWeightDataService();
+      final count = await service.seed();
+      widget.onSeeded();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '体重記録のテストデータを登録しました（$count 件）',
+              style: const TextStyle(fontSize: 14),
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e, st) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('エラー: $e', style: const TextStyle(fontSize: 12)),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        debugPrint('SeedBodyWeightDataService error: $e\n$st');
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _isLoading ? null : _seedData,
+        icon: _isLoading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.monitor_weight_outlined, size: 20),
+        label: Text(
+            _isLoading ? '登録中...' : '体重記録のテストデータを登録（約6ヶ月分）'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.orange.shade800,
+          side: BorderSide(color: Colors.orange.shade300),
+        ),
+      ),
+    );
+  }
+}
+
+/// テストデータ投入ボタン（デバッグ用）
+class _SeedTestDataButton extends StatefulWidget {
+  final VoidCallback onSeeded;
+
+  const _SeedTestDataButton({required this.onSeeded});
+
+  @override
+  State<_SeedTestDataButton> createState() => _SeedTestDataButtonState();
+}
+
+class _SeedTestDataButtonState extends State<_SeedTestDataButton> {
+  bool _isLoading = false;
+
+  Future<void> _seedData() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+    try {
+      final service = SeedWorkoutDataService();
+      final count = await service.seedAllExercises();
+      widget.onSeeded();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'テストデータを登録しました（$count セッション）',
+              style: const TextStyle(fontSize: 14),
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e, st) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('エラー: $e', style: const TextStyle(fontSize: 12)),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        debugPrint('SeedWorkoutDataService error: $e\n$st');
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _isLoading ? null : _seedData,
+        icon: _isLoading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.data_object, size: 20),
+        label: Text(_isLoading ? '登録中...' : 'グラフ用テストデータを登録（各種目24セッション）'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.orange.shade800,
+          side: BorderSide(color: Colors.orange.shade300),
+        ),
       ),
     );
   }

@@ -42,6 +42,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appName => 'Liftly';
 
   @override
+  String get exerciseListTooltip => '種目一覧';
+
+  @override
+  String get tutorialStartWorkoutMessage => 'このボタンをタップしてワークアウトを開始しましょう';
+
+  @override
   String get startWorkoutButton => 'トレーニング開始';
 
   @override
@@ -668,6 +674,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get themeLabel => 'テーマ';
 
   @override
+  String get themeCustomLabel => 'カスタム';
+
+  @override
   String get invalidHexColor => '無効なカラーコードです';
 
   @override
@@ -733,6 +742,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backupTitle => 'バックアップ / 復元';
+
+  @override
+  String get backupSettingsDescription => 'データを保存して別の端末に移行';
 
   @override
   String get backupSectionTitle => 'バックアップを作成';
@@ -835,6 +847,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paywallRestorePurchases => '購入を復元';
 
   @override
+  String get paywallRestoreDescription => '以前購入したProプランを復元';
+
+  @override
   String get paywallRestoreSuccess => '購入を復元しました';
 
   @override
@@ -842,6 +857,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get paywallRestoring => '復元中...';
+
+  @override
+  String get legalTitle => '法的情報';
 
   @override
   String get paywallTermsOfService => '利用規約';
@@ -867,6 +885,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsManageSubscriptionHint => '解約やプラン変更はこちら';
+
+  @override
+  String get subscriptionManagementOpenError => 'サブスクリプション設定を開けませんでした';
 
   @override
   String get paywallSubscriptionDisclaimer =>
@@ -968,6 +989,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get importDataMigrationSection => 'データ移行';
+
+  @override
+  String get importFromOtherAppsLabel => '他アプリからの取り込み';
 
   @override
   String get importKintoreMemoTitle => '筋トレMemoから取り込み';

@@ -164,6 +164,18 @@ abstract class AppLocalizations {
   /// **'Liftly'**
   String get appName;
 
+  /// No description provided for @exerciseListTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises'**
+  String get exerciseListTooltip;
+
+  /// No description provided for @tutorialStartWorkoutMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap this button to start your workout'**
+  String get tutorialStartWorkoutMessage;
+
   /// Button to start new workout session
   ///
   /// In en, this message translates to:
@@ -1291,6 +1303,12 @@ abstract class AppLocalizations {
   /// **'Theme'**
   String get themeLabel;
 
+  /// No description provided for @themeCustomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get themeCustomLabel;
+
   /// Error message for invalid hex color
   ///
   /// In en, this message translates to:
@@ -1422,6 +1440,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup & Restore'**
   String get backupTitle;
+
+  /// No description provided for @backupSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Save data to transfer to another device'**
+  String get backupSettingsDescription;
 
   /// Title for backup creation section
   ///
@@ -1609,6 +1633,12 @@ abstract class AppLocalizations {
   /// **'Restore Purchases'**
   String get paywallRestorePurchases;
 
+  /// No description provided for @paywallRestoreDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore previously purchased Pro plan'**
+  String get paywallRestoreDescription;
+
   /// Message when purchases are restored
   ///
   /// In en, this message translates to:
@@ -1626,6 +1656,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restoring...'**
   String get paywallRestoring;
+
+  /// No description provided for @legalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get legalTitle;
 
   /// Terms of service link
   ///
@@ -1674,6 +1710,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel or change your subscription'**
   String get settingsManageSubscriptionHint;
+
+  /// No description provided for @subscriptionManagementOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open subscription settings'**
+  String get subscriptionManagementOpenError;
 
   /// Subscription disclaimer for paywall
   ///
@@ -1866,6 +1908,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data Migration'**
   String get importDataMigrationSection;
+
+  /// No description provided for @importFromOtherAppsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from other apps'**
+  String get importFromOtherAppsLabel;
 
   /// No description provided for @importKintoreMemoTitle.
   ///

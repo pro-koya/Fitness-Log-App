@@ -11,12 +11,14 @@ import '../workout_input/workout_input_screen.dart';
 import '../workout_input/widgets/timer_icon_button.dart';
 import '../workout_detail/workout_detail_screen.dart';
 import '../history/history_screen.dart';
+import '../history/all_records_screen.dart';
 import '../memo_search/memo_search_screen.dart';
 import '../exercise_list/exercise_list_screen.dart';
 import '../tutorial/providers/interactive_tutorial_provider.dart';
 import '../tutorial/models/tutorial_step.dart';
 import '../tutorial/widgets/tutorial_overlay.dart';
-import 'widgets/locked_session_tile.dart';
+import '../body_weight/body_weight_screen.dart';
+import '../body_weight/providers/body_weight_provider.dart';
 
 /// Home screen - main entry point after initial setup
 class HomeScreen extends ConsumerStatefulWidget {
@@ -56,10 +58,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
         ),
         actions: [
-          const TimerIconButton(),
+          _buildCompactIconButton(
+            icon: Icons.list_alt,
+            tooltip: l10n.allRecordsTitle,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AllRecordsScreen(),
+                ),
+              );
+            },
+          ),
           _buildCompactIconButton(
             icon: Icons.fitness_center,
-            tooltip: currentLanguage == 'ja' ? '種目一覧' : 'Exercises',
+            tooltip: l10n.exerciseListTooltip,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -90,6 +102,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
             },
           ),
+          const TimerIconButton(),
         ],
       ),
       body: Stack(
@@ -158,9 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Positioned.fill(
               child: TutorialOverlay(
                 targetKey: _startWorkoutButtonKey,
-                tooltipMessage: currentLanguage == 'ja'
-                    ? 'このボタンをタップしてワークアウトを開始しましょう'
-                    : 'Tap this button to start your workout',
+                tooltipMessage: l10n.tutorialStartWorkoutMessage,
                 onSkip: () {
                   ref.read(interactiveTutorialProvider.notifier).skipTutorial();
                 },
@@ -212,6 +223,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 );
               },
             ),
+          ),
+          const SizedBox(width: 12),
+
+          // Body weight
+          Expanded(
+            child: _buildWeightStatCard(context),
           ),
         ],
       ),
@@ -328,10 +345,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
-            // ロックされているセッションはLockedSessionTileを表示
-            if (item.isLocked) {
-              return LockedSessionTile(session: item.session);
-            }
             return _buildWorkoutHistoryCard(context, ref, item.session);
           },
         );
@@ -569,6 +582,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
+  Widget _buildWeightStatCard(BuildContext context) {
+    final latestAsync = ref.watch(latestBodyWeightProvider);
+    final currentUnit = ref.watch(currentUnitProvider);
+    final l10n = AppLocalizations.of(context)!;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const BodyWeightScreen(),
+          ),
+        ).then((_) {
+          ref.invalidate(latestBodyWeightProvider);
+        });
+      },
+      child: latestAsync.when(
+        data: (latest) {
+          if (latest == null) {
+            return _buildStatCard(
+              context,
+              icon: Icons.monitor_weight_outlined,
+              iconColor: Colors.purple,
+              title: l10n.bodyWeightLabel,
+              value: '—',
+            );
+          }
+
+          final weight = latest.getWeight(currentUnit);
+          final weightStr = '${weight.toStringAsFixed(1)} $currentUnit';
+
+          return _buildStatCard(
+            context,
+            icon: Icons.monitor_weight_outlined,
+            iconColor: Colors.purple,
+            title: l10n.bodyWeightLabel,
+            value: weightStr,
+          );
+        },
+        loading: () => _buildStatCard(
+          context,
+          icon: Icons.monitor_weight_outlined,
+          iconColor: Colors.purple,
+          title: l10n.bodyWeightLabel,
+        ),
+        error: (_, __) => _buildStatCard(
+          context,
+          icon: Icons.monitor_weight_outlined,
+          iconColor: Colors.purple,
+          title: l10n.bodyWeightLabel,
+          value: '—',
+        ),
+      ),
+    );
+  }
+
   /// Build compact icon button with reduced padding for AppBar
   Widget _buildCompactIconButton({
     required IconData icon,
@@ -579,7 +647,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       icon: Icon(icon, size: 22),
       tooltip: tooltip,
       onPressed: onPressed,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       constraints: const BoxConstraints(
         minWidth: 36,
         minHeight: 36,

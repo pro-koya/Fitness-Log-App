@@ -28,6 +28,8 @@
   "@appName": {
     "description": "Application name"
   },
+  "exerciseListTooltip": "Exercises",
+  "tutorialStartWorkoutMessage": "Tap this button to start your workout",
   "startWorkoutButton": "Start Workout",
   "@startWorkoutButton": {
     "description": "Button to start new workout session"
@@ -876,6 +878,7 @@
   "@themeLabel": {
     "description": "Label for theme setting"
   },
+  "themeCustomLabel": "Custom",
   "invalidHexColor": "Invalid color code",
   "@invalidHexColor": {
     "description": "Error message for invalid hex color"
@@ -966,6 +969,7 @@
   "@backupTitle": {
     "description": "Title for backup screen"
   },
+  "backupSettingsDescription": "Save data to transfer to another device",
   "backupSectionTitle": "Create Backup",
   "@backupSectionTitle": {
     "description": "Title for backup creation section"
@@ -1106,6 +1110,7 @@
   "@paywallRestorePurchases": {
     "description": "Button to restore previous purchases"
   },
+  "paywallRestoreDescription": "Restore previously purchased Pro plan",
   "paywallRestoreSuccess": "Purchases restored",
   "@paywallRestoreSuccess": {
     "description": "Message when purchases are restored"
@@ -1118,6 +1123,7 @@
   "@paywallRestoring": {
     "description": "Message while restoring purchases"
   },
+  "legalTitle": "Legal",
   "paywallTermsOfService": "Terms of Service",
   "@paywallTermsOfService": {
     "description": "Terms of service link"
@@ -1150,6 +1156,7 @@
   "@settingsManageSubscriptionHint": {
     "description": "Hint text for manage subscription"
   },
+  "subscriptionManagementOpenError": "Could not open subscription settings",
   "paywallSubscriptionDisclaimer": "Payment will be charged to your Apple ID account at the end of the free trial. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your Apple ID account settings.",
   "@paywallSubscriptionDisclaimer": {
     "description": "Subscription disclaimer for paywall"
@@ -1291,6 +1298,7 @@
   },
 
   "importDataMigrationSection": "Data Migration",
+  "importFromOtherAppsLabel": "Import from other apps",
   "importKintoreMemoTitle": "Import from KintoreMemo (Realm)",
   "importKintoreMemoDescription": "Import default.realm exported via iMazing etc.",
   "importSelectFile": "Select File",

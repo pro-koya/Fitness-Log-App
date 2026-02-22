@@ -42,6 +42,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'Liftly';
 
   @override
+  String get exerciseListTooltip => 'Exercises';
+
+  @override
+  String get tutorialStartWorkoutMessage =>
+      'Tap this button to start your workout';
+
+  @override
   String get startWorkoutButton => 'Start Workout';
 
   @override
@@ -671,6 +678,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeLabel => 'Theme';
 
   @override
+  String get themeCustomLabel => 'Custom';
+
+  @override
   String get invalidHexColor => 'Invalid color code';
 
   @override
@@ -738,6 +748,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupTitle => 'Backup & Restore';
+
+  @override
+  String get backupSettingsDescription =>
+      'Save data to transfer to another device';
 
   @override
   String get backupSectionTitle => 'Create Backup';
@@ -844,6 +858,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paywallRestorePurchases => 'Restore Purchases';
 
   @override
+  String get paywallRestoreDescription =>
+      'Restore previously purchased Pro plan';
+
+  @override
   String get paywallRestoreSuccess => 'Purchases restored';
 
   @override
@@ -851,6 +869,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paywallRestoring => 'Restoring...';
+
+  @override
+  String get legalTitle => 'Legal';
 
   @override
   String get paywallTermsOfService => 'Terms of Service';
@@ -878,6 +899,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsManageSubscriptionHint =>
       'Cancel or change your subscription';
+
+  @override
+  String get subscriptionManagementOpenError =>
+      'Could not open subscription settings';
 
   @override
   String get paywallSubscriptionDisclaimer =>
@@ -979,6 +1004,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importDataMigrationSection => 'Data Migration';
+
+  @override
+  String get importFromOtherAppsLabel => 'Import from other apps';
 
   @override
   String get importKintoreMemoTitle => 'Import from KintoreMemo (Realm)';
