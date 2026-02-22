@@ -20,9 +20,12 @@ import '../tutorial/widgets/tutorial_overlay.dart';
 import '../body_weight/body_weight_screen.dart';
 import '../body_weight/providers/body_weight_provider.dart';
 
-/// Home screen - main entry point after initial setup
+/// Home screen - main entry point after initial setup.
+/// When [isEmbeddedInTab] is true, used as the first tab of [MainTabScreen]; AppBar shows only Timer.
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.isEmbeddedInTab = false});
+
+  final bool isEmbeddedInTab;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -43,68 +46,74 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         tutorialState.currentStep == TutorialStep.homeStartWorkout;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const SizedBox.shrink(),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.settings),
-          tooltip: l10n.settingsTitle,
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const SettingsScreen(),
+      appBar: widget.isEmbeddedInTab
+          ? AppBar(
+              title: const SizedBox.shrink(),
+              centerTitle: true,
+              actions: const [TimerIconButton()],
+            )
+          : AppBar(
+              title: const SizedBox.shrink(),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.settings),
+                tooltip: l10n.settingsTitle,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-        actions: [
-          _buildCompactIconButton(
-            icon: Icons.list_alt,
-            tooltip: l10n.allRecordsTitle,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AllRecordsScreen(),
+              actions: [
+                _buildCompactIconButton(
+                  icon: Icons.list_alt,
+                  tooltip: l10n.allRecordsTitle,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AllRecordsScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          _buildCompactIconButton(
-            icon: Icons.fitness_center,
-            tooltip: l10n.exerciseListTooltip,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ExerciseListScreen(),
+                _buildCompactIconButton(
+                  icon: Icons.fitness_center,
+                  tooltip: l10n.exerciseListTooltip,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ExerciseListScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          _buildCompactIconButton(
-            icon: Icons.search,
-            tooltip: l10n.memoSearch,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const MemoSearchScreen(),
+                _buildCompactIconButton(
+                  icon: Icons.search,
+                  tooltip: l10n.memoSearch,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const MemoSearchScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          _buildCompactIconButton(
-            icon: Icons.calendar_today,
-            tooltip: l10n.historyTitle,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const HistoryScreen(),
+                _buildCompactIconButton(
+                  icon: Icons.calendar_today,
+                  tooltip: l10n.historyTitle,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          const TimerIconButton(),
-        ],
-      ),
+                const TimerIconButton(),
+              ],
+            ),
       body: Stack(
         children: [
           SafeArea(
@@ -128,21 +137,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               const SizedBox(height: 24),
 
-              // Session Status
+              // Session Status + differentiator hint (P1-1)
               sessionAsync.when(
                 data: (session) {
                   if (session != null) {
                     // In-progress session exists
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildInProgressCard(context, ref, session),
                         const SizedBox(height: 16),
                         _buildStartNewButton(context, ref, isSecondary: true),
+                        const SizedBox(height: 8),
+                        _buildDifferentiatorHint(context),
                       ],
                     );
                   } else {
                     // No in-progress session
-                    return _buildStartNewButton(context, ref);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildStartNewButton(context, ref),
+                        const SizedBox(height: 8),
+                        _buildDifferentiatorHint(context),
+                      ],
+                    );
                   }
                 },
                 loading: () => const Center(
@@ -556,6 +575,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _buildDifferentiatorHint(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Text(
+        l10n.homeDifferentiatorHint,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[600],
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   Widget _buildStartNewButton(
     BuildContext context,
     WidgetRef ref, {
@@ -575,7 +608,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           await _createNewSession(context, ref);
         },
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: isSecondary ? 16 : 18),
           backgroundColor: isSecondary ? Colors.grey.shade200 : null,
           foregroundColor: isSecondary ? Colors.black87 : null,
           elevation: isSecondary ? 0 : 2,
@@ -585,7 +618,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         child: Text(
           isSecondary ? l10n.startNewWorkoutButton : l10n.startWorkoutButton,
-          style: const TextStyle(fontSize: 16),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isSecondary ? FontWeight.normal : FontWeight.w600,
+          ),
         ),
       ),
     );

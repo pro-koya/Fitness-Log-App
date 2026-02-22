@@ -48,6 +48,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tutorialStartWorkoutMessage => 'このボタンをタップしてワークアウトを開始しましょう';
 
   @override
+  String get homeDifferentiatorHint => '前回を1タップでコピー。セット間はタイマーで完結。';
+
+  @override
   String get startWorkoutButton => 'トレーニング開始';
 
   @override
@@ -66,6 +69,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get addExerciseButton => '種目を追加';
+
+  @override
+  String get workoutEmptyStateHint => 'まずは種目を追加して、セットを記録しましょう';
 
   @override
   String get completeButton => '完了';
@@ -187,6 +193,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get recentWorkoutsLabel => '最近の記録';
+
+  @override
+  String get navHomeLabel => '記録';
+
+  @override
+  String get navHistoryLabel => '履歴';
+
+  @override
+  String get navSettingsLabel => '設定';
 
   @override
   String get errorLoadingWorkouts => '記録の読み込みに失敗しました';
@@ -739,6 +754,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsProPlanDescription => '広告非表示・全履歴・テーマ・バックアップなど';
+
+  @override
+  String get proValueOneLiner => '複数端末で同じ記録＋広告なしで記録に集中';
 
   @override
   String get adHideWithProCta => '広告を非表示にしますか？';

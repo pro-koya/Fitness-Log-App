@@ -30,6 +30,7 @@
   },
   "exerciseListTooltip": "Exercises",
   "tutorialStartWorkoutMessage": "Tap this button to start your workout",
+  "homeDifferentiatorHint": "Copy last set in one tap. Rest timer built in.",
   "startWorkoutButton": "Start Workout",
   "@startWorkoutButton": {
     "description": "Button to start new workout session"
@@ -63,6 +64,7 @@
   "@addExerciseButton": {
     "description": "Button to add exercise"
   },
+  "workoutEmptyStateHint": "Add an exercise to start logging sets",
   "completeButton": "Complete",
   "@completeButton": {
     "description": "Button to complete workout"
@@ -221,6 +223,9 @@
   "@recentWorkoutsLabel": {
     "description": "Label for recent workouts section"
   },
+  "navHomeLabel": "Home",
+  "navHistoryLabel": "History",
+  "navSettingsLabel": "Settings",
   "errorLoadingWorkouts": "Error loading workouts",
   "@errorLoadingWorkouts": {
     "description": "Error message when workouts fail to load"
@@ -958,6 +963,7 @@
   "@settingsProPlanDescription": {
     "description": "Short description of Pro benefits"
   },
+  "proValueOneLiner": "Sync across devices & no ads—focus on logging",
   "adHideWithProCta": "Hide ads with Pro?",
   "@adHideWithProCta": {
     "description": "Gentle CTA near banner ad to lead to Pro"

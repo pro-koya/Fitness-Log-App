@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Tap this button to start your workout'**
   String get tutorialStartWorkoutMessage;
 
+  /// No description provided for @homeDifferentiatorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy last set in one tap. Rest timer built in.'**
+  String get homeDifferentiatorHint;
+
   /// Button to start new workout session
   ///
   /// In en, this message translates to:
@@ -211,6 +217,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Exercise'**
   String get addExerciseButton;
+
+  /// No description provided for @workoutEmptyStateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an exercise to start logging sets'**
+  String get workoutEmptyStateHint;
 
   /// Button to complete workout
   ///
@@ -426,6 +438,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent Workouts'**
   String get recentWorkoutsLabel;
+
+  /// No description provided for @navHomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHomeLabel;
+
+  /// No description provided for @navHistoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get navHistoryLabel;
+
+  /// No description provided for @navSettingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navSettingsLabel;
 
   /// Error message when workouts fail to load
   ///
@@ -1434,6 +1464,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide ads, full history, theme, backup & more'**
   String get settingsProPlanDescription;
+
+  /// No description provided for @proValueOneLiner.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync across devices & no ads—focus on logging'**
+  String get proValueOneLiner;
 
   /// Gentle CTA near banner ad to lead to Pro
   ///

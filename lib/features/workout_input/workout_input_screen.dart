@@ -151,45 +151,48 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
     final tutorialState = ref.watch(interactiveTutorialProvider);
     final isStep2Active = tutorialState.isActive &&
         tutorialState.currentStep == TutorialStep.workoutAddExercise;
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.fitness_center,
-            size: 80,
-            color: Colors.grey,
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Add an exercise to\nstart your workout',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.fitness_center,
+              size: 80,
               color: Colors.grey,
             ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            key: isStep2Active ? _addExerciseButtonKey : null,
-            onPressed: () async {
-              if (isStep2Active) {
-                // Complete step 2 when exercise selector is opened
-                ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
-              }
-              await _showExerciseSelector();
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Add Exercise'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            const SizedBox(height: 24),
+            Text(
+              l10n.workoutEmptyStateHint,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              key: isStep2Active ? _addExerciseButtonKey : null,
+              onPressed: () async {
+                if (isStep2Active) {
+                  ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
+                }
+                await _showExerciseSelector();
+              },
+              icon: const Icon(Icons.add),
+              label: Text(l10n.addExerciseButton),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

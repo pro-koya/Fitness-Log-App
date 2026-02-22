@@ -49,6 +49,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap this button to start your workout';
 
   @override
+  String get homeDifferentiatorHint =>
+      'Copy last set in one tap. Rest timer built in.';
+
+  @override
   String get startWorkoutButton => 'Start Workout';
 
   @override
@@ -67,6 +71,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addExerciseButton => 'Add Exercise';
+
+  @override
+  String get workoutEmptyStateHint => 'Add an exercise to start logging sets';
 
   @override
   String get completeButton => 'Complete';
@@ -189,6 +196,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recentWorkoutsLabel => 'Recent Workouts';
+
+  @override
+  String get navHomeLabel => 'Home';
+
+  @override
+  String get navHistoryLabel => 'History';
+
+  @override
+  String get navSettingsLabel => 'Settings';
 
   @override
   String get errorLoadingWorkouts => 'Error loading workouts';
@@ -745,6 +761,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsProPlanDescription =>
       'Hide ads, full history, theme, backup & more';
+
+  @override
+  String get proValueOneLiner =>
+      'Sync across devices & no ads—focus on logging';
 
   @override
   String get adHideWithProCta => 'Hide ads with Pro?';
