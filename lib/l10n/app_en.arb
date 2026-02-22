@@ -21,6 +21,8 @@
   "@startButton": {
     "description": "Button to complete initial setup"
   },
+  "initialSetupWeightLabel": "Weight",
+  "initialSetupDistanceLabel": "Distance",
 
   "appName": "Liftly",
   "@appName": {
@@ -312,6 +314,31 @@
       }
     }
   },
+  "averageWeightLabel": "Avg. Weight",
+  "@averageWeightLabel": {
+    "description": "Label for average weight in monthly summary"
+  },
+  "selectMonthYear": "Select month & year",
+  "@selectMonthYear": {
+    "description": "Title for calendar month/year picker dialog"
+  },
+  "lastMonthShort": "Last month",
+  "thisMonthShort": "This month",
+  "nextMonthShort": "Next month",
+  "allRecordsTitle": "All Records",
+  "totalWorkoutsCount": "{count} workouts total",
+  "@totalWorkoutsCount": {
+    "description": "Total number of training sessions",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "moreExercisesHint": "+{count} more…",
+  "@moreExercisesHint": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tapForDetailHint": "Tap for details",
+  "exerciseAlreadyAdded": "Already added",
   "searchExercisePlaceholder": "Search exercises...",
   "@searchExercisePlaceholder": {
     "description": "Placeholder text for exercise search field"
@@ -668,41 +695,41 @@
     "description": "Label for starting best distance"
   },
 
-  "paywallTitleHistory": "View your full history",
+  "paywallTitleHistory": "Keep all your workout history",
   "@paywallTitleHistory": {
-    "description": "Paywall title for history unlock"
+    "description": "Paywall title for history - affirms value of user's effort"
   },
-  "paywallTitleChart": "See your progress in charts",
+  "paywallTitleChart": "See how you're progressing",
   "@paywallTitleChart": {
-    "description": "Paywall title for chart access"
+    "description": "Paywall title for chart - gentle invitation to see growth"
   },
-  "paywallTitleTheme": "Personalize your theme",
+  "paywallTitleTheme": "Make it truly yours",
   "@paywallTitleTheme": {
-    "description": "Paywall title for theme customization"
+    "description": "Paywall title for theme - personal connection"
   },
-  "paywallTitleStats": "View detailed stats",
+  "paywallTitleStats": "Understand your training habits",
   "@paywallTitleStats": {
-    "description": "Paywall title for stats access"
+    "description": "Paywall title for stats - reflection helps consistency"
   },
   "paywallTitleExport": "Export your data",
   "@paywallTitleExport": {
     "description": "Paywall title for export feature"
   },
-  "paywallBodyHistory": "Free shows your latest 20 sessions. Go Pro to unlock full history, charts, and stats to see your progress.",
+  "paywallBodyHistory": "Your training so far has real value. With Pro, you can keep and review all your workout records anytime.",
   "@paywallBodyHistory": {
-    "description": "Paywall body for history unlock"
+    "description": "Paywall body for history - affirms user's effort"
   },
-  "paywallBodyChart": "Track your growth with detailed charts and graphs. Available with Pro.",
+  "paywallBodyChart": "Changes in numbers show your consistency. With Pro, you can track your progress through clear and simple charts.",
   "@paywallBodyChart": {
-    "description": "Paywall body for chart access"
+    "description": "Paywall body for chart - numbers as proof of consistency"
   },
-  "paywallBodyTheme": "Customize your app's look with your favorite colors. Available with Pro.",
+  "paywallBodyTheme": "When something feels right, it's easier to keep going. With Pro, you can customize the app's theme to match your style.",
   "@paywallBodyTheme": {
-    "description": "Paywall body for theme customization"
+    "description": "Paywall body for theme - comfort supports habit"
   },
-  "paywallBodyStats": "Get detailed weekly and monthly statistics. Available with Pro.",
+  "paywallBodyStats": "Looking back helps you stay consistent. With Pro, you can review detailed weekly and monthly training statistics.",
   "@paywallBodyStats": {
-    "description": "Paywall body for stats access"
+    "description": "Paywall body for stats - reflection reinforces habit"
   },
   "paywallBodyExport": "Export your workout data to CSV. Available with Pro.",
   "@paywallBodyExport": {
@@ -720,7 +747,7 @@
   "@paywallCompareHistory": {
     "description": "Comparison table row for history"
   },
-  "paywallCompareLast20": "Last 20",
+  "paywallCompareLast20": "Last 30",
   "@paywallCompareLast20": {
     "description": "Free tier history limit"
   },
@@ -736,6 +763,22 @@
   "@paywallCompareTheme": {
     "description": "Comparison table row for theme"
   },
+  "paywallCompareChartsTheme": "Charts & Theme",
+  "@paywallCompareChartsTheme": {
+    "description": "Comparison table combined row for charts and theme"
+  },
+  "paywallCompareAds": "Ads",
+  "@paywallCompareAds": {
+    "description": "Comparison table row for ads"
+  },
+  "paywallCompareAdsShow": "Show",
+  "@paywallCompareAdsShow": {
+    "description": "Free tier: ads are shown"
+  },
+  "paywallCompareAdsHide": "Hide",
+  "@paywallCompareAdsHide": {
+    "description": "Pro tier: ads are hidden"
+  },
   "paywallCompareDefault": "Default",
   "@paywallCompareDefault": {
     "description": "Free tier default theme"
@@ -748,7 +791,7 @@
   "@lockedSessionHint": {
     "description": "Hint for locked session"
   },
-  "lockedSessionSubHint": "Free shows the latest 20 sessions. Go Pro to view everything.",
+  "lockedSessionSubHint": "Free shows the latest 30 sessions. Go Pro to view everything.",
   "@lockedSessionSubHint": {
     "description": "Sub hint for locked session"
   },
@@ -878,13 +921,37 @@
     "description": "Brown color category"
   },
 
-  "paywallTitleBackup": "Backup your data",
+  "paywallTitleBackup": "Keep your records safe",
   "@paywallTitleBackup": {
-    "description": "Paywall title for backup feature"
+    "description": "Paywall title for backup - protect valuable records"
   },
-  "paywallBodyBackup": "Back up your data to transfer to a new device. Available with Pro.",
+  "paywallBodyBackup": "Your workout history is worth protecting. With Pro, you can back up your data and keep it safe.",
   "@paywallBodyBackup": {
-    "description": "Paywall body for backup feature"
+    "description": "Paywall body for backup - records deserve protection"
+  },
+  "paywallTitleAds": "Hide ads and focus on your workout",
+  "@paywallTitleAds": {
+    "description": "Paywall title for hiding ads with Pro"
+  },
+  "paywallBodyAds": "With Pro, ads are removed and you get full access to history, theme, backup, and more.",
+  "@paywallBodyAds": {
+    "description": "Paywall body for ads - Pro benefits"
+  },
+  "settingsPlanSection": "Plan",
+  "@settingsPlanSection": {
+    "description": "Settings section label for plan/subscription"
+  },
+  "settingsUpgradeToPro": "Upgrade to Pro",
+  "@settingsUpgradeToPro": {
+    "description": "Button to open paywall from settings"
+  },
+  "settingsProPlanDescription": "Hide ads, full history, theme, backup & more",
+  "@settingsProPlanDescription": {
+    "description": "Short description of Pro benefits"
+  },
+  "adHideWithProCta": "Hide ads with Pro?",
+  "@adHideWithProCta": {
+    "description": "Gentle CTA near banner ad to lead to Pro"
   },
 
   "backupLabel": "Backup",
@@ -903,6 +970,18 @@
   "@backupSectionDescription": {
     "description": "Description for backup section"
   },
+  "backupFormatLabel": "Backup format",
+  "@backupFormatLabel": {
+    "description": "Label for backup format selection"
+  },
+  "backupFormatJson": "JSON (for restore)",
+  "@backupFormatJson": {
+    "description": "JSON format option - can restore in app"
+  },
+  "backupFormatCsv": "CSV (for analysis)",
+  "@backupFormatCsv": {
+    "description": "CSV format option - for spreadsheets/analysis"
+  },
   "createBackupButton": "Create Backup",
   "@createBackupButton": {
     "description": "Button to create backup"
@@ -911,7 +990,7 @@
   "@restoreSectionTitle": {
     "description": "Title for restore section"
   },
-  "restoreSectionDescription": "Import data from a backup file",
+  "restoreSectionDescription": "Import data from a JSON or CSV backup file",
   "@restoreSectionDescription": {
     "description": "Description for restore section"
   },
@@ -930,6 +1009,14 @@
   "backupCreated": "Backup created successfully",
   "@backupCreated": {
     "description": "Success message when backup is created"
+  },
+  "backupCompleteTitle": "Backup Complete",
+  "@backupCompleteTitle": {
+    "description": "Title for backup success dialog"
+  },
+  "backupCompleteMessage": "Your backup file has been saved to the location you selected.",
+  "@backupCompleteMessage": {
+    "description": "Message for backup success dialog"
   },
   "loadingBackup": "Loading backup file...",
   "@loadingBackup": {
@@ -1035,21 +1122,21 @@
   "@paywallPrivacyPolicy": {
     "description": "Privacy policy link"
   },
-  "paywallTrialTitle": "Start your 1-month free trial",
+  "paywallTrialTitle": "Would you like to keep\nthis habit going?",
   "@paywallTrialTitle": {
-    "description": "Trial period title"
+    "description": "Paywall headline - gentle encouragement to continue"
   },
-  "paywallTrialDescription": "Try all Pro features free for 1 month. After the trial ends, your subscription will automatically begin.",
+  "paywallTrialDescription": "With Pro, all your workout records are saved, so you can look back on your progress and keep training.",
   "@paywallTrialDescription": {
-    "description": "Trial period description"
+    "description": "Paywall description - focus on state change, not features"
   },
-  "paywallTrialNotice": "To avoid being charged, cancel anytime during the free trial period.",
+  "paywallTrialNotice": "You can cancel anytime during the free trial.",
   "@paywallTrialNotice": {
     "description": "Notice about cancellation during trial"
   },
-  "paywallCtaStartTrial": "Start Free Trial",
+  "paywallCtaStartTrial": "Continue for free",
   "@paywallCtaStartTrial": {
-    "description": "CTA button text for starting trial"
+    "description": "CTA button text - gentle invitation to try"
   },
   "settingsManageSubscription": "Manage Subscription",
   "@settingsManageSubscription": {
@@ -1062,5 +1149,269 @@
   "paywallSubscriptionDisclaimer": "Payment will be charged to your Apple ID account at the end of the free trial. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your Apple ID account settings.",
   "@paywallSubscriptionDisclaimer": {
     "description": "Subscription disclaimer for paywall"
-  }
+  },
+
+  "sortLabel": "Sort",
+  "@sortLabel": {
+    "description": "Label for sort button"
+  },
+  "sortByDateDesc": "Date (Newest)",
+  "@sortByDateDesc": {
+    "description": "Sort by date descending"
+  },
+  "sortByDateAsc": "Date (Oldest)",
+  "@sortByDateAsc": {
+    "description": "Sort by date ascending"
+  },
+  "sortByWeightDesc": "Weight (Heaviest)",
+  "@sortByWeightDesc": {
+    "description": "Sort by weight descending"
+  },
+  "sortByWeightAsc": "Weight (Lightest)",
+  "@sortByWeightAsc": {
+    "description": "Sort by weight ascending"
+  },
+  "sortByRepsDesc": "Reps (Most)",
+  "@sortByRepsDesc": {
+    "description": "Sort by reps descending"
+  },
+  "sortByRepsAsc": "Reps (Least)",
+  "@sortByRepsAsc": {
+    "description": "Sort by reps ascending"
+  },
+  "sortByTimeDesc": "Time (Longest)",
+  "@sortByTimeDesc": {
+    "description": "Sort by time descending"
+  },
+  "sortByTimeAsc": "Time (Shortest)",
+  "@sortByTimeAsc": {
+    "description": "Sort by time ascending"
+  },
+  "sortByDistanceDesc": "Distance (Longest)",
+  "@sortByDistanceDesc": {
+    "description": "Sort by distance descending"
+  },
+  "sortByDistanceAsc": "Distance (Shortest)",
+  "@sortByDistanceAsc": {
+    "description": "Sort by distance ascending"
+  },
+
+  "bodyWeightTitle": "Body Weight",
+  "@bodyWeightTitle": {
+    "description": "Title for body weight screen"
+  },
+  "bodyWeightLabel": "Weight",
+  "@bodyWeightLabel": {
+    "description": "Label for body weight"
+  },
+  "bodyWeightMemoHint": "Memo (optional, e.g., before breakfast)",
+  "@bodyWeightMemoHint": {
+    "description": "Hint for body weight memo input"
+  },
+  "bodyWeightSaved": "Body weight saved",
+  "@bodyWeightSaved": {
+    "description": "Message when body weight is saved"
+  },
+  "bodyWeightUpdated": "Body weight updated",
+  "@bodyWeightUpdated": {
+    "description": "Message when body weight is updated"
+  },
+  "bodyWeightDeleted": "Record deleted",
+  "@bodyWeightDeleted": {
+    "description": "Message when body weight record is deleted"
+  },
+  "bodyWeightNoData": "No body weight records yet. Start recording!",
+  "@bodyWeightNoData": {
+    "description": "Message when there are no body weight records"
+  },
+  "bodyWeightDeleteConfirm": "Delete this record?",
+  "@bodyWeightDeleteConfirm": {
+    "description": "Confirmation for deleting body weight record"
+  },
+  "bodyWeightSummary": "Summary",
+  "@bodyWeightSummary": {
+    "description": "Title for body weight summary section"
+  },
+  "bodyWeightCurrentWeight": "Current",
+  "@bodyWeightCurrentWeight": {
+    "description": "Label for current body weight"
+  },
+  "bodyWeightStartingWeight": "Starting",
+  "@bodyWeightStartingWeight": {
+    "description": "Label for starting body weight"
+  },
+  "bodyWeightTotalChange": "Change",
+  "@bodyWeightTotalChange": {
+    "description": "Label for total body weight change"
+  },
+  "bodyWeightMinWeight": "Min",
+  "@bodyWeightMinWeight": {
+    "description": "Label for minimum body weight"
+  },
+  "bodyWeightMaxWeight": "Max",
+  "@bodyWeightMaxWeight": {
+    "description": "Label for maximum body weight"
+  },
+  "bodyWeightTotalRecords": "Records",
+  "@bodyWeightTotalRecords": {
+    "description": "Label for total body weight records"
+  },
+  "bodyWeightInsightTitle": "Monthly Insight",
+  "@bodyWeightInsightTitle": {
+    "description": "Title for monthly insight section"
+  },
+  "bodyWeightInsightMessage": "This month: {workoutCount} workouts, weight change: {weightChange}",
+  "@bodyWeightInsightMessage": {
+    "description": "Monthly insight message with workout count and weight change",
+    "placeholders": {
+      "workoutCount": {
+        "type": "int"
+      },
+      "weightChange": {
+        "type": "String"
+      }
+    }
+  },
+  "bodyWeightInsightNoData": "This month: {workoutCount} workouts. Record your weight to see trends!",
+  "@bodyWeightInsightNoData": {
+    "description": "Monthly insight when no weight data for this month",
+    "placeholders": {
+      "workoutCount": {
+        "type": "int"
+      }
+    }
+  },
+  "bodyWeightHistory": "History",
+  "@bodyWeightHistory": {
+    "description": "Title for body weight history section"
+  },
+
+  "importDataMigrationSection": "Data Migration",
+  "importKintoreMemoTitle": "Import from KintoreMemo (Realm)",
+  "importKintoreMemoDescription": "Import default.realm exported via iMazing etc.",
+  "importSelectFile": "Select File",
+  "importAnalyzing": "Analyzing...",
+  "importPreviewTitle": "Preview",
+  "importPreviewWorkoutCount": "Exercises: {count}",
+  "importPreviewTotalSets": "Sets: {count}",
+  "importPreviewDateRange": "Date range: {start} - {end}",
+  "importPreviewSampleExercises": "Sample exercises: {exercises}",
+  "importExecute": "Import",
+  "importSuccess": "Import complete (sessions: {session}, sets: {set})",
+  "importErrorEncrypted": "This Realm file is encrypted. Please select an unencrypted file.",
+  "importErrorSchemaMismatch": "Invalid file format. Please select default.realm from KintoreMemo.",
+  "importErrorInvalidFile": "Invalid file. Please select a .realm file.",
+  "importErrorUnknown": "Import failed: {error}",
+
+  "importGuideTitle": "How to get the Realm file",
+  "importGuideStep1Title": "Connect to PC",
+  "importGuideStep1Desc": "Connect your iPhone to a PC/Mac and open a file management tool such as iMazing or 3uTools.",
+  "importGuideStep2Title": "Find the file",
+  "importGuideStep2Desc": "Open the KintoreMemo app folder and find \"default.realm\" in the Documents directory.",
+  "importGuideStep3Title": "Transfer to device",
+  "importGuideStep3Desc": "Export the file and send it to your iPhone's Files app via AirDrop, iCloud Drive, or email.",
+  "importGuideTip": "After transferring, tap \"Select File\" below to pick the .realm file from the Files app.",
+  "importReimportTitle": "Already Imported",
+  "importReimportMessage": "This data has already been imported. Would you like to clear the previous import and re-import?",
+  "importReimportCancel": "Cancel",
+  "importReimportConfirm": "Re-import",
+
+  "importCsvTitle": "Import from CSV",
+  "importCsvDescription": "Import data from a CSV or JSON file exported by Liftly. Existing data will be overwritten.",
+  "importCsvTileDescription": "Import from CSV/JSON exported by Liftly",
+  "importCsvSelectFile": "Select File",
+  "importCsvFormatHint": "Select a CSV or JSON file exported by Liftly's backup feature.",
+
+  "workoutCompletionTitle": "Workout Recorded",
+  "workoutCompletionSummary": "{exerciseCount} exercises, {setCount} sets, {volume}{unit} total volume",
+  "@workoutCompletionSummary": {
+    "placeholders": {
+      "exerciseCount": {"type": "int"},
+      "setCount": {"type": "int"},
+      "volume": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "workoutCompletionExerciseLine": "{name} {setCount} sets, top weight {weight}{unit}",
+  "@workoutCompletionExerciseLine": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "setCount": {"type": "int"},
+      "weight": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "workoutCompletionExerciseLineTime": "{name} {setCount} sets, best {duration}",
+  "@workoutCompletionExerciseLineTime": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "setCount": {"type": "int"},
+      "duration": {"type": "String"}
+    }
+  },
+  "syncSectionTitle": "Sync (Pro)",
+  "syncSectionDescription": "Save data to the cloud for use across devices",
+  "syncSignUp": "Sign up",
+  "syncLogin": "Log in",
+  "syncSignInWithGoogle": "Sign in with Google",
+  "syncSigningIn": "Signing in...",
+  "syncSignOut": "Sign out",
+  "syncSignUpSuccess": "Account created.",
+  "syncSignUpConfirmEmail": "If email confirmation is enabled, check your email and confirm, then log in.",
+  "syncNow": "Sync now",
+  "syncSyncSuccess": "Sync completed",
+  "syncSyncFailed": "Sync failed",
+  "syncSyncFailedWithReason": "Sync failed: {reason}",
+  "@syncSyncFailedWithReason": {
+    "placeholders": {
+      "reason": {"type": "String"}
+    }
+  },
+  "syncRegisterButton": "Register",
+  "syncSignUpEmailAlreadyRegistered": "This email address is already registered.",
+  "syncForgotPassword": "Forgot password?",
+  "syncResetEmailPrompt": "Enter your registered email address. We will send you a reset link.",
+  "syncSendResetLink": "Send reset email",
+  "syncResetEmailSent": "We have sent a password reset email. Please follow the link in the email to set a new password.",
+  "syncResetEmailLimitExceeded": "Email send rate limit reached. Please try again in about an hour. For production, configure custom SMTP in the Supabase dashboard.",
+  "syncInProgress": "Syncing...",
+  "syncManualHint": "Sync is manual. Use \"Push to cloud\" or \"Pull from cloud\" to sync.",
+  "syncPushToServer": "Push to cloud",
+  "syncPullFromServer": "Pull from cloud",
+  "syncPushShort": "Push",
+  "syncPullShort": "Pull",
+  "syncConfirmTitle": "Confirm",
+  "syncConfirmPushMessage": "All cloud data will be replaced by this device's data.",
+  "syncConfirmPullMessage": "All device data will be replaced by cloud data.",
+  "syncConfirmExecute": "Execute",
+  "syncLastSynced": "Last synced: {time}",
+  "@syncLastSynced": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "syncNotSignedIn": "Not signed in",
+  "syncNotConfigured": "Supabase not configured",
+  "paywallCompareSync": "Sync",
+  "csvGuideOpenButton": "CSV format guide",
+  "csvGuideTitle": "CSV format for import",
+  "csvGuideIntro": "The CSV file must have a header row and data rows. Column order and names must match the table below.",
+  "csvGuideRequired": "Required",
+  "csvGuideOptional": "Optional",
+  "csvGuideSampleTitle": "Sample (first 2 data rows)",
+  "csvGuideNotesTitle": "Notes",
+  "csvGuideNoteEncoding": "Save as UTF-8 (e.g. \"UTF-8 CSV\" in Excel).",
+  "csvGuideNoteDate": "Date: YYYY-MM-DD or YYYY/MM/DD. Start time: ISO8601 (e.g. 2024-01-15T19:30:00.000) or leave empty.",
+  "csvGuideNoteQuotes": "If a cell contains a comma or newline, wrap the whole cell in double quotes.",
+  "csvGuideColSessionDate": "Workout date (YYYY-MM-DD etc.)",
+  "csvGuideColSessionStartedAt": "Session start time (ISO8601 or empty)",
+  "csvGuideColExerciseName": "Exercise name",
+  "csvGuideColBodyPart": "Body part (e.g. chest, back; optional)",
+  "csvGuideColSetNumber": "Set number (1, 2, 3…)",
+  "csvGuideColWeightKg": "Weight (kg)",
+  "csvGuideColWeightLb": "Weight (lb)",
+  "csvGuideColReps": "Reps (leave empty for time-based)",
+  "csvGuideColDurationSeconds": "Duration in seconds (optional)",
+  "csvGuideColDistanceMeters": "Distance in meters (optional)",
+  "csvGuideColMemo": "Memo (optional)"
 }

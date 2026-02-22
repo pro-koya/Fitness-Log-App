@@ -33,6 +33,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startButton => '始める';
 
   @override
+  String get initialSetupWeightLabel => '重さ';
+
+  @override
+  String get initialSetupDistanceLabel => '距離';
+
+  @override
   String get appName => 'Liftly';
 
   @override
@@ -244,6 +250,40 @@ class AppLocalizationsJa extends AppLocalizations {
   String streakDays(int count) {
     return '$count日';
   }
+
+  @override
+  String get averageWeightLabel => '月平均体重';
+
+  @override
+  String get selectMonthYear => '年月を選択';
+
+  @override
+  String get lastMonthShort => '先月';
+
+  @override
+  String get thisMonthShort => '今月';
+
+  @override
+  String get nextMonthShort => '来月';
+
+  @override
+  String get allRecordsTitle => '全ての記録';
+
+  @override
+  String totalWorkoutsCount(int count) {
+    return '全$count回のトレーニング';
+  }
+
+  @override
+  String moreExercisesHint(int count) {
+    return '他$count種目…';
+  }
+
+  @override
+  String get tapForDetailHint => 'タップで詳細を見る';
+
+  @override
+  String get exerciseAlreadyAdded => 'すでに登録されています';
 
   @override
   String get searchExercisePlaceholder => '種目を検索...';
@@ -489,32 +529,35 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startingBestDistance => '初回のベスト距離';
 
   @override
-  String get paywallTitleHistory => '過去の記録をすべて見返す';
+  String get paywallTitleHistory => 'これまでの記録を、すべて残そう';
 
   @override
-  String get paywallTitleChart => '成長をグラフで確認';
+  String get paywallTitleChart => '成長の流れを、見てみませんか';
 
   @override
-  String get paywallTitleTheme => '自分だけのテーマに';
+  String get paywallTitleTheme => 'このアプリを、自分らしく';
 
   @override
-  String get paywallTitleStats => '詳しい統計を見る';
+  String get paywallTitleStats => '続いていることを、確かめる';
 
   @override
   String get paywallTitleExport => 'データをエクスポート';
 
   @override
   String get paywallBodyHistory =>
-      '無料版は直近20回まで表示できます。Proなら全履歴・グラフ・統計で成長がもっと見えるようになります。';
+      'ここまで積み重ねてきたトレーニングは、もう十分に価値のある記録です。Proなら、すべての履歴をいつでも振り返れます。';
 
   @override
-  String get paywallBodyChart => '詳細なグラフで成長を追跡できます。Proで利用可能。';
+  String get paywallBodyChart =>
+      '数字の変化は、続けてきた証拠です。Proなら、トレーニングの成長をグラフで振り返ることができます。';
 
   @override
-  String get paywallBodyTheme => '好きな色でアプリの見た目をカスタマイズ。Proで利用可能。';
+  String get paywallBodyTheme =>
+      '毎日使うものだから、しっくりくる見た目で続けたい。Proなら、テーマを自由にカスタマイズできます。';
 
   @override
-  String get paywallBodyStats => '週間・月間の詳細な統計を確認できます。Proで利用可能。';
+  String get paywallBodyStats =>
+      '振り返ることで、習慣は続きます。Proなら、週間・月間の統計からトレーニング全体を把握できます。';
 
   @override
   String get paywallBodyExport => 'ワークアウトデータをCSVでエクスポート。Proで利用可能。';
@@ -529,7 +572,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paywallCompareHistory => '履歴';
 
   @override
-  String get paywallCompareLast20 => '直近20件';
+  String get paywallCompareLast20 => '直近30件';
 
   @override
   String get paywallCompareUnlimited => '無制限';
@@ -541,6 +584,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paywallCompareTheme => 'テーマ';
 
   @override
+  String get paywallCompareChartsTheme => 'グラフ・テーマ';
+
+  @override
+  String get paywallCompareAds => '広告';
+
+  @override
+  String get paywallCompareAdsShow => '表示';
+
+  @override
+  String get paywallCompareAdsHide => '非表示';
+
+  @override
   String get paywallCompareDefault => 'デフォルト';
 
   @override
@@ -550,7 +605,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get lockedSessionHint => 'Proで全履歴を表示';
 
   @override
-  String get lockedSessionSubHint => '無料版は直近20回まで。過去の成長を全部見返すにはProへ';
+  String get lockedSessionSubHint => '無料版は直近30回まで。過去の成長を全部見返すにはProへ';
 
   @override
   String get proLabel => 'Pro';
@@ -646,10 +701,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get colorCategoryBrown => 'ブラウン';
 
   @override
-  String get paywallTitleBackup => 'データをバックアップ';
+  String get paywallTitleBackup => '大切な記録を、安心して残す';
 
   @override
-  String get paywallBodyBackup => 'データをバックアップして新しい端末に移行できます。Proで利用可能。';
+  String get paywallBodyBackup =>
+      'これまでのトレーニングは、簡単に失っていいものではありません。Proなら、データをバックアップできます。';
+
+  @override
+  String get paywallTitleAds => '広告を非表示にして、集中して使う';
+
+  @override
+  String get paywallBodyAds => 'Proなら広告が消え、記録やテーマなどすべての機能が使えます。';
+
+  @override
+  String get settingsPlanSection => 'プラン';
+
+  @override
+  String get settingsUpgradeToPro => 'Proにアップグレード';
+
+  @override
+  String get settingsProPlanDescription => '広告非表示・全履歴・テーマ・バックアップなど';
+
+  @override
+  String get adHideWithProCta => '広告を非表示にしますか？';
 
   @override
   String get backupLabel => 'バックアップ';
@@ -664,13 +738,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get backupSectionDescription => 'トレーニングデータをファイルに保存します';
 
   @override
+  String get backupFormatLabel => 'バックアップ形式';
+
+  @override
+  String get backupFormatJson => 'JSON（アプリで復元可能）';
+
+  @override
+  String get backupFormatCsv => 'CSV（分析・表計算用）';
+
+  @override
   String get createBackupButton => 'バックアップを作成';
 
   @override
   String get restoreSectionTitle => 'バックアップから復元';
 
   @override
-  String get restoreSectionDescription => '保存したファイルからデータを復元します';
+  String get restoreSectionDescription => '保存したJSONまたはCSVファイルからデータを復元します';
 
   @override
   String get restoreBackupButton => 'ファイルを選択して復元';
@@ -684,6 +767,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backupCreated => 'バックアップを作成しました';
+
+  @override
+  String get backupCompleteTitle => 'バックアップ完了';
+
+  @override
+  String get backupCompleteMessage => '選択した場所にバックアップファイルが保存されました。';
 
   @override
   String get loadingBackup => 'バックアップを読み込み中...';
@@ -758,17 +847,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paywallPrivacyPolicy => 'プライバシーポリシー';
 
   @override
-  String get paywallTrialTitle => '1ヶ月間無料でお試し';
+  String get paywallTrialTitle => 'この習慣を、\nもう少し続けてみませんか';
 
   @override
   String get paywallTrialDescription =>
-      'Proの全機能を1ヶ月間無料でお試しいただけます。無料期間終了後は自動的に課金が開始されます。';
+      'Proでは、これまでの記録をすべて残し、成長を振り返りながらトレーニングを続けられます。';
 
   @override
-  String get paywallTrialNotice => '課金を避けるには、無料期間中にいつでも解約できます。';
+  String get paywallTrialNotice => '無料期間中はいつでも解約できます。';
 
   @override
-  String get paywallCtaStartTrial => '無料で始める';
+  String get paywallCtaStartTrial => '無料で続ける';
 
   @override
   String get settingsManageSubscription => 'サブスクリプションを管理';
@@ -779,4 +868,425 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get paywallSubscriptionDisclaimer =>
       '無料トライアル終了後、Apple IDアカウントに課金されます。サブスクリプションは現在の期間終了の24時間前までに解約しない限り自動更新されます。サブスクリプションの管理・解約はApple IDのアカウント設定から行えます。';
+
+  @override
+  String get sortLabel => '並べ替え';
+
+  @override
+  String get sortByDateDesc => '日付（新しい順）';
+
+  @override
+  String get sortByDateAsc => '日付（古い順）';
+
+  @override
+  String get sortByWeightDesc => '重量（重い順）';
+
+  @override
+  String get sortByWeightAsc => '重量（軽い順）';
+
+  @override
+  String get sortByRepsDesc => '回数（多い順）';
+
+  @override
+  String get sortByRepsAsc => '回数（少ない順）';
+
+  @override
+  String get sortByTimeDesc => '時間（長い順）';
+
+  @override
+  String get sortByTimeAsc => '時間（短い順）';
+
+  @override
+  String get sortByDistanceDesc => '距離（長い順）';
+
+  @override
+  String get sortByDistanceAsc => '距離（短い順）';
+
+  @override
+  String get bodyWeightTitle => '体重';
+
+  @override
+  String get bodyWeightLabel => '体重';
+
+  @override
+  String get bodyWeightMemoHint => 'メモ（任意、例：朝食前）';
+
+  @override
+  String get bodyWeightSaved => '体重を記録しました';
+
+  @override
+  String get bodyWeightUpdated => '体重を更新しました';
+
+  @override
+  String get bodyWeightDeleted => '記録を削除しました';
+
+  @override
+  String get bodyWeightNoData => 'まだ体重の記録がありません。記録を始めましょう！';
+
+  @override
+  String get bodyWeightDeleteConfirm => 'この記録を削除しますか？';
+
+  @override
+  String get bodyWeightSummary => 'サマリー';
+
+  @override
+  String get bodyWeightCurrentWeight => '現在';
+
+  @override
+  String get bodyWeightStartingWeight => '開始時';
+
+  @override
+  String get bodyWeightTotalChange => '変化';
+
+  @override
+  String get bodyWeightMinWeight => '最小';
+
+  @override
+  String get bodyWeightMaxWeight => '最大';
+
+  @override
+  String get bodyWeightTotalRecords => '記録数';
+
+  @override
+  String get bodyWeightInsightTitle => '月間インサイト';
+
+  @override
+  String bodyWeightInsightMessage(int workoutCount, String weightChange) {
+    return '今月は$workoutCount回トレーニングし、体重は$weightChange変化しました。';
+  }
+
+  @override
+  String bodyWeightInsightNoData(int workoutCount) {
+    return '今月は$workoutCount回トレーニングしました。体重を記録してトレンドを確認しましょう！';
+  }
+
+  @override
+  String get bodyWeightHistory => '履歴';
+
+  @override
+  String get importDataMigrationSection => 'データ移行';
+
+  @override
+  String get importKintoreMemoTitle => '筋トレMemoから取り込み';
+
+  @override
+  String get importKintoreMemoDescription =>
+      'iMazing等で取得した default.realm をインポート';
+
+  @override
+  String get importSelectFile => 'ファイルを選択';
+
+  @override
+  String get importAnalyzing => '解析中...';
+
+  @override
+  String get importPreviewTitle => 'プレビュー';
+
+  @override
+  String importPreviewWorkoutCount(Object count) {
+    return '種目数：$count件';
+  }
+
+  @override
+  String importPreviewTotalSets(Object count) {
+    return 'セット数：$count件';
+  }
+
+  @override
+  String importPreviewDateRange(Object end, Object start) {
+    return '日付範囲：$start ～ $end';
+  }
+
+  @override
+  String importPreviewSampleExercises(Object exercises) {
+    return '代表種目：$exercises';
+  }
+
+  @override
+  String get importExecute => 'インポートする';
+
+  @override
+  String importSuccess(Object session, Object set) {
+    return 'インポートが完了しました（セッション$session件、セット$set件）';
+  }
+
+  @override
+  String get importErrorEncrypted =>
+      'このRealmファイルは暗号化されています。暗号化されていないファイルを選択してください。';
+
+  @override
+  String get importErrorSchemaMismatch =>
+      'ファイル形式が異なります。筋トレMemoの default.realm を選択してください。';
+
+  @override
+  String get importErrorInvalidFile => '無効なファイルです。.realm ファイルを選択してください。';
+
+  @override
+  String importErrorUnknown(Object error) {
+    return 'インポートに失敗しました：$error';
+  }
+
+  @override
+  String get importGuideTitle => 'Realmファイルの取得方法';
+
+  @override
+  String get importGuideStep1Title => 'PCに接続';
+
+  @override
+  String get importGuideStep1Desc =>
+      'iPhoneをPC/Macに接続し、iMazingや3uToolsなどのファイル管理ツールを開きます。';
+
+  @override
+  String get importGuideStep2Title => 'ファイルを探す';
+
+  @override
+  String get importGuideStep2Desc =>
+      '筋トレMemoのアプリフォルダを開き、Documentsフォルダ内の「default.realm」を見つけます。';
+
+  @override
+  String get importGuideStep3Title => 'デバイスに転送';
+
+  @override
+  String get importGuideStep3Desc =>
+      'ファイルをエクスポートし、AirDrop・iCloud Drive・メールなどでiPhoneの「ファイル」アプリに保存します。';
+
+  @override
+  String get importGuideTip =>
+      '転送後、下の「ファイルを選択」ボタンから「ファイル」アプリ内の.realmファイルを選択してください。';
+
+  @override
+  String get importReimportTitle => 'インポート済み';
+
+  @override
+  String get importReimportMessage =>
+      'このデータは既にインポートされています。前回のインポートをクリアして再インポートしますか？';
+
+  @override
+  String get importReimportCancel => 'キャンセル';
+
+  @override
+  String get importReimportConfirm => '再インポート';
+
+  @override
+  String get importCsvTitle => 'CSVから取り込み';
+
+  @override
+  String get importCsvDescription =>
+      'LiftlyでエクスポートしたCSVまたはJSONファイルからデータを取り込みます。既存のデータは上書きされます。';
+
+  @override
+  String get importCsvTileDescription => 'LiftlyでエクスポートしたCSV/JSONから取り込み';
+
+  @override
+  String get importCsvSelectFile => 'ファイルを選択';
+
+  @override
+  String get importCsvFormatHint =>
+      'Liftlyのバックアップ機能でエクスポートしたCSV/JSON形式のファイルを選択してください。';
+
+  @override
+  String get workoutCompletionTitle => 'トレーニング記録完了';
+
+  @override
+  String workoutCompletionSummary(
+    int exerciseCount,
+    int setCount,
+    String volume,
+    String unit,
+  ) {
+    return '$exerciseCount種目・$setCountセット・総ボリューム $volume$unit';
+  }
+
+  @override
+  String workoutCompletionExerciseLine(
+    String name,
+    int setCount,
+    String weight,
+    String unit,
+  ) {
+    return '$name $setCountセット 最高重量$weight$unit';
+  }
+
+  @override
+  String workoutCompletionExerciseLineTime(
+    String name,
+    int setCount,
+    String duration,
+  ) {
+    return '$name $setCountセット 最長$duration';
+  }
+
+  @override
+  String get syncSectionTitle => 'クラウド同期';
+
+  @override
+  String get syncSectionDescription => 'データをクラウドに保存して複数端末で利用';
+
+  @override
+  String get syncSignUp => '新規登録';
+
+  @override
+  String get syncLogin => 'ログイン';
+
+  @override
+  String get syncSignInWithGoogle => 'Google でログイン';
+
+  @override
+  String get syncSigningIn => 'ログイン中...';
+
+  @override
+  String get syncSignOut => 'サインアウト';
+
+  @override
+  String get syncSignUpSuccess => 'アカウントを作成しました。';
+
+  @override
+  String get syncSignUpConfirmEmail =>
+      'メール確認が有効な場合は、送信されたリンクから確認してからログインしてください。';
+
+  @override
+  String get syncNow => '今すぐ同期';
+
+  @override
+  String get syncSyncSuccess => '同期が完了しました';
+
+  @override
+  String get syncSyncFailed => '同期に失敗しました';
+
+  @override
+  String syncSyncFailedWithReason(String reason) {
+    return '同期に失敗しました: $reason';
+  }
+
+  @override
+  String get syncRegisterButton => '登録する';
+
+  @override
+  String get syncSignUpEmailAlreadyRegistered => 'このメールアドレスは既に登録されています。';
+
+  @override
+  String get syncForgotPassword => 'パスワードを忘れた';
+
+  @override
+  String get syncResetEmailPrompt => '登録済みのメールアドレスを入力してください。リセット用のリンクを送信します。';
+
+  @override
+  String get syncSendResetLink => 'リセット用メールを送信';
+
+  @override
+  String get syncResetEmailSent => 'パスワードリセット用のメールを送信しました。メール内のリンクから再設定してください。';
+
+  @override
+  String get syncResetEmailLimitExceeded =>
+      'メール送信回数の制限に達しました。約1時間後に再度お試しください。本番運用時は Supabase ダッシュボードでカスタム SMTP の設定を推奨します。';
+
+  @override
+  String get syncInProgress => '同期中...';
+
+  @override
+  String get syncManualHint => '同期は手動で行います。「クラウドへ反映」または「クラウドから取得」で同期してください。';
+
+  @override
+  String get syncPushToServer => 'クラウドへデータを反映';
+
+  @override
+  String get syncPullFromServer => 'クラウドからデータを取得';
+
+  @override
+  String get syncPushShort => '反映';
+
+  @override
+  String get syncPullShort => '取得';
+
+  @override
+  String get syncConfirmTitle => '確認';
+
+  @override
+  String get syncConfirmPushMessage => 'デバイスのデータにより、クラウドのデータがすべて書き換えられます。';
+
+  @override
+  String get syncConfirmPullMessage => 'クラウドのデータにより、デバイスのデータがすべて書き換えられます。';
+
+  @override
+  String get syncConfirmExecute => '実行する';
+
+  @override
+  String syncLastSynced(String time) {
+    return '最終同期: $time';
+  }
+
+  @override
+  String get syncNotSignedIn => '未サインイン';
+
+  @override
+  String get syncNotConfigured => 'Supabase 未設定';
+
+  @override
+  String get paywallCompareSync => '同期';
+
+  @override
+  String get csvGuideOpenButton => 'CSVの形式を見る';
+
+  @override
+  String get csvGuideTitle => '取り込み用CSVの形式';
+
+  @override
+  String get csvGuideIntro =>
+      '復元で読み込めるCSVは、1行目がヘッダー・2行目以降がデータです。列の順番と名前は以下と一致させてください。';
+
+  @override
+  String get csvGuideRequired => '必須';
+
+  @override
+  String get csvGuideOptional => '任意';
+
+  @override
+  String get csvGuideSampleTitle => 'サンプル（先頭2行のイメージ）';
+
+  @override
+  String get csvGuideNotesTitle => '注意';
+
+  @override
+  String get csvGuideNoteEncoding =>
+      '文字コードはUTF-8で保存してください（Excelなら「UTF-8 CSV」で保存）。';
+
+  @override
+  String get csvGuideNoteDate =>
+      '日付は YYYY-MM-DD（例: 2024-01-15）または YYYY/MM/DD。開始時刻は ISO8601（例: 2024-01-15T19:30:00.000）が使えます。';
+
+  @override
+  String get csvGuideNoteQuotes => 'セル内にカンマや改行を含む場合は、セル全体をダブルクォートで囲んでください。';
+
+  @override
+  String get csvGuideColSessionDate => 'トレーニング日（YYYY-MM-DD など）';
+
+  @override
+  String get csvGuideColSessionStartedAt => 'セッション開始時刻（ISO8601 または空欄可）';
+
+  @override
+  String get csvGuideColExerciseName => '種目名';
+
+  @override
+  String get csvGuideColBodyPart => '部位（胸・背中など、空欄可）';
+
+  @override
+  String get csvGuideColSetNumber => 'セット番号（1, 2, 3…）';
+
+  @override
+  String get csvGuideColWeightKg => '重量（kg）';
+
+  @override
+  String get csvGuideColWeightLb => '重量（lb）';
+
+  @override
+  String get csvGuideColReps => '回数（時間系種目は空欄）';
+
+  @override
+  String get csvGuideColDurationSeconds => '持続時間（秒、空欄可）';
+
+  @override
+  String get csvGuideColDistanceMeters => '距離（m、空欄可）';
+
+  @override
+  String get csvGuideColMemo => 'メモ（空欄可）';
 }

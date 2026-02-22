@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/settings_provider.dart';
 import '../tutorial/providers/interactive_tutorial_provider.dart';
 import '../home/home_screen.dart';
@@ -58,6 +59,7 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -83,9 +85,9 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
               const SizedBox(height: 24),
 
               // Welcome Message
-              const Text(
-                'Welcome to Liftly',
-                style: TextStyle(
+              Text(
+                l10n.welcomeMessage,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -94,21 +96,21 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
               const SizedBox(height: 48),
 
               // Language Selection
-              _buildSectionLabel('Language / 言語'),
+              _buildSectionLabel(l10n.languageLabel),
               const SizedBox(height: 12),
-              _buildLanguageSelector(),
+              _buildLanguageSelector(l10n),
               const SizedBox(height: 32),
 
               // Weight Unit Selection
-              _buildSectionLabel('Weight / 重さ'),
+              _buildSectionLabel(l10n.initialSetupWeightLabel),
               const SizedBox(height: 12),
               _buildUnitSelector(),
               const SizedBox(height: 32),
 
               // Distance Unit Selection
-              _buildSectionLabel('Distance / 距離'),
+              _buildSectionLabel(l10n.initialSetupDistanceLabel),
               const SizedBox(height: 12),
-              _buildDistanceUnitSelector(),
+              _buildDistanceUnitSelector(l10n),
 
               const Spacer(),
 
@@ -123,9 +125,9 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Start / 始める',
-                    style: TextStyle(fontSize: 16),
+                  child: Text(
+                    l10n.startButton,
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ),
@@ -147,7 +149,7 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
     );
   }
 
-  Widget _buildLanguageSelector() {
+  Widget _buildLanguageSelector(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -156,7 +158,7 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
       child: Row(
         children: [
           Expanded(
-            child: _buildLanguageOption('English', 'en'),
+            child: _buildLanguageOption(l10n.languageEnglish, 'en'),
           ),
           Container(
             width: 1,
@@ -164,7 +166,7 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
             color: Colors.grey.shade300,
           ),
           Expanded(
-            child: _buildLanguageOption('日本語', 'ja'),
+            child: _buildLanguageOption(l10n.languageJapanese, 'ja'),
           ),
         ],
       ),
@@ -253,7 +255,7 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
     );
   }
 
-  Widget _buildDistanceUnitSelector() {
+  Widget _buildDistanceUnitSelector(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -262,7 +264,7 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
       child: Row(
         children: [
           Expanded(
-            child: _buildDistanceUnitOption('km', 'km'),
+            child: _buildDistanceUnitOption(l10n.distanceUnitKm, 'km'),
           ),
           Container(
             width: 1,
@@ -270,7 +272,7 @@ class _InitialSetupScreenState extends ConsumerState<InitialSetupScreen> {
             color: Colors.grey.shade300,
           ),
           Expanded(
-            child: _buildDistanceUnitOption('mile', 'mile'),
+            child: _buildDistanceUnitOption(l10n.distanceUnitMile, 'mile'),
           ),
         ],
       ),

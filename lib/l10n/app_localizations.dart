@@ -146,6 +146,18 @@ abstract class AppLocalizations {
   /// **'Start'**
   String get startButton;
 
+  /// No description provided for @initialSetupWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get initialSetupWeightLabel;
+
+  /// No description provided for @initialSetupDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get initialSetupDistanceLabel;
+
   /// Application name
   ///
   /// In en, this message translates to:
@@ -510,6 +522,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} days'**
   String streakDays(int count);
+
+  /// Label for average weight in monthly summary
+  ///
+  /// In en, this message translates to:
+  /// **'Avg. Weight'**
+  String get averageWeightLabel;
+
+  /// Title for calendar month/year picker dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Select month & year'**
+  String get selectMonthYear;
+
+  /// No description provided for @lastMonthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Last month'**
+  String get lastMonthShort;
+
+  /// No description provided for @thisMonthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get thisMonthShort;
+
+  /// No description provided for @nextMonthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get nextMonthShort;
+
+  /// No description provided for @allRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All Records'**
+  String get allRecordsTitle;
+
+  /// Total number of training sessions
+  ///
+  /// In en, this message translates to:
+  /// **'{count} workouts total'**
+  String totalWorkoutsCount(int count);
+
+  /// No description provided for @moreExercisesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more…'**
+  String moreExercisesHint(int count);
+
+  /// No description provided for @tapForDetailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap for details'**
+  String get tapForDetailHint;
+
+  /// No description provided for @exerciseAlreadyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Already added'**
+  String get exerciseAlreadyAdded;
 
   /// Placeholder text for exercise search field
   ///
@@ -949,28 +1021,28 @@ abstract class AppLocalizations {
   /// **'Starting Best Distance'**
   String get startingBestDistance;
 
-  /// Paywall title for history unlock
+  /// Paywall title for history - affirms value of user's effort
   ///
   /// In en, this message translates to:
-  /// **'View your full history'**
+  /// **'Keep all your workout history'**
   String get paywallTitleHistory;
 
-  /// Paywall title for chart access
+  /// Paywall title for chart - gentle invitation to see growth
   ///
   /// In en, this message translates to:
-  /// **'See your progress in charts'**
+  /// **'See how you\'re progressing'**
   String get paywallTitleChart;
 
-  /// Paywall title for theme customization
+  /// Paywall title for theme - personal connection
   ///
   /// In en, this message translates to:
-  /// **'Personalize your theme'**
+  /// **'Make it truly yours'**
   String get paywallTitleTheme;
 
-  /// Paywall title for stats access
+  /// Paywall title for stats - reflection helps consistency
   ///
   /// In en, this message translates to:
-  /// **'View detailed stats'**
+  /// **'Understand your training habits'**
   String get paywallTitleStats;
 
   /// Paywall title for export feature
@@ -979,28 +1051,28 @@ abstract class AppLocalizations {
   /// **'Export your data'**
   String get paywallTitleExport;
 
-  /// Paywall body for history unlock
+  /// Paywall body for history - affirms user's effort
   ///
   /// In en, this message translates to:
-  /// **'Free shows your latest 20 sessions. Go Pro to unlock full history, charts, and stats to see your progress.'**
+  /// **'Your training so far has real value. With Pro, you can keep and review all your workout records anytime.'**
   String get paywallBodyHistory;
 
-  /// Paywall body for chart access
+  /// Paywall body for chart - numbers as proof of consistency
   ///
   /// In en, this message translates to:
-  /// **'Track your growth with detailed charts and graphs. Available with Pro.'**
+  /// **'Changes in numbers show your consistency. With Pro, you can track your progress through clear and simple charts.'**
   String get paywallBodyChart;
 
-  /// Paywall body for theme customization
+  /// Paywall body for theme - comfort supports habit
   ///
   /// In en, this message translates to:
-  /// **'Customize your app\'s look with your favorite colors. Available with Pro.'**
+  /// **'When something feels right, it\'s easier to keep going. With Pro, you can customize the app\'s theme to match your style.'**
   String get paywallBodyTheme;
 
-  /// Paywall body for stats access
+  /// Paywall body for stats - reflection reinforces habit
   ///
   /// In en, this message translates to:
-  /// **'Get detailed weekly and monthly statistics. Available with Pro.'**
+  /// **'Looking back helps you stay consistent. With Pro, you can review detailed weekly and monthly training statistics.'**
   String get paywallBodyStats;
 
   /// Paywall body for export feature
@@ -1030,7 +1102,7 @@ abstract class AppLocalizations {
   /// Free tier history limit
   ///
   /// In en, this message translates to:
-  /// **'Last 20'**
+  /// **'Last 30'**
   String get paywallCompareLast20;
 
   /// Pro tier unlimited access
@@ -1050,6 +1122,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Theme'**
   String get paywallCompareTheme;
+
+  /// Comparison table combined row for charts and theme
+  ///
+  /// In en, this message translates to:
+  /// **'Charts & Theme'**
+  String get paywallCompareChartsTheme;
+
+  /// Comparison table row for ads
+  ///
+  /// In en, this message translates to:
+  /// **'Ads'**
+  String get paywallCompareAds;
+
+  /// Free tier: ads are shown
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get paywallCompareAdsShow;
+
+  /// Pro tier: ads are hidden
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get paywallCompareAdsHide;
 
   /// Free tier default theme
   ///
@@ -1072,7 +1168,7 @@ abstract class AppLocalizations {
   /// Sub hint for locked session
   ///
   /// In en, this message translates to:
-  /// **'Free shows the latest 20 sessions. Go Pro to view everything.'**
+  /// **'Free shows the latest 30 sessions. Go Pro to view everything.'**
   String get lockedSessionSubHint;
 
   /// Pro label
@@ -1261,17 +1357,53 @@ abstract class AppLocalizations {
   /// **'Brown'**
   String get colorCategoryBrown;
 
-  /// Paywall title for backup feature
+  /// Paywall title for backup - protect valuable records
   ///
   /// In en, this message translates to:
-  /// **'Backup your data'**
+  /// **'Keep your records safe'**
   String get paywallTitleBackup;
 
-  /// Paywall body for backup feature
+  /// Paywall body for backup - records deserve protection
   ///
   /// In en, this message translates to:
-  /// **'Back up your data to transfer to a new device. Available with Pro.'**
+  /// **'Your workout history is worth protecting. With Pro, you can back up your data and keep it safe.'**
   String get paywallBodyBackup;
+
+  /// Paywall title for hiding ads with Pro
+  ///
+  /// In en, this message translates to:
+  /// **'Hide ads and focus on your workout'**
+  String get paywallTitleAds;
+
+  /// Paywall body for ads - Pro benefits
+  ///
+  /// In en, this message translates to:
+  /// **'With Pro, ads are removed and you get full access to history, theme, backup, and more.'**
+  String get paywallBodyAds;
+
+  /// Settings section label for plan/subscription
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get settingsPlanSection;
+
+  /// Button to open paywall from settings
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Pro'**
+  String get settingsUpgradeToPro;
+
+  /// Short description of Pro benefits
+  ///
+  /// In en, this message translates to:
+  /// **'Hide ads, full history, theme, backup & more'**
+  String get settingsProPlanDescription;
+
+  /// Gentle CTA near banner ad to lead to Pro
+  ///
+  /// In en, this message translates to:
+  /// **'Hide ads with Pro?'**
+  String get adHideWithProCta;
 
   /// Label for backup section
   ///
@@ -1297,6 +1429,24 @@ abstract class AppLocalizations {
   /// **'Export all your workout data to a file'**
   String get backupSectionDescription;
 
+  /// Label for backup format selection
+  ///
+  /// In en, this message translates to:
+  /// **'Backup format'**
+  String get backupFormatLabel;
+
+  /// JSON format option - can restore in app
+  ///
+  /// In en, this message translates to:
+  /// **'JSON (for restore)'**
+  String get backupFormatJson;
+
+  /// CSV format option - for spreadsheets/analysis
+  ///
+  /// In en, this message translates to:
+  /// **'CSV (for analysis)'**
+  String get backupFormatCsv;
+
   /// Button to create backup
   ///
   /// In en, this message translates to:
@@ -1312,7 +1462,7 @@ abstract class AppLocalizations {
   /// Description for restore section
   ///
   /// In en, this message translates to:
-  /// **'Import data from a backup file'**
+  /// **'Import data from a JSON or CSV backup file'**
   String get restoreSectionDescription;
 
   /// Button to select backup file
@@ -1338,6 +1488,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup created successfully'**
   String get backupCreated;
+
+  /// Title for backup success dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Complete'**
+  String get backupCompleteTitle;
+
+  /// Message for backup success dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Your backup file has been saved to the location you selected.'**
+  String get backupCompleteMessage;
 
   /// Loading message while reading backup
   ///
@@ -1471,28 +1633,28 @@ abstract class AppLocalizations {
   /// **'Privacy Policy'**
   String get paywallPrivacyPolicy;
 
-  /// Trial period title
+  /// Paywall headline - gentle encouragement to continue
   ///
   /// In en, this message translates to:
-  /// **'Start your 1-month free trial'**
+  /// **'Would you like to keep\nthis habit going?'**
   String get paywallTrialTitle;
 
-  /// Trial period description
+  /// Paywall description - focus on state change, not features
   ///
   /// In en, this message translates to:
-  /// **'Try all Pro features free for 1 month. After the trial ends, your subscription will automatically begin.'**
+  /// **'With Pro, all your workout records are saved, so you can look back on your progress and keep training.'**
   String get paywallTrialDescription;
 
   /// Notice about cancellation during trial
   ///
   /// In en, this message translates to:
-  /// **'To avoid being charged, cancel anytime during the free trial period.'**
+  /// **'You can cancel anytime during the free trial.'**
   String get paywallTrialNotice;
 
-  /// CTA button text for starting trial
+  /// CTA button text - gentle invitation to try
   ///
   /// In en, this message translates to:
-  /// **'Start Free Trial'**
+  /// **'Continue for free'**
   String get paywallCtaStartTrial;
 
   /// Settings menu item for managing subscription
@@ -1512,6 +1674,752 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment will be charged to your Apple ID account at the end of the free trial. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your Apple ID account settings.'**
   String get paywallSubscriptionDisclaimer;
+
+  /// Label for sort button
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sortLabel;
+
+  /// Sort by date descending
+  ///
+  /// In en, this message translates to:
+  /// **'Date (Newest)'**
+  String get sortByDateDesc;
+
+  /// Sort by date ascending
+  ///
+  /// In en, this message translates to:
+  /// **'Date (Oldest)'**
+  String get sortByDateAsc;
+
+  /// Sort by weight descending
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (Heaviest)'**
+  String get sortByWeightDesc;
+
+  /// Sort by weight ascending
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (Lightest)'**
+  String get sortByWeightAsc;
+
+  /// Sort by reps descending
+  ///
+  /// In en, this message translates to:
+  /// **'Reps (Most)'**
+  String get sortByRepsDesc;
+
+  /// Sort by reps ascending
+  ///
+  /// In en, this message translates to:
+  /// **'Reps (Least)'**
+  String get sortByRepsAsc;
+
+  /// Sort by time descending
+  ///
+  /// In en, this message translates to:
+  /// **'Time (Longest)'**
+  String get sortByTimeDesc;
+
+  /// Sort by time ascending
+  ///
+  /// In en, this message translates to:
+  /// **'Time (Shortest)'**
+  String get sortByTimeAsc;
+
+  /// Sort by distance descending
+  ///
+  /// In en, this message translates to:
+  /// **'Distance (Longest)'**
+  String get sortByDistanceDesc;
+
+  /// Sort by distance ascending
+  ///
+  /// In en, this message translates to:
+  /// **'Distance (Shortest)'**
+  String get sortByDistanceAsc;
+
+  /// Title for body weight screen
+  ///
+  /// In en, this message translates to:
+  /// **'Body Weight'**
+  String get bodyWeightTitle;
+
+  /// Label for body weight
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get bodyWeightLabel;
+
+  /// Hint for body weight memo input
+  ///
+  /// In en, this message translates to:
+  /// **'Memo (optional, e.g., before breakfast)'**
+  String get bodyWeightMemoHint;
+
+  /// Message when body weight is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Body weight saved'**
+  String get bodyWeightSaved;
+
+  /// Message when body weight is updated
+  ///
+  /// In en, this message translates to:
+  /// **'Body weight updated'**
+  String get bodyWeightUpdated;
+
+  /// Message when body weight record is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Record deleted'**
+  String get bodyWeightDeleted;
+
+  /// Message when there are no body weight records
+  ///
+  /// In en, this message translates to:
+  /// **'No body weight records yet. Start recording!'**
+  String get bodyWeightNoData;
+
+  /// Confirmation for deleting body weight record
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this record?'**
+  String get bodyWeightDeleteConfirm;
+
+  /// Title for body weight summary section
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get bodyWeightSummary;
+
+  /// Label for current body weight
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get bodyWeightCurrentWeight;
+
+  /// Label for starting body weight
+  ///
+  /// In en, this message translates to:
+  /// **'Starting'**
+  String get bodyWeightStartingWeight;
+
+  /// Label for total body weight change
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get bodyWeightTotalChange;
+
+  /// Label for minimum body weight
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get bodyWeightMinWeight;
+
+  /// Label for maximum body weight
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get bodyWeightMaxWeight;
+
+  /// Label for total body weight records
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get bodyWeightTotalRecords;
+
+  /// Title for monthly insight section
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Insight'**
+  String get bodyWeightInsightTitle;
+
+  /// Monthly insight message with workout count and weight change
+  ///
+  /// In en, this message translates to:
+  /// **'This month: {workoutCount} workouts, weight change: {weightChange}'**
+  String bodyWeightInsightMessage(int workoutCount, String weightChange);
+
+  /// Monthly insight when no weight data for this month
+  ///
+  /// In en, this message translates to:
+  /// **'This month: {workoutCount} workouts. Record your weight to see trends!'**
+  String bodyWeightInsightNoData(int workoutCount);
+
+  /// Title for body weight history section
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get bodyWeightHistory;
+
+  /// No description provided for @importDataMigrationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Migration'**
+  String get importDataMigrationSection;
+
+  /// No description provided for @importKintoreMemoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from KintoreMemo (Realm)'**
+  String get importKintoreMemoTitle;
+
+  /// No description provided for @importKintoreMemoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import default.realm exported via iMazing etc.'**
+  String get importKintoreMemoDescription;
+
+  /// No description provided for @importSelectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select File'**
+  String get importSelectFile;
+
+  /// No description provided for @importAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing...'**
+  String get importAnalyzing;
+
+  /// No description provided for @importPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get importPreviewTitle;
+
+  /// No description provided for @importPreviewWorkoutCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises: {count}'**
+  String importPreviewWorkoutCount(Object count);
+
+  /// No description provided for @importPreviewTotalSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets: {count}'**
+  String importPreviewTotalSets(Object count);
+
+  /// No description provided for @importPreviewDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range: {start} - {end}'**
+  String importPreviewDateRange(Object end, Object start);
+
+  /// No description provided for @importPreviewSampleExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample exercises: {exercises}'**
+  String importPreviewSampleExercises(Object exercises);
+
+  /// No description provided for @importExecute.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importExecute;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Import complete (sessions: {session}, sets: {set})'**
+  String importSuccess(Object session, Object set);
+
+  /// No description provided for @importErrorEncrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'This Realm file is encrypted. Please select an unencrypted file.'**
+  String get importErrorEncrypted;
+
+  /// No description provided for @importErrorSchemaMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid file format. Please select default.realm from KintoreMemo.'**
+  String get importErrorSchemaMismatch;
+
+  /// No description provided for @importErrorInvalidFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid file. Please select a .realm file.'**
+  String get importErrorInvalidFile;
+
+  /// No description provided for @importErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed: {error}'**
+  String importErrorUnknown(Object error);
+
+  /// No description provided for @importGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to get the Realm file'**
+  String get importGuideTitle;
+
+  /// No description provided for @importGuideStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to PC'**
+  String get importGuideStep1Title;
+
+  /// No description provided for @importGuideStep1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your iPhone to a PC/Mac and open a file management tool such as iMazing or 3uTools.'**
+  String get importGuideStep1Desc;
+
+  /// No description provided for @importGuideStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the file'**
+  String get importGuideStep2Title;
+
+  /// No description provided for @importGuideStep2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the KintoreMemo app folder and find \"default.realm\" in the Documents directory.'**
+  String get importGuideStep2Desc;
+
+  /// No description provided for @importGuideStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to device'**
+  String get importGuideStep3Title;
+
+  /// No description provided for @importGuideStep3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export the file and send it to your iPhone\'s Files app via AirDrop, iCloud Drive, or email.'**
+  String get importGuideStep3Desc;
+
+  /// No description provided for @importGuideTip.
+  ///
+  /// In en, this message translates to:
+  /// **'After transferring, tap \"Select File\" below to pick the .realm file from the Files app.'**
+  String get importGuideTip;
+
+  /// No description provided for @importReimportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Already Imported'**
+  String get importReimportTitle;
+
+  /// No description provided for @importReimportMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This data has already been imported. Would you like to clear the previous import and re-import?'**
+  String get importReimportMessage;
+
+  /// No description provided for @importReimportCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get importReimportCancel;
+
+  /// No description provided for @importReimportConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-import'**
+  String get importReimportConfirm;
+
+  /// No description provided for @importCsvTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from CSV'**
+  String get importCsvTitle;
+
+  /// No description provided for @importCsvDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import data from a CSV or JSON file exported by Liftly. Existing data will be overwritten.'**
+  String get importCsvDescription;
+
+  /// No description provided for @importCsvTileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from CSV/JSON exported by Liftly'**
+  String get importCsvTileDescription;
+
+  /// No description provided for @importCsvSelectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select File'**
+  String get importCsvSelectFile;
+
+  /// No description provided for @importCsvFormatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a CSV or JSON file exported by Liftly\'s backup feature.'**
+  String get importCsvFormatHint;
+
+  /// No description provided for @workoutCompletionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout Recorded'**
+  String get workoutCompletionTitle;
+
+  /// No description provided for @workoutCompletionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{exerciseCount} exercises, {setCount} sets, {volume}{unit} total volume'**
+  String workoutCompletionSummary(
+    int exerciseCount,
+    int setCount,
+    String volume,
+    String unit,
+  );
+
+  /// No description provided for @workoutCompletionExerciseLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {setCount} sets, top weight {weight}{unit}'**
+  String workoutCompletionExerciseLine(
+    String name,
+    int setCount,
+    String weight,
+    String unit,
+  );
+
+  /// No description provided for @workoutCompletionExerciseLineTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {setCount} sets, best {duration}'**
+  String workoutCompletionExerciseLineTime(
+    String name,
+    int setCount,
+    String duration,
+  );
+
+  /// No description provided for @syncSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync (Pro)'**
+  String get syncSectionTitle;
+
+  /// No description provided for @syncSectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Save data to the cloud for use across devices'**
+  String get syncSectionDescription;
+
+  /// No description provided for @syncSignUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get syncSignUp;
+
+  /// No description provided for @syncLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get syncLogin;
+
+  /// No description provided for @syncSignInWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get syncSignInWithGoogle;
+
+  /// No description provided for @syncSigningIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in...'**
+  String get syncSigningIn;
+
+  /// No description provided for @syncSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get syncSignOut;
+
+  /// No description provided for @syncSignUpSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created.'**
+  String get syncSignUpSuccess;
+
+  /// No description provided for @syncSignUpConfirmEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'If email confirmation is enabled, check your email and confirm, then log in.'**
+  String get syncSignUpConfirmEmail;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// No description provided for @syncSyncSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync completed'**
+  String get syncSyncSuccess;
+
+  /// No description provided for @syncSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get syncSyncFailed;
+
+  /// No description provided for @syncSyncFailedWithReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {reason}'**
+  String syncSyncFailedWithReason(String reason);
+
+  /// No description provided for @syncRegisterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get syncRegisterButton;
+
+  /// No description provided for @syncSignUpEmailAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'This email address is already registered.'**
+  String get syncSignUpEmailAlreadyRegistered;
+
+  /// No description provided for @syncForgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get syncForgotPassword;
+
+  /// No description provided for @syncResetEmailPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your registered email address. We will send you a reset link.'**
+  String get syncResetEmailPrompt;
+
+  /// No description provided for @syncSendResetLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reset email'**
+  String get syncSendResetLink;
+
+  /// No description provided for @syncResetEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We have sent a password reset email. Please follow the link in the email to set a new password.'**
+  String get syncResetEmailSent;
+
+  /// No description provided for @syncResetEmailLimitExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Email send rate limit reached. Please try again in about an hour. For production, configure custom SMTP in the Supabase dashboard.'**
+  String get syncResetEmailLimitExceeded;
+
+  /// No description provided for @syncInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncInProgress;
+
+  /// No description provided for @syncManualHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is manual. Use \"Push to cloud\" or \"Pull from cloud\" to sync.'**
+  String get syncManualHint;
+
+  /// No description provided for @syncPushToServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Push to cloud'**
+  String get syncPushToServer;
+
+  /// No description provided for @syncPullFromServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull from cloud'**
+  String get syncPullFromServer;
+
+  /// No description provided for @syncPushShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Push'**
+  String get syncPushShort;
+
+  /// No description provided for @syncPullShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull'**
+  String get syncPullShort;
+
+  /// No description provided for @syncConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get syncConfirmTitle;
+
+  /// No description provided for @syncConfirmPushMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'All cloud data will be replaced by this device\'s data.'**
+  String get syncConfirmPushMessage;
+
+  /// No description provided for @syncConfirmPullMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'All device data will be replaced by cloud data.'**
+  String get syncConfirmPullMessage;
+
+  /// No description provided for @syncConfirmExecute.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute'**
+  String get syncConfirmExecute;
+
+  /// No description provided for @syncLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced: {time}'**
+  String syncLastSynced(String time);
+
+  /// No description provided for @syncNotSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in'**
+  String get syncNotSignedIn;
+
+  /// No description provided for @syncNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Supabase not configured'**
+  String get syncNotConfigured;
+
+  /// No description provided for @paywallCompareSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get paywallCompareSync;
+
+  /// No description provided for @csvGuideOpenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV format guide'**
+  String get csvGuideOpenButton;
+
+  /// No description provided for @csvGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV format for import'**
+  String get csvGuideTitle;
+
+  /// No description provided for @csvGuideIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The CSV file must have a header row and data rows. Column order and names must match the table below.'**
+  String get csvGuideIntro;
+
+  /// No description provided for @csvGuideRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get csvGuideRequired;
+
+  /// No description provided for @csvGuideOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get csvGuideOptional;
+
+  /// No description provided for @csvGuideSampleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample (first 2 data rows)'**
+  String get csvGuideSampleTitle;
+
+  /// No description provided for @csvGuideNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get csvGuideNotesTitle;
+
+  /// No description provided for @csvGuideNoteEncoding.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as UTF-8 (e.g. \"UTF-8 CSV\" in Excel).'**
+  String get csvGuideNoteEncoding;
+
+  /// No description provided for @csvGuideNoteDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date: YYYY-MM-DD or YYYY/MM/DD. Start time: ISO8601 (e.g. 2024-01-15T19:30:00.000) or leave empty.'**
+  String get csvGuideNoteDate;
+
+  /// No description provided for @csvGuideNoteQuotes.
+  ///
+  /// In en, this message translates to:
+  /// **'If a cell contains a comma or newline, wrap the whole cell in double quotes.'**
+  String get csvGuideNoteQuotes;
+
+  /// No description provided for @csvGuideColSessionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout date (YYYY-MM-DD etc.)'**
+  String get csvGuideColSessionDate;
+
+  /// No description provided for @csvGuideColSessionStartedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Session start time (ISO8601 or empty)'**
+  String get csvGuideColSessionStartedAt;
+
+  /// No description provided for @csvGuideColExerciseName.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise name'**
+  String get csvGuideColExerciseName;
+
+  /// No description provided for @csvGuideColBodyPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Body part (e.g. chest, back; optional)'**
+  String get csvGuideColBodyPart;
+
+  /// No description provided for @csvGuideColSetNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Set number (1, 2, 3…)'**
+  String get csvGuideColSetNumber;
+
+  /// No description provided for @csvGuideColWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get csvGuideColWeightKg;
+
+  /// No description provided for @csvGuideColWeightLb.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (lb)'**
+  String get csvGuideColWeightLb;
+
+  /// No description provided for @csvGuideColReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps (leave empty for time-based)'**
+  String get csvGuideColReps;
+
+  /// No description provided for @csvGuideColDurationSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration in seconds (optional)'**
+  String get csvGuideColDurationSeconds;
+
+  /// No description provided for @csvGuideColDistanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance in meters (optional)'**
+  String get csvGuideColDistanceMeters;
+
+  /// No description provided for @csvGuideColMemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Memo (optional)'**
+  String get csvGuideColMemo;
 }
 
 class _AppLocalizationsDelegate
