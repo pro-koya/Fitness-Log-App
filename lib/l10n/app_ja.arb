@@ -42,6 +42,7 @@
   "backButton": "戻る",
 
   "workoutDetailTitle": "記録詳細",
+  "workoutInputTitle": "トレーニング",
   "sessionTime": "{startTime} - {endTime}",
   "emptyStateMessage": "この日は記録がありません",
 

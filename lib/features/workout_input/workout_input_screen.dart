@@ -5,9 +5,11 @@ import '../../providers/database_providers.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/workout_session_provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/muscle_message_service.dart';
 import '../tutorial/providers/interactive_tutorial_provider.dart';
 import '../tutorial/models/tutorial_step.dart';
 import '../tutorial/widgets/tutorial_overlay.dart';
+import '../workout_completion/workout_completion_modal.dart';
 import 'providers/workout_input_provider.dart';
 import 'widgets/exercise_card_widget.dart';
 import 'widgets/exercise_selector_modal.dart';
@@ -32,9 +34,17 @@ class WorkoutInputScreen extends ConsumerStatefulWidget {
 class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   String? _lastUnit;
   bool _hasInitialized = false;
+  int? _newlyAddedExerciseIndex;
+  final ScrollController _scrollController = ScrollController();
   final GlobalKey _addExerciseButtonKey = GlobalKey();
   final GlobalKey _setInputKey = GlobalKey();
   final GlobalKey _completeButtonKey = GlobalKey();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +120,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         },
         child: Scaffold(
           appBar: AppBar(
-          title: const Text('Workout'),
+          title: Text(AppLocalizations.of(context)!.workoutInputTitle),
           actions: [
             TimerIconButton(),
           ],
@@ -186,6 +196,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
 
   Widget _buildExerciseList(WorkoutInputState workoutState) {
     return ListView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.all(16).copyWith(bottom: 100),
       itemCount: workoutState.exercises.length,
       itemBuilder: (context, index) {
@@ -197,9 +208,21 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
             tutorialState.currentStep == TutorialStep.workoutInputSet &&
             index == 0;
 
+        // Auto-focus the newly added exercise
+        final shouldAutoFocus = _newlyAddedExerciseIndex == index;
+        if (shouldAutoFocus) {
+          // Clear after building so it only fires once
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => _newlyAddedExerciseIndex = null);
+            }
+          });
+        }
+
         return ExerciseCardWidget(
           exercise: exercise,
           exerciseIndex: index,
+          autoFocus: shouldAutoFocus,
           tutorialSetInputKey: isStep3Active ? _setInputKey : null,
           onUpdateSet: (setIndex, weight, reps, durationSeconds, distance) {
             notifier.updateSet(index, setIndex,
@@ -322,8 +345,37 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
       if (exercise != null) {
         final notifier =
             ref.read(workoutInputProvider(widget.sessionId).notifier);
-        await notifier.addExercise(exercise);
-        
+        final added = await notifier.addExercise(exercise);
+
+        if (!mounted) return;
+        if (!added) {
+          final l10n = AppLocalizations.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n?.exerciseAlreadyAdded ?? 'Already added'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          return;
+        }
+
+        // Track the newly added exercise index for auto-focus and scroll
+        final workoutState = ref.read(workoutInputProvider(widget.sessionId));
+        setState(() {
+          _newlyAddedExerciseIndex = workoutState.exercises.length - 1;
+        });
+
+        // Scroll to the newly added exercise
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+
         // Complete step 2 when exercise is added
         if (isStep2Active) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -477,7 +529,23 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     final sessionNotifier = ref.read(workoutSessionNotifierProvider.notifier);
     await sessionNotifier.completeSession(widget.sessionId);
 
+    if (!mounted) return;
+
+    // Show completion modal (muscle message + summary)
+    final unit = ref.read(currentUnitProvider);
+    final lang = ref.read(currentLanguageProvider);
+    final completionResult = await MuscleMessageService().buildCompletionResult(
+      sessionId: widget.sessionId,
+      unit: unit,
+      language: lang,
+    );
+
+    if (!mounted) return;
+    await WorkoutCompletionModal.show(context, result: completionResult);
+
     if (mounted) {
+      ref.invalidate(recentWorkoutItemsProvider);
+      ref.invalidate(recentWorkoutsProvider);
       Navigator.of(context).pop();
     }
   }

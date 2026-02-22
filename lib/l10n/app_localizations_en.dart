@@ -127,6 +127,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workoutDetailTitle => 'Workout Detail';
 
   @override
+  String get workoutInputTitle => 'Workout';
+
+  @override
   String sessionTime(String startTime, String endTime) {
     return '$startTime - $endTime';
   }

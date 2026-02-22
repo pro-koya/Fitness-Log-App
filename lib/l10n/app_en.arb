@@ -141,6 +141,10 @@
   "@workoutDetailTitle": {
     "description": "Title for workout detail screen"
   },
+  "workoutInputTitle": "Workout",
+  "@workoutInputTitle": {
+    "description": "AppBar title for workout input screen"
+  },
   "sessionTime": "{startTime} - {endTime}",
   "@sessionTime": {
     "description": "Session time range",

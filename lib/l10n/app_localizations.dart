@@ -320,6 +320,12 @@ abstract class AppLocalizations {
   /// **'Workout Detail'**
   String get workoutDetailTitle;
 
+  /// AppBar title for workout input screen
+  ///
+  /// In en, this message translates to:
+  /// **'Workout'**
+  String get workoutInputTitle;
+
   /// Session time range
   ///
   /// In en, this message translates to:
