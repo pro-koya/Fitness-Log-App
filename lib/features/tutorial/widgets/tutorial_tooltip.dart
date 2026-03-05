@@ -48,27 +48,27 @@ class TutorialTooltip extends StatelessWidget {
       alignment: Alignment.topLeft,
       child: Transform.translate(
         offset: Offset(leftClamped, topClamped),
-        child: IgnorePointer(
-          ignoring: true,
-          child: Container(
-            width: 300,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+        child: Container(
+          width: 300,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IgnorePointer(
+                ignoring: true,
+                child: Text(
                   message,
                   style: const TextStyle(
                     fontSize: 16,
@@ -77,25 +77,22 @@ class TutorialTooltip extends StatelessWidget {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
-                if (onSkip != null)
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IgnorePointer(
-                      ignoring: false,
-                      child: TextButton(
-                        onPressed: () {
-                          onSkip?.call();
-                        },
-                        child: const Text(
-                          'スキップ',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
+              ),
+              const SizedBox(height: 16),
+              if (onSkip != null)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      onSkip?.call();
+                    },
+                    child: const Text(
+                      'スキップ',
+                      style: TextStyle(fontSize: 14),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),

@@ -71,6 +71,16 @@ class ExerciseLocalization {
     'Elliptical': 'エリプティカル', // Legacy exercise
   };
 
+  /// Reverse map: Japanese name → English name
+  static final Map<String, String> _japaneseToEnglish = {
+    for (final entry in _englishToJapanese.entries) entry.value: entry.key,
+  };
+
+  /// Get English name from a localized (Japanese) name, or null if not found
+  static String? getEnglishName(String localizedName) {
+    return _japaneseToEnglish[localizedName];
+  }
+
   /// Get localized exercise name
   /// Returns Japanese name if language is 'ja' and exercise is standard, otherwise returns original name
   static String getLocalizedName({

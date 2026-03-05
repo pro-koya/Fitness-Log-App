@@ -41,6 +41,20 @@
   "timerPause": "一時停止",
   "timerReset": "リセット",
   "timerClose": "閉じる",
+  "timerRestComplete": "休憩完了",
+  "timerRestCompleteMessage": "休憩が終わりました。次のセットの準備はできましたか？",
+  "timerTapTimeToSet": "時間をタップして設定",
+  "timerQuickStart": "クイックスタート",
+  "timerNotificationTitle": "タイマーが終了しました",
+  "timerNotificationBody": "休憩タイマーが終了しました。",
+  "notificationPermissionTitle": "通知の許可",
+  "notificationPermissionMessage": "休憩タイマーが終わったときに通知でお知らせするため、通知を許可してください。アプリを閉じていてもお知らせします。",
+  "notificationPermissionAllow": "許可する",
+  "notificationPermissionNotNow": "あとで",
+  "notificationSettingsEnableLabel": "通知を送る",
+  "notificationStateOn": "オン",
+  "notificationStateOff": "オフ",
+  "notificationSectionLabel": "通知",
 
   "settingsTitle": "設定",
   "backButton": "戻る",
@@ -66,6 +80,12 @@
   "recentWorkoutsLabel": "最近の記録",
   "navHomeLabel": "記録",
   "navHistoryLabel": "履歴",
+  "navListLabel": "一覧",
+  "navWeightLabel": "体重",
+  "listMenuSubtitle": "種目・記録・メモをまとめて確認",
+  "listMenuExerciseListDescription": "登録した種目を一覧で管理",
+  "listMenuAllRecordsDescription": "日付ごとのトレーニング記録を一覧表示",
+  "listMenuMemoSearchDescription": "キーワードでメモを検索",
   "navSettingsLabel": "設定",
   "errorLoadingWorkouts": "記録の読み込みに失敗しました",
   "noWorkoutHistory": "まだトレーニング履歴がありません",
@@ -84,6 +104,7 @@
   "errorDeletingWorkout": "記録の削除に失敗しました：{error}",
   "saveButton": "保存",
   "settingsSaved": "設定を保存しました",
+  "settingsUnsavedHint": "変更を保存できます",
   "monthlyWorkoutCount": "{count}回",
   "thisMonthLabel": "今月",
   "streakLabel": "継続",
@@ -165,6 +186,7 @@
   "startingBestTime": "初回のベストタイム",
   "startingTopReps": "初回のトップ回数",
   "startingTopVolume": "初回のトップボリューム",
+  "maxTopVolume": "最大のトップボリューム",
   "improvement": "成長",
   "repsUnit": "回",
   "noBodyPartWorkoutsThisMonth": "今月は「{bodyPart}」のトレーニングが行われていません。",
@@ -318,7 +340,7 @@
   "legalTitle": "法的情報",
   "paywallTermsOfService": "利用規約",
   "paywallPrivacyPolicy": "プライバシーポリシー",
-  "paywallTrialTitle": "この習慣を、\nもう少し続けてみませんか",
+  "paywallTrialTitle": "より極限の集中を",
   "paywallTrialDescription": "Proでは、これまでの記録をすべて残し、成長を振り返りながらトレーニングを続けられます。",
   "paywallTrialNotice": "無料期間中はいつでも解約できます。",
   "paywallCtaStartTrial": "無料で続ける",
@@ -414,6 +436,10 @@
   "importCsvFormatHint": "Liftlyのバックアップ機能でエクスポートしたCSV/JSON形式のファイルを選択してください。",
 
   "workoutCompletionTitle": "トレーニング記録完了",
+  "reviewPromptTitle": "3回記録できました！",
+  "reviewPromptMessage": "よろしければ App Store でレビューをお願いします。",
+  "reviewPromptWriteReview": "レビューを書く",
+  "reviewPromptLater": "あとで",
   "workoutCompletionSummary": "{exerciseCount}種目・{setCount}セット・総ボリューム {volume}{unit}",
   "@workoutCompletionSummary": {
     "placeholders": {
@@ -504,5 +530,138 @@
   "csvGuideColReps": "回数（時間系種目は空欄）",
   "csvGuideColDurationSeconds": "持続時間（秒、空欄可）",
   "csvGuideColDistanceMeters": "距離（m、空欄可）",
-  "csvGuideColMemo": "メモ（空欄可）"
+  "csvGuideColMemo": "メモ（空欄可）",
+
+  "goalSetTitle": "目標を設定",
+  "goalValueLabel": "目標値",
+  "goalDeadlineOptional": "期限（任意）",
+  "goalSave": "保存",
+  "goalDelete": "目標を削除",
+  "goalDeleteConfirmMessage": "この目標を削除しますか？",
+  "goalProgressRemaining": "目標まであと {value}",
+  "goalProgressPercent": "達成率 {percent}%",
+  "goalProUpsell": "目標管理は無料でご利用いただけます",
+  "goalAchievedTitle": "目標達成",
+  "goalsAchievedThisWeek": "今週達成した目標",
+  "goalAchievedMessage": "{exercise}で目標の{value}を達成しました。",
+  "@goalAchievedMessage": {
+    "placeholders": {
+      "exercise": { "type": "String" },
+      "value": { "type": "String" }
+    }
+  },
+  "goalTypeWeight": "重量",
+  "goalTypeReps": "回数",
+  "goalTypeVolume": "ボリューム",
+  "goalTypeTime": "時間",
+  "goalTypeDistance": "距離",
+  "goalListTitle": "目標一覧",
+  "goalPriorityLabel": "重要度",
+  "goalAchievementRateLabel": "達成率",
+  "goalPriorityLow": "低",
+  "goalPriorityMedium": "中",
+  "goalPriorityHigh": "高",
+  "goalListEmpty": "設定された目標はありません",
+  "listMenuGoalListDescription": "設定した目標を一覧で確認",
+  "goalTargetLabel": "目標",
+  "goalDueLabel": "期日",
+  "goalTimeMinutes": "分",
+  "goalTimeSeconds": "秒",
+
+  "bulkGoalSetTitle": "一括で目標を設定",
+  "bulkGoalButtonLabel": "一括設定",
+  "bulkGoalCourseLabel": "目標の高さ",
+  "bulkGoalCourseEasy": "無理しない（1.1倍）",
+  "bulkGoalCourseMedium": "しっかり伸ばす（1.2倍）",
+  "bulkGoalCourseHard": "ガッツリ追い込む（1.3倍）",
+  "bulkGoalCourseMax": "目指せマッチョ（1.5倍）",
+  "bulkGoalCourseShortEasy": "無理しない",
+  "bulkGoalCourseShortMedium": "しっかり",
+  "bulkGoalCourseShortHard": "ガッツリ",
+  "bulkGoalCourseShortMax": "マッチョ",
+  "bulkGoalCourseCustom": "カスタム",
+  "bulkGoalCustomMultiplierHint": "倍率を入力（例: 1.25）",
+  "bulkGoalCustomMultiplierInvalid": "0.1〜10の倍率を入力してください",
+  "bulkGoalPastBest": "過去最高",
+  "bulkGoalPastBestRepsUnit": "回",
+  "bulkGoalSupplementTitle": "補足",
+  "bulkGoalSupplementMultiplier": "目標値は、各種目の現在の最高記録から選択した倍率（1.1倍〜1.5倍）で計算されます。",
+  "bulkGoalSupplementExercises": "表示されている種目は、過去にトレーニング履歴があるもののみです。",
+  "bulkGoalSelectExercises": "目標を立てたい種目を選択",
+  "bulkGoalSelectAll": "すべて選択",
+  "bulkGoalDeselectAll": "すべて解除",
+  "bulkGoalExecute": "一括で目標を設定",
+  "bulkGoalConfirmTitle": "確認",
+  "bulkGoalConfirmMessage": "選択した {count} 種目に目標を設定します。既存の目標は上書きされます。よろしいですか？",
+  "@bulkGoalConfirmMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalResultMessage": "{count} 種目に目標を設定しました",
+  "@bulkGoalResultMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalResultMessageWithSkipped": "{saved} 種目に目標を設定しました（{skipped} 件はスキップしました）",
+  "@bulkGoalResultMessageWithSkipped": {
+    "placeholders": {
+      "saved": { "type": "int" },
+      "skipped": { "type": "int" }
+    }
+  },
+  "bulkGoalResultSkippedReason": "スキップした種目は、記録タイプ（重量・回数・時間など）に合うベスト値が無いためです。",
+  "bulkGoalNoHistoryTitle": "履歴がありません",
+  "bulkGoalNoHistoryMessage": "目標の計算に使えるトレーニング履歴がまだありません。トレーニングを記録してから再度お試しください。",
+  "bulkGoalNoTargetsToSetMessage": "目標が未設定の種目はありません。トレーニングを記録した種目のうち、まだ目標を設定していないものだけがここに表示されます。",
+
+  "bulkGoalEditButtonLabel": "一括編集",
+  "bulkGoalEditTitle": "目標の一括編集",
+  "bulkGoalEditSelectGoals": "編集・削除する目標を選択",
+  "bulkGoalDeleteSelected": "選択した目標を削除",
+  "bulkGoalRecalcSelected": "選択した目標を再計算",
+  "bulkGoalEditConfirmDelete": "選択した {count} 件の目標を削除します。よろしいですか？",
+  "@bulkGoalEditConfirmDelete": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditConfirmRecalc": "選択した {count} 件の目標を、現在の最高記録×選択した倍率で上書きします。よろしいですか？",
+  "@bulkGoalEditConfirmRecalc": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditResultDeleted": "{count} 件の目標を削除しました",
+  "@bulkGoalEditResultDeleted": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditResultRecalculated": "{count} 件の目標を再計算しました",
+  "@bulkGoalEditResultRecalculated": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditResultRecalculatedWithSkipped": "{saved} 件を再計算しました（{skipped} 件はスキップしました）",
+  "@bulkGoalEditResultRecalculatedWithSkipped": {
+    "placeholders": {
+      "saved": { "type": "int" },
+      "skipped": { "type": "int" }
+    }
+  },
+  "bulkGoalEditEmpty": "目標がありません",
+
+  "routineTitle": "ルーティン",
+  "routineEmptyHint": "ルーティンがありません。\n作成するとワークアウトをすぐに始められます。",
+  "routineCreateNew": "新規ルーティン",
+  "routineNameLabel": "ルーティン名",
+  "routineNameHint": "例: 胸の日",
+  "routineSave": "ルーティンを保存",
+  "routineDelete": "ルーティンを削除",
+  "routineDeleteConfirm": "「{name}」を削除しますか？",
+  "routineStartWorkout": "ワークアウト開始",
+  "routineEdit": "編集",
+  "routineExerciseCount": "{count}種目",
+  "routineLoadIntoWorkout": "ルーティン読み込み",
+  "routineLoadConfirm": "このルーティンの種目を追加しますか？",
+  "routineAddToCurrentWorkoutTitle": "記録にルーティンを追加",
+  "routineAddToCurrentWorkoutMessage": "現在の記録の続きに、このルーティンの種目を追加します。既存の記録はそのまま残ります。",
+  "routineSaveAsRoutine": "ルーティンとして保存",
+  "routineSaved": "ルーティンを保存しました！",
+  "routineManage": "管理",
+  "routineNameRequired": "ルーティン名を入力してください",
+  "routineExerciseRequired": "種目を1つ以上追加してください",
+  "listMenuRoutineDescription": "ワークアウトルーティンの管理",
+  "routineSetCount": "{count}セット"
 }

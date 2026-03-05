@@ -4,7 +4,7 @@ import '../../../data/entities/workout_session_entity.dart';
 ///
 /// [session] ワークアウトセッション
 /// [globalIndex] 全completedセッション内での0-indexedの位置（新しい順）
-/// [isLocked] Freeユーザーで20件目以降の場合はtrue
+/// [isLocked] Freeユーザーで30件目以降の場合はtrue
 class RecentWorkoutItem {
   final WorkoutSessionEntity session;
   final int globalIndex;

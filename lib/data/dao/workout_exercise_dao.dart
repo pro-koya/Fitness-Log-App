@@ -71,6 +71,12 @@ class WorkoutExerciseDao {
     );
   }
 
+  /// Delete all workout exercises (Pro sync: pull from server でローカル全削除時に使用)
+  Future<int> deleteAll() async {
+    final db = await _dbHelper.database;
+    return await db.delete('workout_exercises', where: '1');
+  }
+
   /// Get next order index for a session
   Future<int> getNextOrderIndex(int sessionId) async {
     final db = await _dbHelper.database;

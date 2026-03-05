@@ -34,30 +34,30 @@ class ComparisonTable extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          // 行1: 履歴
+          // 行1: グラフ・テーマ
           Row(
             children: [
-              _buildCell(l10n.paywallCompareHistory, flex: 2),
-              _buildCell(l10n.paywallCompareLast20),
-              _buildCell(l10n.paywallCompareUnlimited, isPro: true),
-            ],
-          ),
-          const Divider(height: 1),
-          // 行2: グラフ
-          Row(
-            children: [
-              _buildCell(l10n.paywallCompareCharts, flex: 2),
-              _buildCell('−'),
+              _buildCell(l10n.paywallCompareChartsTheme, flex: 2),
+              _buildCell('✓'),
               _buildCell('✓', isPro: true),
             ],
           ),
           const Divider(height: 1),
-          // 行3: テーマ
+          // 行2: 広告
           Row(
             children: [
-              _buildCell(l10n.paywallCompareTheme, flex: 2),
-              _buildCell(l10n.paywallCompareDefault),
-              _buildCell(l10n.paywallCompareCustom, isPro: true),
+              _buildCell(l10n.paywallCompareAds, flex: 2),
+              _buildCell(l10n.paywallCompareAdsShow),
+              _buildCell(l10n.paywallCompareAdsHide, isPro: true),
+            ],
+          ),
+          const Divider(height: 1),
+          // 行3: 同期（Pro のみ）
+          Row(
+            children: [
+              _buildCell(l10n.paywallCompareSync, flex: 2),
+              _buildCell('—'),
+              _buildCell('✓', isPro: true),
             ],
           ),
         ],

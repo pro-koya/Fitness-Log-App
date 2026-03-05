@@ -8,6 +8,7 @@ import '../../utils/chart_aggregation.dart';
 import '../../utils/date_formatter.dart';
 import 'providers/exercise_progress_provider.dart';
 import 'widgets/progress_chart_widget.dart';
+import 'widgets/exercise_goal_section.dart';
 import '../workout_input/widgets/timer_icon_button.dart';
 
 class ExerciseProgressScreen extends ConsumerWidget {
@@ -52,6 +53,7 @@ class ExerciseProgressScreen extends ConsumerWidget {
             ref,
             unit,
             recordType: recordType,
+            exerciseName: exerciseNameAsync.asData?.value ?? exerciseName,
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -72,7 +74,8 @@ class ExerciseProgressScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String unit,
-    {required String recordType}
+    {required String recordType,
+    required String exerciseName}
   ) {
     final l10n = AppLocalizations.of(context)!;
     final isTimeMode = recordType == 'time';
@@ -141,6 +144,12 @@ class ExerciseProgressScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ExerciseGoalSection(
+              exerciseId: exerciseId,
+              recordType: recordType,
+              exerciseName: exerciseName,
+            ),
+            const SizedBox(height: 16),
             if (isCardioMode) ...[
               // Cardio: Time, Distance, Pace tabs
               DefaultTabController(
@@ -408,40 +417,45 @@ class ExerciseProgressScreen extends ConsumerWidget {
     // For speed (pace), higher is better (same as normal improvement)
     final isImproved = improvement >= 0;
 
+    // ボリュームタブ: 期間内の最大ボリュームを表示
+    final List<Widget> summaryRows = [
+      Text(
+        l10n.summaryLabel,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      const SizedBox(height: 16),
+      _buildStatRow(
+        l10n.totalWorkouts,
+        '${progressData.length}',
+      ),
+      const SizedBox(height: 12),
+      _buildStatRow(latestLabel, latestValue),
+      const SizedBox(height: 12),
+      _buildStatRow(startingLabel, startingValue),
+    ];
+    if (chartMode == 'volume' && progressData.isNotEmpty) {
+      final maxPoint = progressData.reduce(
+        (a, b) => a.topWeight >= b.topWeight ? a : b,
+      );
+      summaryRows.add(const SizedBox(height: 12));
+      summaryRows.add(_buildStatRow(
+        l10n.maxTopVolume,
+        formatVolumeWithBreakdown(maxPoint, unit),
+      ));
+    }
+    summaryRows.add(const SizedBox(height: 12));
+    summaryRows.add(_buildStatRow(
+      l10n.improvement,
+      improvementStr,
+      valueColor: isImproved ? Colors.green : Colors.red,
+    ));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.summaryLabel,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Total workouts
-        _buildStatRow(
-          l10n.totalWorkouts,
-          '${progressData.length}',
-        ),
-        const SizedBox(height: 12),
-
-        // Latest value
-        _buildStatRow(latestLabel, latestValue),
-        const SizedBox(height: 12),
-
-        // Starting value
-        _buildStatRow(startingLabel, startingValue),
-        const SizedBox(height: 12),
-
-        // Improvement
-        _buildStatRow(
-          l10n.improvement,
-          improvementStr,
-          valueColor: isImproved ? Colors.green : Colors.red,
-        ),
-      ],
+      children: summaryRows,
     );
   }
 

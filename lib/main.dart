@@ -6,11 +6,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/supabase_config.dart';
 import 'l10n/app_localizations.dart';
+import 'providers/entitlement_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/sync_providers.dart';
 import 'providers/timer_provider.dart';
 import 'providers/theme_settings_provider.dart';
 import 'services/timer_persistence_service.dart';
 import 'services/timer_notification_service.dart';
+import 'services/timer_local_notification_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'features/initial_setup/initial_setup_screen.dart';
 import 'features/main_tab/main_tab_screen.dart';
 import 'features/tutorial/providers/interactive_tutorial_provider.dart';
@@ -29,10 +33,21 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final timerPersistence = TimerPersistenceService(prefs);
 
+  TimerLocalNotificationService? timerNotificationService;
+  try {
+    final flutterLocalNotifications = FlutterLocalNotificationsPlugin();
+    timerNotificationService = TimerLocalNotificationService(flutterLocalNotifications);
+    await timerNotificationService.initialize();
+  } catch (_) {
+    // MissingPluginException on unsupported platform (e.g. simulator/desktop) or plugin not registered
+    timerNotificationService = null;
+  }
+
   runApp(
     ProviderScope(
       overrides: [
         timerPersistenceServiceOverride.overrideWith((ref) => timerPersistence),
+        timerLocalNotificationServiceOverride.overrideWith((ref) => timerNotificationService),
       ],
       child: const MyApp(),
     ),
@@ -55,6 +70,15 @@ class _MyAppState extends ConsumerState<MyApp> {
     final currentLanguage = ref.watch(currentLanguageProvider);
     final timerState = ref.watch(timerProvider);
     final appTheme = ref.watch(appThemeDataProvider);
+
+    // ログイン完了時にストアから課金状態を取得し、有料/無料を反映する
+    ref.listen<AsyncValue<AuthState>>(authStateChangesProvider, (prev, next) {
+      next.whenData((authState) {
+        if (authState.event == AuthChangeEvent.signedIn && authState.session != null) {
+          ref.read(entitlementProvider.notifier).refreshSubscriptionStatus();
+        }
+      });
+    });
 
     // Monitor timer state globally
     // Only show global notification if notification hasn't been shown yet (prevents duplicate)
@@ -103,6 +127,8 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   Future<void> _showTimerFinishedDialog(BuildContext navigatorContext) async {
+    final dialogColorScheme = Theme.of(navigatorContext).colorScheme;
+
     await showDialog(
       context: navigatorContext,
       barrierDismissible: true,
@@ -118,21 +144,21 @@ class _MyAppState extends ConsumerState<MyApp> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: dialogColorScheme.primaryContainer,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.timer_off,
                 size: 64,
-                color: Colors.green.shade600,
+                color: dialogColorScheme.primary,
               ),
             ),
             const SizedBox(height: 20),
 
             // Title
-            const Text(
-              'Rest Complete!',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(navigatorContext)!.timerRestComplete,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -141,11 +167,11 @@ class _MyAppState extends ConsumerState<MyApp> {
 
             // Message
             Text(
-              'Your rest time is over.\nReady for the next set?',
+              AppLocalizations.of(navigatorContext)!.timerRestCompleteMessage,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade700,
+                color: dialogColorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -182,8 +208,8 @@ class _MyAppState extends ConsumerState<MyApp> {
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: dialogColorScheme.primary,
+                      foregroundColor: dialogColorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

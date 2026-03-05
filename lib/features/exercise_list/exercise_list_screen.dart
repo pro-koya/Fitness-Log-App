@@ -11,7 +11,7 @@ import '../exercise_progress/exercise_progress_screen.dart';
 import '../paywall/paywall_service.dart';
 import '../paywall/models/paywall_reason.dart';
 
-/// Exercise list screen - shows all exercises with ability to view progress
+/// 種目一覧画面。部位フィルター・検索・カード一覧。テーマ適用・レスポンシブ対応。
 class ExerciseListScreen extends ConsumerStatefulWidget {
   const ExerciseListScreen({super.key});
 
@@ -25,6 +25,10 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
   List<ExerciseMasterEntity> _filteredExercises = [];
   bool _isLoading = true;
   String? _selectedBodyPartFilter;
+
+  static const double _maxContentWidth = 560;
+  static const double _paddingPhone = 16;
+  static const double _paddingWide = 24;
 
   @override
   void initState() {
@@ -41,7 +45,6 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
 
   Future<void> _loadExercises() async {
     setState(() => _isLoading = true);
-
     try {
       final dao = ref.read(exerciseMasterDaoProvider);
       final exercises = await dao.getAllExercises();
@@ -61,20 +64,13 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
 
   void _applyFilters() {
     final query = _searchController.text.toLowerCase();
-
     setState(() {
       _filteredExercises = _allExercises.where((exercise) {
-        // Body part filter
         if (_selectedBodyPartFilter != null &&
             exercise.bodyPart != _selectedBodyPartFilter) {
           return false;
         }
-
-        // Search filter
-        if (query.isEmpty) {
-          return true;
-        }
-
+        if (query.isEmpty) return true;
         final isStandard = exercise.isCustom == 0;
         final matchesName = ExerciseLocalization.matchesSearch(
           exercise.name,
@@ -90,31 +86,22 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
   IconData _getBodyPartIcon(String? bodyPart) {
     switch (bodyPart) {
       case 'chest':
-        // Bench Press - weights/dumbbells
         return Icons.fitness_center;
       case 'back':
-        // Pull-up - person with arms up (like hanging from bar)
         return Icons.accessibility_new;
       case 'legs':
-        // Squat - person in squatting position
         return Icons.sports_martial_arts;
       case 'shoulders':
-        // Shoulder Press - person with arm raised overhead
         return Icons.sports_handball;
       case 'biceps':
-        // Arm Curl - person doing arm curl motion
         return Icons.sports_gymnastics;
       case 'triceps':
-        // Cable Press Down - person pushing down
         return Icons.sports_kabaddi;
       case 'abs':
-        // Sit-up - person lying down doing sit-up
         return Icons.airline_seat_flat_angled;
       case 'cardio':
-        // Running
         return Icons.directions_run;
       case 'other':
-        // Meditation
         return Icons.self_improvement;
       default:
         return Icons.fitness_center;
@@ -125,12 +112,10 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
     final gate = ref.read(featureGateProvider);
     final currentLanguage = ref.read(currentLanguageProvider);
 
-    // Check feature gate for charts
     if (!gate.canAccessCharts) {
       await showPaywall(context, reason: PaywallReason.chart);
       return;
     }
-
     if (!mounted) return;
 
     final isStandard = exercise.isCustom == 0;
@@ -150,91 +135,127 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
     );
   }
 
+  double _horizontalPadding(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return width > _maxContentWidth + _paddingWide * 2
+        ? _paddingWide
+        : _paddingPhone;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final currentLanguage = ref.watch(currentLanguageProvider);
+    final padding = _horizontalPadding(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(currentLanguage == 'ja' ? '種目一覧' : 'Exercises'),
+        title: Text(l10n.exerciseListTooltip),
+        scrolledUnderElevation: 4,
       ),
-      body: Column(
-        children: [
-          // Body part filter chips
-          _buildBodyPartFilterChips(currentLanguage),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+          child: Column(
+            children: [
+              // 部位フィルター
+              _buildBodyPartFilterChips(context, currentLanguage, colorScheme, theme),
 
-          // Search box
-          Padding(
-            padding: const EdgeInsets.all(16.0).copyWith(top: 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: l10n.searchExercisePlaceholder,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                      )
-                    : null,
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+              // 検索
+              Padding(
+                padding: EdgeInsets.fromLTRB(padding, 8, padding, 12),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: l10n.searchExercisePlaceholder,
+                    prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
+                            onPressed: () => _searchController.clear(),
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
                 ),
               ),
-            ),
-          ),
 
-          // Exercise list
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredExercises.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              currentLanguage == 'ja'
-                                  ? '種目が見つかりません'
-                                  : 'No exercises found',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: _filteredExercises.length,
-                        itemBuilder: (context, index) {
-                          final exercise = _filteredExercises[index];
-                          return _buildExerciseListTile(
-                            exercise,
-                            currentLanguage,
-                          );
-                        },
-                      ),
+              // 一覧
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _filteredExercises.isEmpty
+                        ? _buildEmptyState(context, theme, colorScheme, currentLanguage)
+                        : ListView.builder(
+                            padding: EdgeInsets.fromLTRB(padding, 0, padding, padding),
+                            itemCount: _filteredExercises.length,
+                            itemBuilder: (context, index) {
+                              final exercise = _filteredExercises[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _buildExerciseCard(
+                                  context,
+                                  exercise,
+                                  currentLanguage,
+                                  colorScheme,
+                                  theme,
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildExerciseListTile(
+  Widget _buildEmptyState(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String currentLanguage,
+  ) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 64,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              currentLanguage == 'ja' ? '種目が見つかりません' : 'No exercises found',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExerciseCard(
+    BuildContext context,
     ExerciseMasterEntity exercise,
     String currentLanguage,
+    ColorScheme colorScheme,
+    ThemeData theme,
   ) {
     final isStandard = exercise.isCustom == 0;
     final displayName = ExerciseLocalization.getLocalizedName(
@@ -243,98 +264,140 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
       isStandard: isStandard,
     );
     final bodyPartName = exercise.bodyPart != null
-        ? BodyPartLocalization.getLocalizedName(
-            exercise.bodyPart!,
-            currentLanguage,
-          )
+        ? BodyPartLocalization.getLocalizedName(exercise.bodyPart!, currentLanguage)
         : null;
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(
-          _getBodyPartIcon(exercise.bodyPart),
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-          size: 20,
+    return Material(
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _navigateToProgress(exercise),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _getBodyPartIcon(exercise.bodyPart),
+                  color: colorScheme.onPrimaryContainer,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      displayName,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    if (bodyPartName != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        bodyPartName,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (exercise.isCustom == 1)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.tertiaryContainer.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      currentLanguage == 'ja' ? 'カスタム' : 'Custom',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onTertiaryContainer,
+                      ),
+                    ),
+                  ),
+                ),
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant,
+                size: 24,
+              ),
+            ],
+          ),
         ),
       ),
-      title: Text(displayName),
-      subtitle: bodyPartName != null
-          ? Text(
-              bodyPartName,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            )
-          : null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (exercise.isCustom == 1)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Chip(
-                label: const Text(
-                  'Custom',
-                  style: TextStyle(fontSize: 11),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 0,
-                ),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              ),
-            ),
-          Icon(
-            Icons.chevron_right,
-            color: Colors.grey.shade400,
-          ),
-        ],
-      ),
-      onTap: () => _navigateToProgress(exercise),
     );
   }
 
-  Widget _buildBodyPartFilterChips(String currentLanguage) {
+  Widget _buildBodyPartFilterChips(
+    BuildContext context,
+    String currentLanguage,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
+    final padding = _horizontalPadding(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: padding, vertical: 12),
       child: Row(
         children: [
-          // "All" chip
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
               label: Text(currentLanguage == 'ja' ? 'すべて' : 'All'),
               selected: _selectedBodyPartFilter == null,
-              onSelected: (selected) {
+              onSelected: (_) {
                 setState(() {
                   _selectedBodyPartFilter = null;
                   _applyFilters();
                 });
               },
+              selectedColor: colorScheme.primaryContainer,
+              checkmarkColor: colorScheme.onPrimaryContainer,
+              labelStyle: theme.textTheme.labelLarge?.copyWith(
+                color: _selectedBodyPartFilter == null
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSurface,
+              ),
             ),
           ),
-
-          // Body part chips
           ...BodyPartLocalization.allBodyParts.map((bodyPartKey) {
-            final localizedName = BodyPartLocalization.getLocalizedName(
-              bodyPartKey,
-              currentLanguage,
-            );
+            final localizedName =
+                BodyPartLocalization.getLocalizedName(bodyPartKey, currentLanguage);
+            final isSelected = _selectedBodyPartFilter == bodyPartKey;
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
                 label: Text(localizedName),
-                selected: _selectedBodyPartFilter == bodyPartKey,
+                selected: isSelected,
                 onSelected: (selected) {
                   setState(() {
                     _selectedBodyPartFilter = selected ? bodyPartKey : null;
                     _applyFilters();
                   });
                 },
+                selectedColor: colorScheme.primaryContainer,
+                checkmarkColor: colorScheme.onPrimaryContainer,
+                labelStyle: theme.textTheme.labelLarge?.copyWith(
+                  color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+                ),
               ),
             );
           }),

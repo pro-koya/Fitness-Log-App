@@ -1,6 +1,5 @@
 import 'package:intl/intl.dart';
-import '../providers/settings_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'chart_aggregation.dart';
 
 /// Date formatter utility that respects language settings
 class DateFormatter {
@@ -41,5 +40,42 @@ class DateFormatter {
       return DateFormat.yMMMd('en_US').format(date);
     }
   }
+
+  /// X軸ラベル用: バケット単位に応じた短い表示
+  static String formatForChartAxis(
+    DateTime date,
+    String language,
+    ChartXAxisBucket bucket,
+  ) {
+    switch (bucket) {
+      case ChartXAxisBucket.day:
+      case ChartXAxisBucket.twoDays:
+        return '${date.month}/${date.day}';
+      case ChartXAxisBucket.week:
+      case ChartXAxisBucket.twoWeeks:
+        return '${date.month}/${date.day}';
+      case ChartXAxisBucket.month:
+        // 年+月を短く表示（例: 24年4月 / Apr '24）
+        if (language == 'ja') {
+          return '${date.year % 100}年${date.month}月';
+        }
+        return "${DateFormat('MMM', 'en_US').format(date)} '${date.year % 100}";
+      case ChartXAxisBucket.threeMonths:
+        // 3ヶ月範囲の中間月を年付きで表示（例: Apr-Jun → 24年5月 / May '24）
+        final mid3 = DateTime(date.year, date.month + 1, 1);
+        if (language == 'ja') {
+          return '${mid3.year % 100}年${mid3.month}月';
+        }
+        return "${DateFormat('MMM', 'en_US').format(mid3)} '${mid3.year % 100}";
+      case ChartXAxisBucket.fourMonths:
+        // 4ヶ月範囲の代表月を年付きで表示（例: Jan-Apr → 24年3月 / Mar '24）
+        final mid4 = DateTime(date.year, date.month + 2, 1);
+        if (language == 'ja') {
+          return '${mid4.year % 100}年${mid4.month}月';
+        }
+        return "${DateFormat('MMM', 'en_US').format(mid4)} '${mid4.year % 100}";
+    }
+  }
 }
+
 

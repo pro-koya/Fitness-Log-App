@@ -6,6 +6,7 @@ import '../../providers/settings_provider.dart';
 import '../../providers/workout_session_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/muscle_message_service.dart';
+import '../../services/review_prompt_service.dart';
 import '../tutorial/providers/interactive_tutorial_provider.dart';
 import '../tutorial/models/tutorial_step.dart';
 import '../tutorial/widgets/tutorial_overlay.dart';
@@ -14,16 +15,25 @@ import 'providers/workout_input_provider.dart';
 import 'widgets/exercise_card_widget.dart';
 import 'widgets/exercise_selector_modal.dart';
 import 'widgets/timer_icon_button.dart';
+import '../routine/widgets/routine_selector_modal.dart';
+import '../../data/entities/exercise_master_entity.dart';
+import '../../data/entities/routine_template_entity.dart';
 
 /// Workout input screen - most important screen
 class WorkoutInputScreen extends ConsumerStatefulWidget {
   final int sessionId;
   final bool isTutorialMode;
+  /// When starting a new session with a routine (loads routine as initial content)
+  final int? routineId;
+  /// When adding a routine to an existing in-progress session (appends to current)
+  final int? addRoutineId;
 
   const WorkoutInputScreen({
     super.key,
     required this.sessionId,
     this.isTutorialMode = false,
+    this.routineId,
+    this.addRoutineId,
   });
 
   @override
@@ -34,12 +44,13 @@ class WorkoutInputScreen extends ConsumerStatefulWidget {
 class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   String? _lastUnit;
   bool _hasInitialized = false;
+  bool _routineLoaded = false;
+  bool _addRoutineLoaded = false;
   int? _newlyAddedExerciseIndex;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _addExerciseButtonKey = GlobalKey();
   final GlobalKey _setInputKey = GlobalKey();
   final GlobalKey _completeButtonKey = GlobalKey();
-
   @override
   void dispose() {
     _scrollController.dispose();
@@ -51,7 +62,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     final workoutState = ref.watch(workoutInputProvider(widget.sessionId));
     final currentUnit = ref.watch(currentUnitProvider);
     final settingsAsync = ref.watch(settingsProvider);
-    
+
     // Wait for settings to load, then ensure exercises are loaded with correct unit
     settingsAsync.whenData((settings) {
       if (!_hasInitialized) {
@@ -84,11 +95,34 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
               }
             });
           }
+          // Add routine to current session (append, do not overwrite)
+          if (widget.addRoutineId != null && !_addRoutineLoaded) {
+            _addRoutineLoaded = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              if (mounted) {
+                await ref.read(workoutInputProvider(widget.sessionId).notifier).loadFromRoutine(widget.addRoutineId!);
+              }
+            });
+          }
         } else {
           // No exercises loaded yet, load them with correct unit
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (mounted) {
-              ref.read(workoutInputProvider(widget.sessionId).notifier).reloadExercises();
+              await ref.read(workoutInputProvider(widget.sessionId).notifier).reloadExercises();
+              // Load routine exercises if routineId is provided (new session)
+              if (widget.routineId != null && !_routineLoaded) {
+                _routineLoaded = true;
+                if (mounted) {
+                  await ref.read(workoutInputProvider(widget.sessionId).notifier).loadFromRoutine(widget.routineId!);
+                }
+              }
+              // Add routine to current session (append)
+              if (widget.addRoutineId != null && !_addRoutineLoaded) {
+                _addRoutineLoaded = true;
+                if (mounted) {
+                  await ref.read(workoutInputProvider(widget.sessionId).notifier).loadFromRoutine(widget.addRoutineId!);
+                }
+              }
             }
           });
         }
@@ -122,6 +156,11 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
           appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.workoutInputTitle),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.repeat, size: 22),
+              tooltip: AppLocalizations.of(context)!.routineLoadIntoWorkout,
+              onPressed: () => _loadRoutineIntoWorkout(context, ref),
+            ),
             TimerIconButton(),
           ],
         ),
@@ -326,6 +365,42 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     );
   }
 
+  Future<void> _loadRoutineIntoWorkout(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
+    final routine = await showModalBottomSheet<RoutineTemplateEntity>(
+      context: context,
+      builder: (context) => const RoutineSelectorModal(),
+    );
+
+    if (routine == null || !context.mounted) return;
+
+    // Confirm if exercises already exist
+    final workoutState = ref.read(workoutInputProvider(widget.sessionId));
+    if (workoutState.exercises.isNotEmpty) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(l10n.routineLoadConfirm),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancelButton),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.confirmButton),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
+    await ref
+        .read(workoutInputProvider(widget.sessionId).notifier)
+        .loadFromRoutine(routine.id!);
+  }
+
   Future<void> _showExerciseSelector() async {
     final exerciseMasterDao = ref.read(exerciseMasterDaoProvider);
     final tutorialState = ref.watch(interactiveTutorialProvider);
@@ -334,7 +409,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
 
     if (!mounted) return;
 
-    final selectedId = await showModalBottomSheet<int>(
+    final exercise = await showModalBottomSheet<ExerciseMasterEntity>(
       context: context,
       isScrollControlled: true,
       builder: (context) => ExerciseSelectorModal(
@@ -343,9 +418,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
       ),
     );
 
-    if (selectedId != null) {
-      final exercise = await exerciseMasterDao.getExerciseById(selectedId);
-      if (exercise != null) {
+    if (exercise != null) {
         final notifier =
             ref.read(workoutInputProvider(widget.sessionId).notifier);
         final added = await notifier.addExercise(exercise);
@@ -387,7 +460,6 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
             }
           });
         }
-      }
     }
   }
 
@@ -529,24 +601,54 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     final notifier = ref.read(workoutInputProvider(widget.sessionId).notifier);
     await notifier.saveAll();
 
+    final achievedGoals = ref.read(workoutInputProvider(widget.sessionId)).achievedGoalsInLastSave;
+
     final sessionNotifier = ref.read(workoutSessionNotifierProvider.notifier);
     await sessionNotifier.completeSession(widget.sessionId);
 
     if (!mounted) return;
 
-    // Show completion modal (muscle message + summary)
+    // Show completion modal (muscle message + summary + achieved goals)
     final unit = ref.read(currentUnitProvider);
     final lang = ref.read(currentLanguageProvider);
     final completionResult = await MuscleMessageService().buildCompletionResult(
       sessionId: widget.sessionId,
       unit: unit,
       language: lang,
+      achievedGoals: achievedGoals,
     );
 
     if (!mounted) return;
     await WorkoutCompletionModal.show(context, result: completionResult);
 
     if (mounted) {
+      final reviewService = ReviewPromptService();
+      final newCount = await reviewService.incrementCompletionCount();
+      if (newCount >= 3 && !(await reviewService.hasAlreadyShownPrompt())) {
+        await reviewService.markPromptShown();
+        if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
+        final writeReview = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(l10n.reviewPromptTitle),
+            content: Text(l10n.reviewPromptMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(l10n.reviewPromptLater),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(l10n.reviewPromptWriteReview),
+              ),
+            ],
+          ),
+        );
+        if (writeReview == true) {
+          await reviewService.requestReview();
+        }
+      }
       ref.invalidate(recentWorkoutItemsProvider);
       ref.invalidate(recentWorkoutsProvider);
       Navigator.of(context).pop();

@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../entities/settings_entity.dart';
+import '../models/timer_settings.dart';
 
 /// DAO for settings table
 class SettingsDao {
@@ -125,6 +126,52 @@ class SettingsDao {
 
     return await updateSettings(
       settings.copyWith(tutorialCompleted: true),
+    );
+  }
+
+  /// Get timer notification settings
+  Future<TimerSettings> getTimerSettings() async {
+    final settings = await getSettings();
+    return TimerSettings.fromJsonString(settings?.timerSettings);
+  }
+
+  /// Save timer notification settings
+  Future<int> saveTimerSettings(TimerSettings timerSettings) async {
+    final settings = await getSettings();
+    if (settings == null) return 0;
+
+    return await updateSettings(
+      settings.copyWith(timerSettings: timerSettings.toJsonString()),
+    );
+  }
+
+  /// Get last sync timestamp (Pro sync). Null if never synced.
+  Future<int?> getLastSyncedAt() async {
+    final settings = await getSettings();
+    return settings?.lastSyncedAt;
+  }
+
+  /// Update last sync timestamp (Pro sync).
+  Future<int> updateLastSyncedAt(int epochSeconds) async {
+    final settings = await getSettings();
+    if (settings == null) return 0;
+    return await updateSettings(
+      settings.copyWith(lastSyncedAt: epochSeconds),
+    );
+  }
+
+  /// Get subscription expiry timestamp (null = never purchased or unknown).
+  Future<int?> getSubscriptionExpiresAt() async {
+    final settings = await getSettings();
+    return settings?.subscriptionExpiresAt;
+  }
+
+  /// Update subscription expiry timestamp. Pass null to clear.
+  Future<int> updateSubscriptionExpiresAt(int? expiresAt) async {
+    final settings = await getSettings();
+    if (settings == null) return 0;
+    return await updateSettings(
+      settings.copyWith(subscriptionExpiresAt: expiresAt),
     );
   }
 }

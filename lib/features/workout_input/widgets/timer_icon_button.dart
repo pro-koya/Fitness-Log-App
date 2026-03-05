@@ -98,7 +98,7 @@ class _TimerIconButtonState extends ConsumerState<TimerIconButton> {
         );
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        padding: const EdgeInsets.only(left: 4, right: 12, top: 8, bottom: 8),
         child: timerState.seconds > 0 || timerState.isRunning
             ? _buildTimerWithProgress(timerState, colorScheme)
             : _buildTimerIcon(colorScheme),

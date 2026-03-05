@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../providers/timer_provider.dart';
+import '../../../services/timer_notification_service.dart';
 
 /// Mini timer widget (floating)
 class TimerMiniWidget extends ConsumerStatefulWidget {
@@ -46,6 +49,8 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
       _hasShownNotification = false;
     }
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Positioned(
       right: 16,
       bottom: 100,
@@ -62,11 +67,11 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: timerState.isRunning ? Colors.blue : Colors.grey.shade800,
+            color: timerState.isRunning ? colorScheme.primary : colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(40),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: colorScheme.shadow.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -77,8 +82,8 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
             children: [
               Text(
                 timerState.formattedTime,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: timerState.isRunning ? colorScheme.onPrimary : colorScheme.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -86,7 +91,7 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
               const SizedBox(height: 4),
               Icon(
                 timerState.isRunning ? Icons.pause : Icons.play_arrow,
-                color: Colors.white,
+                color: timerState.isRunning ? colorScheme.onPrimary : colorScheme.onSurface,
                 size: 20,
               ),
             ],
@@ -99,16 +104,12 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
   Future<void> _showTimerFinishedNotification() async {
     if (!mounted) return;
 
-    // Vibrate 3 times with short intervals
-    for (int i = 0; i < 3; i++) {
-      HapticFeedback.mediumImpact();
-      if (i < 2) {
-        await Future.delayed(const Duration(milliseconds: 200));
-      }
-    }
+    final settings = ref.read(timerSettingsProvider);
+    await TimerNotificationService.play(settings);
 
-    // Play system alert sound
-    SystemSound.play(SystemSoundType.alert);
+    if (!mounted) return;
+
+    final dialogColorScheme = Theme.of(context).colorScheme;
 
     // Show enhanced dialog
     await showDialog(
@@ -126,21 +127,21 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: dialogColorScheme.primaryContainer,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.timer_off,
                 size: 64,
-                color: Colors.green.shade600,
+                color: dialogColorScheme.primary,
               ),
             ),
             const SizedBox(height: 20),
 
             // Title
-            const Text(
-              'Rest Complete!',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.timerRestComplete,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -149,11 +150,11 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
 
             // Message
             Text(
-              'Your rest time is over.\nReady for the next set?',
+              AppLocalizations.of(context)!.timerRestCompleteMessage,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade700,
+                color: dialogColorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -190,8 +191,8 @@ class _TimerMiniWidgetState extends ConsumerState<TimerMiniWidget> {
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: dialogColorScheme.primary,
+                      foregroundColor: dialogColorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -227,6 +228,7 @@ class TimerModalContent extends ConsumerStatefulWidget {
 class _TimerModalContentState extends ConsumerState<TimerModalContent> {
   final TextEditingController _minutesController = TextEditingController();
   final TextEditingController _secondsController = TextEditingController();
+  bool _isEditingTime = false;
 
   @override
   void dispose() {
@@ -235,34 +237,132 @@ class _TimerModalContentState extends ConsumerState<TimerModalContent> {
     super.dispose();
   }
 
-  void _applyCustomTime() {
-    final minutes = int.tryParse(_minutesController.text) ?? 0;
-    final seconds = int.tryParse(_secondsController.text) ?? 0;
+  void _startEditingTime(int currentSeconds) {
+    if (!mounted) return;
+    setState(() {
+      _isEditingTime = true;
+      _minutesController.text = (currentSeconds ~/ 60).toString();
+      _secondsController.text = (currentSeconds % 60).toString();
+    });
+  }
 
-    if (minutes < 0 || seconds < 0 || seconds >= 60) {
-      // Invalid input
-      return;
-    }
-
+  void _applyTimeAndExitEdit() {
+    final minutes = int.tryParse(_minutesController.text.trim()) ?? 0;
+    final seconds = int.tryParse(_secondsController.text.trim()) ?? 0;
+    if (minutes < 0 || seconds < 0 || seconds >= 60) return;
     final totalSeconds = minutes * 60 + seconds;
     if (totalSeconds > 0) {
       final timerNotifier = ref.read(timerProvider.notifier);
-      // Use setTime to save as custom time, then reset
       timerNotifier.setTime(totalSeconds);
-      timerNotifier.reset(); // Reset will use the saved custom time
-      _minutesController.clear();
-      _secondsController.clear();
+      timerNotifier.reset();
     }
+    if (!mounted) return;
+    setState(() => _isEditingTime = false);
+    FocusScope.of(context).unfocus();
+  }
+
+  /// Consumes arrow up/down to avoid Flutter's vertical caret assertion in single-line TextField.
+  KeyEventResult _handleTimeFieldKey(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        (event.logicalKey == LogicalKeyboardKey.arrowUp ||
+            event.logicalKey == LogicalKeyboardKey.arrowDown)) {
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  Widget _buildTimeEditRow(ThemeData theme, ColorScheme colorScheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 72,
+          child: Focus(
+            onKeyEvent: _handleTimeFieldKey,
+            child: TextField(
+              controller: _minutesController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(3),
+              ],
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                hintText: '0',
+              ),
+              onChanged: (v) {
+                if (v.length >= 2) FocusScope.of(context).nextFocus();
+              },
+              onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            ':',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 72,
+          child: Focus(
+            onKeyEvent: _handleTimeFieldKey,
+            child: TextField(
+              controller: _secondsController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(2),
+              ],
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                hintText: '0',
+              ),
+              onSubmitted: (_) => _applyTimeAndExitEdit(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        IconButton.filled(
+          onPressed: _applyTimeAndExitEdit,
+          icon: const Icon(Icons.check),
+          tooltip: 'Set',
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final timerState = ref.watch(timerProvider);
     final timerNotifier = ref.read(timerProvider.notifier);
-
-    // Get keyboard height
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final viewInsets = MediaQuery.of(context).viewInsets;
-    
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
@@ -270,12 +370,19 @@ class _TimerModalContentState extends ConsumerState<TimerModalContent> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
         child: SafeArea(
           child: Padding(
@@ -283,288 +390,185 @@ class _TimerModalContentState extends ConsumerState<TimerModalContent> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            // Scrollable content
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Timer display
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: timerState.isRunning
-                            ? Colors.blue.withOpacity(0.1)
-                            : Colors.grey.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: timerState.isRunning
-                              ? Colors.blue.withOpacity(0.3)
-                              : Colors.grey.withOpacity(0.3),
-                          width: 2,
-                        ),
-                      ),
-                      child: Text(
-                        timerState.formattedTime,
-                        style: TextStyle(
-                          fontSize: 64,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 4,
-                          color: timerState.isRunning ? Colors.blue : Colors.black87,
-                          fontFeatures: const [
-                            FontFeature.tabularFigures(),
+                // Handle
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Timer display card (tappable when stopped → direct edit)
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: timerState.isRunning
+                                ? null
+                                : () {
+                                    if (_isEditingTime) {
+                                      _applyTimeAndExitEdit();
+                                    } else {
+                                      _startEditingTime(timerState.seconds);
+                                    }
+                                  },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: timerState.isRunning
+                                      ? [
+                                          colorScheme.primaryContainer,
+                                          colorScheme.primaryContainer.withValues(alpha: 0.7),
+                                        ]
+                                      : [
+                                          colorScheme.surfaceContainerHighest,
+                                          colorScheme.surfaceContainerHigh,
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: timerState.isRunning
+                                      ? colorScheme.primary.withValues(alpha: 0.4)
+                                      : colorScheme.outlineVariant.withValues(alpha: 0.6),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colorScheme.shadow.withValues(alpha: 0.08),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: _isEditingTime && !timerState.isRunning
+                                  ? _buildTimeEditRow(theme, colorScheme)
+                                  : Center(
+                                      child: Text(
+                                        timerState.formattedTime,
+                                        style: theme.textTheme.displayMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 4,
+                                          color: timerState.isRunning
+                                              ? colorScheme.primary
+                                              : colorScheme.onSurface,
+                                          fontFeatures: const [FontFeature.tabularFigures()],
+                                        ),
+                                      ),
+                                    ),
+                                    ),
+                            ),
+                          ),
+                        if (!_isEditingTime && !timerState.isRunning)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              AppLocalizations.of(context)!.timerTapTimeToSet,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 40),
+                        // Control buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            FilledButton(
+                              onPressed: () {
+                                if (timerState.isRunning) {
+                                  timerNotifier.pause();
+                                } else {
+                                  timerNotifier.start();
+                                }
+                              },
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.all(24),
+                                shape: const CircleBorder(),
+                                backgroundColor: timerState.isRunning
+                                    ? colorScheme.tertiary
+                                    : colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                              ),
+                              child: Icon(
+                                timerState.isRunning ? Icons.pause : Icons.play_arrow,
+                                size: 32,
+                              ),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: () => timerNotifier.reset(),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.all(24),
+                                shape: const CircleBorder(),
+                              ),
+                              child: Icon(Icons.refresh, size: 32, color: colorScheme.onSurfaceVariant),
+                            ),
                           ],
                         ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 48),
-
-                    // Control buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        // Start/Pause button
-                        ElevatedButton(
-                          onPressed: () {
-                            if (timerState.isRunning) {
-                              timerNotifier.pause();
-                            } else {
-                              timerNotifier.start();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.all(24),
-                            shape: const CircleBorder(),
-                            backgroundColor:
-                                timerState.isRunning ? Colors.orange : Colors.blue,
-                          ),
-                          child: Icon(
-                            timerState.isRunning ? Icons.pause : Icons.play_arrow,
-                            size: 32,
-                            color: Colors.white,
+                        const SizedBox(height: 24),
+                        Text(
+                          AppLocalizations.of(context)!.timerQuickStart,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-
-                        // Reset button (will use custom time if set)
-                        ElevatedButton(
-                          onPressed: () {
-                            timerNotifier.reset();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.all(24),
-                            shape: const CircleBorder(),
-                            backgroundColor: Colors.grey.shade300,
-                          ),
-                          child: const Icon(
-                            Icons.refresh,
-                            size: 32,
-                            color: Colors.black87,
-                          ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Expanded(child: _buildPresetChip(context, ref, _presetLabel(30), 30)),
+                            const SizedBox(width: 6),
+                            Expanded(child: _buildPresetChip(context, ref, _presetLabel(45), 45)),
+                            const SizedBox(width: 6),
+                            Expanded(child: _buildPresetChip(context, ref, _presetLabel(60), 60)),
+                          ],
                         ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Expanded(child: _buildPresetChip(context, ref, _presetLabel(90), 90)),
+                            const SizedBox(width: 6),
+                            Expanded(child: _buildPresetChip(context, ref, _presetLabel(120), 120)),
+                            const SizedBox(width: 6),
+                            Expanded(child: _buildPresetChip(context, ref, _presetLabel(180), 180)),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
                       ],
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Preset buttons (P1 feature, but added for better UX)
-                    const Text(
-                      'Quick Start',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildPresetButton(context, ref, '60s', 60),
-                        _buildPresetButton(context, ref, '90s', 90),
-                        _buildPresetButton(context, ref, '2min', 120),
-                        _buildPresetButton(context, ref, '3min', 180),
-                      ],
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Custom time input
-                    const Text(
-                      'Custom Time',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 70,
-                            child: TextField(
-                              controller: _minutesController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(3),
-                              ],
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              onTapOutside: (_) =>
-                                  FocusScope.of(context).unfocus(),
-                              decoration: InputDecoration(
-                                labelText: 'Min',
-                                labelStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 8,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12.0),
-                            child: Text(
-                              ':',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 70,
-                            child: TextField(
-                              controller: _secondsController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(2),
-                              ],
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              onTapOutside: (_) =>
-                                  FocusScope.of(context).unfocus(),
-                              decoration: InputDecoration(
-                                labelText: 'Sec',
-                                labelStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 8,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          ElevatedButton.icon(
-                            onPressed: timerState.isRunning ? null : _applyCustomTime,
-                            icon: const Icon(Icons.check, size: 18),
-                            label: const Text('Set'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-            ),
-
-            // Close button (fixed at bottom)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: const Icon(Icons.close, size: 20),
-                  label: const Text(
-                    'Close',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    foregroundColor: Theme.of(context).colorScheme.primary,
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close, size: 20),
+                      label: Text(AppLocalizations.of(context)!.timerClose, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: colorScheme.primary,
+                        side: BorderSide(color: colorScheme.primary, width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -572,7 +576,17 @@ class _TimerModalContentState extends ConsumerState<TimerModalContent> {
     );
   }
 
-  Widget _buildPresetButton(
+  /// Format preset label: under 60 → "30"/"45", 60+ → "1:00"/"1:30"/"2:00"/"3:00"
+  static String _presetLabel(int seconds) {
+    if (seconds < 60) return '$seconds';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  static const double _presetChipHeight = 48;
+
+  Widget _buildPresetChip(
     BuildContext context,
     WidgetRef ref,
     String label,
@@ -580,37 +594,39 @@ class _TimerModalContentState extends ConsumerState<TimerModalContent> {
   ) {
     final timerState = ref.watch(timerProvider);
     final isSelected = timerState.seconds == seconds && !timerState.isRunning;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: ElevatedButton(
-          onPressed: timerState.isRunning
+    return SizedBox(
+      height: _presetChipHeight,
+      child: Material(
+        color: isSelected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: timerState.isRunning
               ? null
-              : () {
-                  final timerNotifier = ref.read(timerProvider.notifier);
-                  timerNotifier.reset(seconds: seconds);
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isSelected ? Colors.blue : Colors.grey.shade100,
-            foregroundColor: isSelected ? Colors.white : Colors.grey.shade800,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            elevation: isSelected ? 3 : 0,
-            shadowColor: Colors.blue.withOpacity(0.4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: isSelected ? Colors.blue : Colors.grey.shade300,
-                width: isSelected ? 2 : 1.5,
+              : () => ref.read(timerProvider.notifier).reset(seconds: seconds),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: double.infinity,
+            height: _presetChipHeight,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+                width: 1,
               ),
             ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-              fontSize: 15,
-              letterSpacing: 0.5,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),

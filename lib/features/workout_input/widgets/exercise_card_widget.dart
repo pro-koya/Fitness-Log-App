@@ -24,6 +24,7 @@ class ExerciseCardWidget extends ConsumerStatefulWidget {
   final VoidCallback onDeleteExercise;
   final Function(String? memo) onUpdateMemo;
   final GlobalKey? tutorialSetInputKey; // Key for tutorial step 3
+  final bool autoFocus;
 
   const ExerciseCardWidget({
     super.key,
@@ -37,6 +38,7 @@ class ExerciseCardWidget extends ConsumerStatefulWidget {
     required this.onDeleteExercise,
     required this.onUpdateMemo,
     this.tutorialSetInputKey,
+    this.autoFocus = false,
   });
 
   @override
@@ -176,6 +178,7 @@ class _ExerciseCardWidgetState extends ConsumerState<ExerciseCardWidget> {
                 set: set,
                 canDuplicate: canDuplicate,
                 canDelete: widget.exercise.sets.length > 1,
+                autoFocus: setIndex == 0 && widget.autoFocus,
                 onUpdate: (weight, reps, durationSeconds, distance) {
                   widget.onUpdateSet(setIndex, weight, reps, durationSeconds, distance);
                   // When step 3 (input set) is active and user has entered both weight and reps, jump to step 6 (complete button)

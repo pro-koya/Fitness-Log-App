@@ -17,9 +17,12 @@ import 'all_records_screen.dart';
 import '../exercise_list/exercise_list_screen.dart';
 import '../memo_search/memo_search_screen.dart';
 
-/// History screen with calendar view
+/// History screen with calendar view.
+/// When [isEmbeddedInTab] is true, no AppBar; 全記録・種目一覧・メモ検索への導線は body 上部に表示。
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key});
+  const HistoryScreen({super.key, this.isEmbeddedInTab = false});
+
+  final bool isEmbeddedInTab;
 
   @override
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
@@ -154,167 +157,180 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final locale = currentLanguage == 'ja' ? 'ja_JP' : 'en_US';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.historyTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.list_alt),
-            tooltip: l10n.allRecordsTitle,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AllRecordsScreen(),
+      appBar: widget.isEmbeddedInTab
+          ? null
+          : AppBar(
+              title: Text(l10n.historyTitle),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.list_alt),
+                  tooltip: l10n.allRecordsTitle,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AllRecordsScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.fitness_center),
-            tooltip: l10n.exerciseListTooltip,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ExerciseListScreen(),
+                IconButton(
+                  icon: const Icon(Icons.fitness_center),
+                  tooltip: l10n.exerciseListTooltip,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ExerciseListScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: l10n.memoSearch,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const MemoSearchScreen(),
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  tooltip: l10n.memoSearch,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const MemoSearchScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          TimerIconButton(),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Quick month buttons + month/year picker
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            child: Row(
-              children: [
-                // 先月 | 今月 | 来月
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildMonthQuickButton(l10n.lastMonthShort, () => _jumpToMonth(-1)),
-                    const SizedBox(width: 6),
-                    _buildMonthQuickButton(l10n.thisMonthShort, () => _jumpToMonth(0)),
-                    const SizedBox(width: 6),
-                    _buildMonthQuickButton(l10n.nextMonthShort, () => _jumpToMonth(1)),
-                  ],
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: _showMonthYearPicker,
-                  icon: const Icon(Icons.calendar_month, size: 20),
-                  label: Text(l10n.selectMonthYear),
-                ),
+                TimerIconButton(),
               ],
             ),
-          ),
-          TableCalendar(
-            firstDay: DateTime(2020, 1, 1),
-            lastDay: DateTime(2030, 12, 31),
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            eventLoader: (day) {
-              final normalized = DateTime(day.year, day.month, day.day);
-              return _workoutDays[normalized] ?? [];
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-
-              _showWorkoutSummary(selectedDay);
-            },
-            onPageChanged: (focusedDay) {
-              setState(() {
-                _focusedDay = focusedDay;
-              });
-              _loadWorkouts();
-              _loadMonthlySummary();
-            },
-            locale: locale,
-            calendarStyle: CalendarStyle(
-              // Workout days marked with a dot
-              markerDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              todayDecoration: BoxDecoration(
-                color: Colors.blue.shade200,
-                shape: BoxShape.circle,
-              ),
-              selectedDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-            ),
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-            ),
-          ),
-
-          const Divider(),
-
-          // Monthly summary section (data is for the calendar's focused month)
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Quick stats row
-                        _buildQuickStats(),
-                        const SizedBox(height: 16),
-
-                        // Total duration card (not affected by body part filter)
-                        if (_workoutDays.isNotEmpty) ...[
-                          _buildTotalDurationCard(),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Body part filter
-                        if (_workoutDays.isNotEmpty) ...[
-                          _buildBodyPartFilter(),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Monthly summary card
-                        if (_workoutDays.isNotEmpty) ...[
-                          _buildMonthlySummaryCard(),
-                          const SizedBox(height: 16),
-
-                          // Top exercises
-                          if (_topExercises.isNotEmpty) ...[
-                            _buildTopExercises(),
+      body: SafeArea(
+        top: widget.isEmbeddedInTab,
+        child: Column(
+          children: [
+            if (_isLoading)
+              const Expanded(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 月クイックボタン＋ピッカー
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 8.0),
+                        child: SizedBox(
+                          height: 48,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            shrinkWrap: true,
+                            physics: const ClampingScrollPhysics(),
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildMonthQuickButton(
+                                      l10n.lastMonthShort,
+                                      () => _jumpToMonth(-1)),
+                                  const SizedBox(width: 6),
+                                  _buildMonthQuickButton(
+                                      l10n.thisMonthShort,
+                                      () => _jumpToMonth(0)),
+                                  const SizedBox(width: 6),
+                                  _buildMonthQuickButton(
+                                      l10n.nextMonthShort,
+                                      () => _jumpToMonth(1)),
+                                  const SizedBox(width: 16),
+                                  TextButton.icon(
+                                    onPressed: _showMonthYearPicker,
+                                    icon: const Icon(
+                                        Icons.calendar_month, size: 20),
+                                    label: Text(l10n.selectMonthYear),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // カレンダー（高さ制限なし＝すべて表示、オーバーフロー防止）
+                      TableCalendar(
+                        firstDay: DateTime(2020, 1, 1),
+                        lastDay: DateTime(2030, 12, 31),
+                        focusedDay: _focusedDay,
+                        selectedDayPredicate: (day) =>
+                            isSameDay(_selectedDay, day),
+                        eventLoader: (day) {
+                          final normalized = DateTime(
+                              day.year, day.month, day.day);
+                          return _workoutDays[normalized] ?? [];
+                        },
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
+                            _selectedDay = selectedDay;
+                            _focusedDay = focusedDay;
+                          });
+                          _showWorkoutSummary(selectedDay);
+                        },
+                        onPageChanged: (focusedDay) {
+                          setState(() {
+                            _focusedDay = focusedDay;
+                          });
+                          _loadWorkouts();
+                          _loadMonthlySummary();
+                        },
+                        locale: locale,
+                        calendarStyle: CalendarStyle(
+                          markerDecoration: BoxDecoration(
+                            color:
+                                Theme.of(context).colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          todayDecoration: BoxDecoration(
+                            color: Colors.blue.shade200,
+                            shape: BoxShape.circle,
+                          ),
+                          selectedDecoration: BoxDecoration(
+                            color:
+                                Theme.of(context).colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        headerStyle: const HeaderStyle(
+                          formatButtonVisible: false,
+                          titleCentered: true,
+                        ),
+                      ),
+                      const Divider(),
+                      // 月間サマリ
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildQuickStats(),
                             const SizedBox(height: 16),
+                            if (_workoutDays.isNotEmpty) ...[
+                              _buildTotalDurationCard(),
+                              const SizedBox(height: 16),
+                              _buildBodyPartFilter(),
+                              const SizedBox(height: 16),
+                              _buildMonthlySummaryCard(),
+                              const SizedBox(height: 16),
+                              if (_topExercises.isNotEmpty) ...[
+                                _buildTopExercises(),
+                                const SizedBox(height: 16),
+                              ],
+                              _buildWeeklyTrend(),
+                            ] else
+                              _buildEmptyState(),
                           ],
-
-                          // Weekly trend
-                          _buildWeeklyTrend(),
-                        ] else
-                          _buildEmptyState(),
-                      ],
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
-          ),
-          // Banner ad (Free users only)
-          const BannerAdWidget(),
-        ],
+                ),
+              ),
+            const BannerAdWidget(),
+          ],
+        ),
       ),
     );
   }

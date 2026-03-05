@@ -130,6 +130,49 @@ class AppLocalizationsJa extends AppLocalizations {
   String get timerClose => '閉じる';
 
   @override
+  String get timerRestComplete => '休憩完了';
+
+  @override
+  String get timerRestCompleteMessage => '休憩が終わりました。次のセットの準備はできましたか？';
+
+  @override
+  String get timerTapTimeToSet => '時間をタップして設定';
+
+  @override
+  String get timerQuickStart => 'クイックスタート';
+
+  @override
+  String get timerNotificationTitle => 'タイマーが終了しました';
+
+  @override
+  String get timerNotificationBody => '休憩タイマーが終了しました。';
+
+  @override
+  String get notificationPermissionTitle => '通知の許可';
+
+  @override
+  String get notificationPermissionMessage =>
+      '休憩タイマーが終わったときに通知でお知らせするため、通知を許可してください。アプリを閉じていてもお知らせします。';
+
+  @override
+  String get notificationPermissionAllow => '許可する';
+
+  @override
+  String get notificationPermissionNotNow => 'あとで';
+
+  @override
+  String get notificationSettingsEnableLabel => '通知を送る';
+
+  @override
+  String get notificationStateOn => 'オン';
+
+  @override
+  String get notificationStateOff => 'オフ';
+
+  @override
+  String get notificationSectionLabel => '通知';
+
+  @override
   String get settingsTitle => '設定';
 
   @override
@@ -201,6 +244,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navHistoryLabel => '履歴';
 
   @override
+  String get navListLabel => '一覧';
+
+  @override
+  String get navWeightLabel => '体重';
+
+  @override
+  String get listMenuSubtitle => '種目・記録・メモをまとめて確認';
+
+  @override
+  String get listMenuExerciseListDescription => '登録した種目を一覧で管理';
+
+  @override
+  String get listMenuAllRecordsDescription => '日付ごとのトレーニング記録を一覧表示';
+
+  @override
+  String get listMenuMemoSearchDescription => 'キーワードでメモを検索';
+
+  @override
   String get navSettingsLabel => '設定';
 
   @override
@@ -264,6 +325,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSaved => '設定を保存しました';
+
+  @override
+  String get settingsUnsavedHint => '変更を保存できます';
 
   @override
   String monthlyWorkoutCount(int count) {
@@ -522,6 +586,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startingTopVolume => '初回のトップボリューム';
+
+  @override
+  String get maxTopVolume => '最大のトップボリューム';
 
   @override
   String get improvement => '成長';
@@ -892,7 +959,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paywallPrivacyPolicy => 'プライバシーポリシー';
 
   @override
-  String get paywallTrialTitle => 'この習慣を、\nもう少し続けてみませんか';
+  String get paywallTrialTitle => 'より極限の集中を';
 
   @override
   String get paywallTrialDescription =>
@@ -1139,6 +1206,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get workoutCompletionTitle => 'トレーニング記録完了';
 
   @override
+  String get reviewPromptTitle => '3回記録できました！';
+
+  @override
+  String get reviewPromptMessage => 'よろしければ App Store でレビューをお願いします。';
+
+  @override
+  String get reviewPromptWriteReview => 'レビューを書く';
+
+  @override
+  String get reviewPromptLater => 'あとで';
+
+  @override
   String workoutCompletionSummary(
     int exerciseCount,
     int setCount,
@@ -1340,4 +1419,316 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get csvGuideColMemo => 'メモ（空欄可）';
+
+  @override
+  String get goalSetTitle => '目標を設定';
+
+  @override
+  String get goalValueLabel => '目標値';
+
+  @override
+  String get goalDeadlineOptional => '期限（任意）';
+
+  @override
+  String get goalSave => '保存';
+
+  @override
+  String get goalDelete => '目標を削除';
+
+  @override
+  String get goalDeleteConfirmMessage => 'この目標を削除しますか？';
+
+  @override
+  String goalProgressRemaining(String value) {
+    return '目標まであと $value';
+  }
+
+  @override
+  String goalProgressPercent(int percent) {
+    return '達成率 $percent%';
+  }
+
+  @override
+  String get goalProUpsell => '目標管理は無料でご利用いただけます';
+
+  @override
+  String get goalAchievedTitle => '目標達成';
+
+  @override
+  String get goalsAchievedThisWeek => '今週達成した目標';
+
+  @override
+  String goalAchievedMessage(String exercise, String value) {
+    return '$exerciseで目標の$valueを達成しました。';
+  }
+
+  @override
+  String get goalTypeWeight => '重量';
+
+  @override
+  String get goalTypeReps => '回数';
+
+  @override
+  String get goalTypeVolume => 'ボリューム';
+
+  @override
+  String get goalTypeTime => '時間';
+
+  @override
+  String get goalTypeDistance => '距離';
+
+  @override
+  String get goalListTitle => '目標一覧';
+
+  @override
+  String get goalPriorityLabel => '重要度';
+
+  @override
+  String get goalAchievementRateLabel => '達成率';
+
+  @override
+  String get goalPriorityLow => '低';
+
+  @override
+  String get goalPriorityMedium => '中';
+
+  @override
+  String get goalPriorityHigh => '高';
+
+  @override
+  String get goalListEmpty => '設定された目標はありません';
+
+  @override
+  String get listMenuGoalListDescription => '設定した目標を一覧で確認';
+
+  @override
+  String get goalTargetLabel => '目標';
+
+  @override
+  String get goalDueLabel => '期日';
+
+  @override
+  String get goalTimeMinutes => '分';
+
+  @override
+  String get goalTimeSeconds => '秒';
+
+  @override
+  String get bulkGoalSetTitle => '一括で目標を設定';
+
+  @override
+  String get bulkGoalButtonLabel => '一括設定';
+
+  @override
+  String get bulkGoalCourseLabel => '目標の高さ';
+
+  @override
+  String get bulkGoalCourseEasy => '無理しない（1.1倍）';
+
+  @override
+  String get bulkGoalCourseMedium => 'しっかり伸ばす（1.2倍）';
+
+  @override
+  String get bulkGoalCourseHard => 'ガッツリ追い込む（1.3倍）';
+
+  @override
+  String get bulkGoalCourseMax => '目指せマッチョ（1.5倍）';
+
+  @override
+  String get bulkGoalCourseShortEasy => '無理しない';
+
+  @override
+  String get bulkGoalCourseShortMedium => 'しっかり';
+
+  @override
+  String get bulkGoalCourseShortHard => 'ガッツリ';
+
+  @override
+  String get bulkGoalCourseShortMax => 'マッチョ';
+
+  @override
+  String get bulkGoalCourseCustom => 'カスタム';
+
+  @override
+  String get bulkGoalCustomMultiplierHint => '倍率を入力（例: 1.25）';
+
+  @override
+  String get bulkGoalCustomMultiplierInvalid => '0.1〜10の倍率を入力してください';
+
+  @override
+  String get bulkGoalPastBest => '過去最高';
+
+  @override
+  String get bulkGoalPastBestRepsUnit => '回';
+
+  @override
+  String get bulkGoalSupplementTitle => '補足';
+
+  @override
+  String get bulkGoalSupplementMultiplier =>
+      '目標値は、各種目の現在の最高記録から選択した倍率（1.1倍〜1.5倍）で計算されます。';
+
+  @override
+  String get bulkGoalSupplementExercises => '表示されている種目は、過去にトレーニング履歴があるもののみです。';
+
+  @override
+  String get bulkGoalSelectExercises => '目標を立てたい種目を選択';
+
+  @override
+  String get bulkGoalSelectAll => 'すべて選択';
+
+  @override
+  String get bulkGoalDeselectAll => 'すべて解除';
+
+  @override
+  String get bulkGoalExecute => '一括で目標を設定';
+
+  @override
+  String get bulkGoalConfirmTitle => '確認';
+
+  @override
+  String bulkGoalConfirmMessage(int count) {
+    return '選択した $count 種目に目標を設定します。既存の目標は上書きされます。よろしいですか？';
+  }
+
+  @override
+  String bulkGoalResultMessage(int count) {
+    return '$count 種目に目標を設定しました';
+  }
+
+  @override
+  String bulkGoalResultMessageWithSkipped(int saved, int skipped) {
+    return '$saved 種目に目標を設定しました（$skipped 件はスキップしました）';
+  }
+
+  @override
+  String get bulkGoalResultSkippedReason =>
+      'スキップした種目は、記録タイプ（重量・回数・時間など）に合うベスト値が無いためです。';
+
+  @override
+  String get bulkGoalNoHistoryTitle => '履歴がありません';
+
+  @override
+  String get bulkGoalNoHistoryMessage =>
+      '目標の計算に使えるトレーニング履歴がまだありません。トレーニングを記録してから再度お試しください。';
+
+  @override
+  String get bulkGoalNoTargetsToSetMessage =>
+      '目標が未設定の種目はありません。トレーニングを記録した種目のうち、まだ目標を設定していないものだけがここに表示されます。';
+
+  @override
+  String get bulkGoalEditButtonLabel => '一括編集';
+
+  @override
+  String get bulkGoalEditTitle => '目標の一括編集';
+
+  @override
+  String get bulkGoalEditSelectGoals => '編集・削除する目標を選択';
+
+  @override
+  String get bulkGoalDeleteSelected => '選択した目標を削除';
+
+  @override
+  String get bulkGoalRecalcSelected => '選択した目標を再計算';
+
+  @override
+  String bulkGoalEditConfirmDelete(int count) {
+    return '選択した $count 件の目標を削除します。よろしいですか？';
+  }
+
+  @override
+  String bulkGoalEditConfirmRecalc(int count) {
+    return '選択した $count 件の目標を、現在の最高記録×選択した倍率で上書きします。よろしいですか？';
+  }
+
+  @override
+  String bulkGoalEditResultDeleted(int count) {
+    return '$count 件の目標を削除しました';
+  }
+
+  @override
+  String bulkGoalEditResultRecalculated(int count) {
+    return '$count 件の目標を再計算しました';
+  }
+
+  @override
+  String bulkGoalEditResultRecalculatedWithSkipped(int saved, int skipped) {
+    return '$saved 件を再計算しました（$skipped 件はスキップしました）';
+  }
+
+  @override
+  String get bulkGoalEditEmpty => '目標がありません';
+
+  @override
+  String get routineTitle => 'ルーティン';
+
+  @override
+  String get routineEmptyHint => 'ルーティンがありません。\n作成するとワークアウトをすぐに始められます。';
+
+  @override
+  String get routineCreateNew => '新規ルーティン';
+
+  @override
+  String get routineNameLabel => 'ルーティン名';
+
+  @override
+  String get routineNameHint => '例: 胸の日';
+
+  @override
+  String get routineSave => 'ルーティンを保存';
+
+  @override
+  String get routineDelete => 'ルーティンを削除';
+
+  @override
+  String routineDeleteConfirm(String name) {
+    return '「$name」を削除しますか？';
+  }
+
+  @override
+  String get routineStartWorkout => 'ワークアウト開始';
+
+  @override
+  String get routineEdit => '編集';
+
+  @override
+  String routineExerciseCount(int count) {
+    return '$count種目';
+  }
+
+  @override
+  String get routineLoadIntoWorkout => 'ルーティン読み込み';
+
+  @override
+  String get routineLoadConfirm => 'このルーティンの種目を追加しますか？';
+
+  @override
+  String get routineAddToCurrentWorkoutTitle => '記録にルーティンを追加';
+
+  @override
+  String get routineAddToCurrentWorkoutMessage =>
+      '現在の記録の続きに、このルーティンの種目を追加します。既存の記録はそのまま残ります。';
+
+  @override
+  String get routineSaveAsRoutine => 'ルーティンとして保存';
+
+  @override
+  String get routineSaved => 'ルーティンを保存しました！';
+
+  @override
+  String get routineManage => '管理';
+
+  @override
+  String get routineNameRequired => 'ルーティン名を入力してください';
+
+  @override
+  String get routineExerciseRequired => '種目を1つ以上追加してください';
+
+  @override
+  String get listMenuRoutineDescription => 'ワークアウトルーティンの管理';
+
+  @override
+  String routineSetCount(int count) {
+    return '$countセット';
+  }
 }

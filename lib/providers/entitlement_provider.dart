@@ -16,7 +16,7 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
 
   /// 初期化
   Future<void> _initialize() async {
-    // ストレージから課金状態を読み込む
+    // ストレージから課金状態を読み込む（有効期限チェック含む）
     await _loadFromStorage();
 
     // IAPサービスに購入状態変更コールバックを設定
@@ -27,20 +27,55 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
             entitlement: Entitlement.pro,
             subscriptionType: subscriptionType,
           );
+          // サブスクリプションの推定有効期限を保存
+          try {
+            final dao = _ref.read(settingsDaoProvider);
+            final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+            final expiryDays = subscriptionType == 'yearly' ? 366 : 32;
+            final expiresAt = now + (expiryDays * 24 * 60 * 60);
+            await dao.updateSubscriptionExpiresAt(expiresAt);
+          } catch (_) {}
           await _saveToStorage();
         }
       },
     );
+
+    // アプリ起動時にストアから課金状態を取得し、解約済みの場合は無料プランに反映する
+    refreshSubscriptionStatus();
   }
 
-  /// ストレージから課金状態を読み込む
+  /// ストア（App Store / Google Play）に問い合わせて課金状態を取得し、アプリの状態に反映する。
+  /// ログイン時やアプリ起動時に呼ぶことで、解約済みでも正しく無料プランになる。
+  Future<void> refreshSubscriptionStatus() async {
+    final iapState = _ref.read(iapServiceProvider);
+    if (iapState.status != IAPStatus.available) {
+      return;
+    }
+    try {
+      await _ref.read(iapServiceProvider.notifier).restorePurchases();
+      await Future.delayed(const Duration(milliseconds: 500));
+      await checkEntitlement();
+    } catch (_) {}
+  }
+
+  /// ストレージから課金状態を読み込む（有効期限チェック含む）
   Future<void> _loadFromStorage() async {
     try {
       final dao = _ref.read(settingsDaoProvider);
-      final entitlementStr = await dao.getEntitlement();
+      final settings = await dao.getSettings();
+      final entitlementStr = settings?.entitlement ?? 'free';
 
       if (entitlementStr == 'pro') {
-        state = state.copyWith(entitlement: Entitlement.pro);
+        // 有効期限が設定されていて、すでに過ぎている場合はFreeにダウングレード
+        final expiresAt = settings?.subscriptionExpiresAt;
+        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        if (expiresAt != null && expiresAt < now) {
+          debugPrint('Entitlement: subscription expired at $expiresAt, downgrading to free');
+          state = state.copyWith(entitlement: Entitlement.free);
+          await _saveToStorage();
+        } else {
+          state = state.copyWith(entitlement: Entitlement.pro);
+        }
       } else {
         state = state.copyWith(entitlement: Entitlement.free);
       }
@@ -102,7 +137,14 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
       );
       await _saveToStorage();
     } else {
-      await _loadFromStorage();
+      // IAPがアクティブなサブスクリプションを確認できなかった場合はFreeにダウングレード
+      debugPrint('Entitlement: no active subscription found, downgrading to free');
+      state = state.copyWith(entitlement: Entitlement.free);
+      try {
+        final dao = _ref.read(settingsDaoProvider);
+        await dao.updateSubscriptionExpiresAt(null);
+      } catch (_) {}
+      await _saveToStorage();
     }
   }
 

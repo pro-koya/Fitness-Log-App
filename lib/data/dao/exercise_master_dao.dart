@@ -99,6 +99,12 @@ class ExerciseMasterDao {
     );
   }
 
+  /// Delete all exercises (Pro sync: pull from server でローカル全削除時に使用)
+  Future<int> deleteAll() async {
+    final db = await _dbHelper.database;
+    return await db.delete('exercise_master', where: '1');
+  }
+
   /// Get standard exercises
   Future<List<ExerciseMasterEntity>> getStandardExercises() async {
     final db = await _dbHelper.database;

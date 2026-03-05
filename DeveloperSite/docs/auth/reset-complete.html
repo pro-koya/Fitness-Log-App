@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Liftly - パスワードリセット完了。アプリに戻ってログインしてください。">
+  <meta name="theme-color" content="#ffffff">
+  <title>Liftly - パスワードリセット</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">Liftly</a>
+      <span class="nav-lang">
+        <a href="?lang=ja" class="nav-lang-link" data-lang-link="ja" data-i18n="lang.ja">日本語</a>
+        <span class="nav-lang-sep" aria-hidden="true">|</span>
+        <a href="?lang=en" class="nav-lang-link" data-lang-link="en" data-i18n="lang.en">English</a>
+      </span>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="メニューを開く">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </button>
+      <div class="nav-right" id="nav-menu">
+        <div class="nav-links">
+          <a href="../index.html#features" data-i18n="nav.features">機能</a>
+          <a href="../index.html#howto" data-i18n="nav.howto">使い方</a>
+          <a href="../index.html#privacy" data-i18n="nav.privacy">プライバシー</a>
+          <a href="../index.html#contact" data-i18n="nav.contact">お問い合わせ</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="auth-reset-section">
+      <div class="container">
+        <div class="auth-reset-card" id="auth-reset-card">
+          <div class="auth-reset-icon auth-reset-icon-success" aria-hidden="true">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="auth-reset-icon auth-reset-icon-error" aria-hidden="true" hidden>
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <h1 class="auth-reset-title" data-i18n="reset.title">パスワードリセット</h1>
+          <p class="auth-reset-lead" data-i18n="reset.lead">メールのリンクからこのページにアクセスしました。</p>
+          <p class="auth-reset-desc" data-i18n="reset.desc">新しいパスワードの設定が完了したら、Liftly アプリを開き、設定 → 同期 からログインしてください。このページは閉じてかまいません。</p>
+          <div id="auth-reset-error" class="auth-reset-error" hidden>
+            <p class="auth-reset-desc" data-i18n="reset.expired">このリンクは有効期限が切れています。Liftly アプリの 設定 → 同期 で「パスワードを忘れた」から、再度リセット用メールを送信してください。</p>
+          </div>
+          <div id="auth-reset-with-code" class="auth-reset-error" hidden>
+            <p class="auth-reset-desc" id="auth-reset-with-code-message" data-i18n="reset.withCode">パスワードリセットのリンクを開きました。このリンクはアプリから送られたため、このブラウザではそのままパスワードを設定できません。下のフォームで登録済みメールアドレスを入力し、「このブラウザ用のリンクを送信」を押してください。届いたメールのリンクをこのブラウザで開くと、パスワード入力欄が表示されます。</p>
+            <div id="auth-reset-request-wrap" class="auth-reset-form-wrap">
+              <form id="auth-reset-request-form" class="auth-reset-form">
+                <label for="auth-reset-email" class="auth-reset-label" data-i18n="reset.requestEmailLabel">登録済みメールアドレス</label>
+                <input type="email" id="auth-reset-email" class="auth-reset-input" required autocomplete="email" placeholder="you@example.com">
+                <p id="auth-reset-request-error" class="auth-reset-form-error" hidden></p>
+                <p id="auth-reset-request-success" class="auth-reset-success" hidden></p>
+                <button type="submit" class="btn-primary auth-reset-submit" id="auth-reset-request-submit" data-i18n="reset.requestSubmit">このブラウザ用のリンクを送信</button>
+              </form>
+            </div>
+          </div>
+          <div id="auth-reset-form-wrap" class="auth-reset-form-wrap" hidden>
+            <p class="auth-reset-desc" id="auth-reset-form-lead" data-i18n="reset.formLead">新しいパスワードを入力してください。</p>
+            <form id="auth-reset-form" class="auth-reset-form">
+              <label for="auth-reset-pw" class="auth-reset-label" data-i18n="reset.newPassword">新しいパスワード</label>
+              <input type="password" id="auth-reset-pw" class="auth-reset-input" minlength="6" required autocomplete="new-password">
+              <label for="auth-reset-pw-confirm" class="auth-reset-label" data-i18n="reset.confirmPassword">パスワード（確認）</label>
+              <input type="password" id="auth-reset-pw-confirm" class="auth-reset-input" minlength="6" required autocomplete="new-password">
+              <p id="auth-reset-form-error" class="auth-reset-form-error" hidden></p>
+              <button type="submit" class="btn-primary auth-reset-submit" id="auth-reset-submit" data-i18n="reset.submit">パスワードを更新</button>
+            </form>
+          </div>
+          <div id="auth-reset-success" class="auth-reset-success" hidden>
+            <p class="auth-reset-desc" data-i18n="reset.success">パスワードを更新しました。Liftly アプリを開き、設定 → 同期 からログインしてください。</p>
+          </div>
+          <a href="../index.html" class="btn-primary auth-reset-btn" data-i18n="reset.back">トップページへ戻る</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-links">
+        <a href="../index.html#features" data-i18n="footer.features">機能</a>
+        <a href="../index.html#howto" data-i18n="footer.howto">使い方</a>
+        <a href="../index.html#privacy" data-i18n="footer.privacy">プライバシー</a>
+        <a href="../index.html#contact" data-i18n="footer.contact">お問い合わせ</a>
+      </div>
+      <span class="footer-copy" data-i18n="footer.copyright">© Liftly - Simple Fitness Log</span>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var translations = {
+        ja: {
+          'meta.title': 'Liftly - パスワードリセット',
+          'meta.description': 'Liftly - パスワードリセット完了。アプリに戻ってログインしてください。',
+          'reset.title': 'パスワードリセット',
+          'reset.lead': 'メールのリンクからこのページにアクセスしました。',
+          'reset.desc': '新しいパスワードの設定が完了したら、Liftly アプリを開き、設定 → 同期 からログインしてください。このページは閉じてかまいません。',
+          'reset.expired': 'このリンクは有効期限が切れています。Liftly アプリの 設定 → 同期 で「パスワードを忘れた」から、再度リセット用メールを送信してください。',
+          'reset.withCode': 'このリンクはアプリから送られたため、このブラウザではそのままパスワードを設定できません。下のフォームで登録済みメールアドレスを入力し、「このブラウザ用のリンクを送信」を押してください。届いたメールのリンクをこのブラウザで開くと、パスワード入力欄が表示されます。',
+          'reset.requestEmailLabel': '登録済みメールアドレス',
+          'reset.requestSubmit': 'このブラウザ用のリンクを送信',
+          'reset.requestSuccess': '送信しました。メールをご確認ください。届いたリンクをこのブラウザで開いてパスワードを設定してください。',
+          'reset.requestError': '送信に失敗しました。',
+          'reset.requestErrorLimit': '送信回数の上限に達しました。しばらく時間をおいてからお試しください。',
+          'reset.titleExpired': 'リンクの有効期限が切れました',
+          'reset.formLead': '新しいパスワードを入力してください。',
+          'reset.newPassword': '新しいパスワード',
+          'reset.confirmPassword': 'パスワード（確認）',
+          'reset.submit': 'パスワードを更新',
+          'reset.success': 'パスワードを更新しました。Liftly アプリを開き、設定 → 同期 からログインしてください。',
+          'reset.back': 'トップページへ戻る',
+          'reset.formErrorMatch': 'パスワードが一致しません。',
+          'reset.formErrorShort': '6文字以上で入力してください。',
+          'nav.features': '機能',
+          'nav.howto': '使い方',
+          'nav.privacy': 'プライバシー',
+          'nav.contact': 'お問い合わせ',
+          'footer.features': '機能',
+          'footer.howto': '使い方',
+          'footer.privacy': 'プライバシー',
+          'footer.contact': 'お問い合わせ',
+          'footer.copyright': '© Liftly - Simple Fitness Log',
+          'lang.ja': '日本語',
+          'lang.en': 'English'
+        },
+        en: {
+          'meta.title': 'Liftly - Password Reset',
+          'meta.description': 'Liftly - Password reset. Return to the app to sign in.',
+          'reset.title': 'Password Reset',
+          'reset.lead': 'You opened this page from the link in your email.',
+          'reset.desc': 'After setting your new password, open the Liftly app and sign in from Settings → Sync. You can close this page.',
+          'reset.expired': 'This link has expired. In the Liftly app, go to Settings → Sync, tap "Forgot password?", and request a new reset email.',
+          'reset.withCode': 'This link was sent from the app, so you cannot set your password in this browser directly. Enter your registered email below and click "Send link for this browser". When you open the link from the email in this browser, the password form will appear.',
+          'reset.requestEmailLabel': 'Registered email address',
+          'reset.requestSubmit': 'Send link for this browser',
+          'reset.requestSuccess': 'Email sent. Check your inbox and open the link in this browser to set your password.',
+          'reset.requestError': 'Failed to send.',
+          'reset.requestErrorLimit': 'Too many requests. Please try again later.',
+          'reset.titleExpired': 'Link expired',
+          'reset.formLead': 'Enter your new password below.',
+          'reset.newPassword': 'New password',
+          'reset.confirmPassword': 'Confirm password',
+          'reset.submit': 'Update password',
+          'reset.success': 'Password updated. Open the Liftly app and sign in from Settings → Sync.',
+          'reset.back': 'Back to top',
+          'reset.formErrorMatch': 'Passwords do not match.',
+          'reset.formErrorShort': 'Please enter at least 6 characters.',
+          'nav.features': 'Features',
+          'nav.howto': 'How to',
+          'nav.privacy': 'Privacy',
+          'nav.contact': 'Contact',
+          'footer.features': 'Features',
+          'footer.howto': 'How to',
+          'footer.privacy': 'Privacy',
+          'footer.contact': 'Contact',
+          'footer.copyright': '© Liftly - Simple Fitness Log',
+          'lang.ja': '日本語',
+          'lang.en': 'English'
+        }
+      };
+      var supportedLangs = ['ja', 'en'];
+      var defaultLang = 'ja';
+      function getLang() {
+        var p = new URLSearchParams(window.location.search);
+        var lang = (p.get('lang') || '').toLowerCase();
+        return supportedLangs.indexOf(lang) >= 0 ? lang : defaultLang;
+      }
+      function getLangUrl(lang) {
+        var u = new URL(window.location.href);
+        u.searchParams.set('lang', lang);
+        return u.pathname + u.search;
+      }
+      function apply(lang) {
+        var t = translations[lang];
+        document.documentElement.lang = lang;
+        document.title = t['meta.title'];
+        var desc = document.querySelector('meta[name="description"]');
+        if (desc) desc.setAttribute('content', t['meta.description']);
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n');
+          if (t[key]) el.textContent = t[key];
+        });
+        document.querySelectorAll('[data-lang-link]').forEach(function(el) {
+          var linkLang = el.getAttribute('data-lang-link');
+          el.setAttribute('href', getLangUrl(linkLang));
+          el.classList.toggle('is-active', linkLang === lang);
+        });
+      }
+      apply(getLang());
+
+      // URL の ? または # に error が含まれる場合は「リンク期限切れ」表示
+      function getParam(name) {
+        var q = window.location.search.slice(1).split('&');
+        var h = (window.location.hash || '').replace(/^#/, '').split('&');
+        var all = q.concat(h);
+        for (var i = 0; i < all.length; i++) {
+          var p = all[i].split('=');
+          if (decodeURIComponent(p[0]) === name) return p[1] ? decodeURIComponent(p[1].replace(/\+/g, ' ')) : '';
+        }
+        return '';
+      }
+      var errorCode = getParam('error_code') || getParam('error');
+      var isExpired = (errorCode === 'otp_expired' || (getParam('error_description') || '').indexOf('expired') >= 0);
+      var hasCode = getParam('code') !== '';
+      var card = document.getElementById('auth-reset-card');
+      var title = card && card.querySelector('.auth-reset-title');
+      var lead = card && card.querySelector('.auth-reset-lead');
+      var desc = card && card.querySelector('.auth-reset-desc');
+      var errBlock = document.getElementById('auth-reset-error');
+      var withCodeBlock = document.getElementById('auth-reset-with-code');
+      var iconSuccess = card && card.querySelector('.auth-reset-icon-success');
+      var iconError = card && card.querySelector('.auth-reset-icon-error');
+      var currentLang = document.documentElement.lang || 'ja';
+      var t = translations[currentLang] || translations.ja;
+
+      if (isExpired || getParam('error') === 'access_denied') {
+        if (title && errBlock && iconSuccess && iconError) {
+          title.textContent = t['reset.titleExpired'] || 'リンクの有効期限が切れました';
+          if (lead) lead.style.display = 'none';
+          if (desc) desc.style.display = 'none';
+          errBlock.hidden = false;
+          iconSuccess.hidden = true;
+          iconError.hidden = false;
+        }
+      } else if (hasCode) {
+        // code がある場合は次のスクリプトで exchange 後にフォーム or フォールバックを表示するため、ここでは withCode を出さない（表示競合を防ぐ）
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      var SUPABASE_URL = 'https://lybgdrxsojuaylnvdmwb.supabase.co';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5Ymdkcnhzb2p1YXlsbnZkbXdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2MTIyMDAsImV4cCI6MjA4NzE4ODIwMH0.v9mvcsp2zdIHtiOzWJKjHFf2Zi1OjJvXte51JOcifDc';
+
+      function getParam(name) {
+        var q = window.location.search.slice(1).split('&');
+        var h = (window.location.hash || '').replace(/^#/, '').split('&');
+        for (var i = 0; i < q.length; i++) {
+          var p = q[i].split('=');
+          if (decodeURIComponent(p[0]) === name) return p[1] ? decodeURIComponent(p[1].replace(/\+/g, ' ')) : '';
+        }
+        for (var j = 0; j < h.length; j++) {
+          var p2 = h[j].split('=');
+          if (decodeURIComponent(p2[0]) === name) return p2[1] ? decodeURIComponent(p2[1].replace(/\+/g, ' ')) : '';
+        }
+        return '';
+      }
+
+      if (typeof supabase === 'undefined') return;
+      var code = getParam('code');
+      var hashToken = getParam('access_token');
+      var hashType = getParam('type');
+      if (!code && !hashToken) return;
+
+      var card = document.getElementById('auth-reset-card');
+      var lead = card && card.querySelector('.auth-reset-lead');
+      var desc = card && card.querySelector('.auth-reset-desc');
+      var errBlock = document.getElementById('auth-reset-error');
+      var withCodeBlock = document.getElementById('auth-reset-with-code');
+      var formWrap = document.getElementById('auth-reset-form-wrap');
+      var successBlock = document.getElementById('auth-reset-success');
+      if (!formWrap || !card) return;
+
+      var supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      function showPasswordForm() {
+        if (lead) lead.style.display = 'none';
+        if (desc) desc.style.display = 'none';
+        if (errBlock) errBlock.hidden = true;
+        if (withCodeBlock) withCodeBlock.hidden = true;
+        formWrap.removeAttribute('hidden');
+        formWrap.style.display = '';
+        formWrap.style.visibility = '';
+        formWrap.hidden = false;
+        var form = document.getElementById('auth-reset-form');
+        var pwInput = document.getElementById('auth-reset-pw');
+        var pwConfirmInput = document.getElementById('auth-reset-pw-confirm');
+        var formError = document.getElementById('auth-reset-form-error');
+        var submitBtn = document.getElementById('auth-reset-submit');
+        var isJa = document.documentElement.lang === 'ja';
+        var t = { match: isJa ? 'パスワードが一致しません。' : 'Passwords do not match.', short: isJa ? '6文字以上で入力してください。' : 'Please enter at least 6 characters.' };
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          var pw = pwInput.value;
+          var pwConfirm = pwConfirmInput.value;
+          formError.hidden = true;
+          formError.textContent = '';
+          formError.style.display = '';
+          if (pw.length < 6) { formError.textContent = t.short; formError.removeAttribute('hidden'); formError.style.display = 'block'; formError.hidden = false; return; }
+          if (pw !== pwConfirm) { formError.textContent = t.match; formError.removeAttribute('hidden'); formError.style.display = 'block'; formError.hidden = false; return; }
+          submitBtn.disabled = true;
+          submitBtn.textContent = isJa ? '更新中...' : 'Updating...';
+          supabaseClient.auth.updateUser({ password: pw })
+            .then(function(updateResult) {
+              if (updateResult.error) {
+                formError.textContent = updateResult.error.message || (isJa ? '更新に失敗しました。' : 'Update failed.');
+                formError.removeAttribute('hidden');
+                formError.style.display = 'block';
+                formError.hidden = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = isJa ? 'パスワードを更新' : 'Update password';
+                return;
+              }
+              formWrap.hidden = true;
+              if (successBlock) successBlock.hidden = false;
+              submitBtn.disabled = false;
+              submitBtn.textContent = isJa ? 'パスワードを更新' : 'Update password';
+              history.replaceState(null, '', window.location.pathname + (window.location.search || ''));
+            })
+            .catch(function(err) {
+              formError.textContent = (err && err.message) ? err.message : (isJa ? '更新に失敗しました。' : 'Update failed.');
+              formError.removeAttribute('hidden');
+              formError.style.display = 'block';
+              formError.hidden = false;
+              submitBtn.disabled = false;
+              submitBtn.textContent = isJa ? 'パスワードを更新' : 'Update password';
+            });
+        };
+      }
+
+      function showFallbackMessage() {
+        if (lead) lead.style.display = 'none';
+        if (desc) desc.style.display = 'none';
+        if (withCodeBlock) {
+          withCodeBlock.hidden = false;
+          var msgEl = document.getElementById('auth-reset-with-code-message');
+          if (msgEl) {
+            var isJa = document.documentElement.lang === 'ja';
+            msgEl.textContent = isJa ? 'このリンクはアプリから送られたため、このブラウザではそのままパスワードを設定できません。下のフォームで登録済みメールアドレスを入力し、「このブラウザ用のリンクを送信」を押してください。届いたメールのリンクをこのブラウザで開くと、パスワード入力欄が表示されます。' : 'This link was sent from the app, so you cannot set your password in this browser directly. Enter your registered email below and click "Send link for this browser". When you open the link from the email in this browser, the password form will appear.';
+          }
+          var requestForm = document.getElementById('auth-reset-request-form');
+          var requestError = document.getElementById('auth-reset-request-error');
+          var requestSuccess = document.getElementById('auth-reset-request-success');
+          var requestSubmit = document.getElementById('auth-reset-request-submit');
+          if (requestForm && requestError && requestSuccess && requestSubmit) {
+            requestError.hidden = true;
+            requestSuccess.hidden = true;
+            requestForm.onsubmit = function(e) {
+              e.preventDefault();
+              var emailInput = document.getElementById('auth-reset-email');
+              var email = (emailInput && emailInput.value) ? emailInput.value.trim() : '';
+              if (!email) return;
+              requestError.hidden = true;
+              requestSuccess.hidden = true;
+              requestSubmit.disabled = true;
+              var redirectTo = window.location.origin + window.location.pathname;
+              supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: redirectTo })
+                .then(function(r) {
+                  if (r.error) {
+                    var isJa = document.documentElement.lang === 'ja';
+                    requestError.textContent = (r.error.message && (r.error.message.indexOf('limit') >= 0 || r.error.message.indexOf('Limit') >= 0))
+                      ? (isJa ? '送信回数の上限に達しました。しばらく時間をおいてからお試しください。' : 'Too many requests. Please try again later.')
+                      : r.error.message;
+                    requestError.removeAttribute('hidden');
+                    requestError.style.display = 'block';
+                  } else {
+                    var isJa = document.documentElement.lang === 'ja';
+                    requestSuccess.textContent = isJa ? '送信しました。メールをご確認ください。届いたリンクをこのブラウザで開いてパスワードを設定してください。' : 'Email sent. Check your inbox and open the link in this browser to set your password.';
+                    requestSuccess.removeAttribute('hidden');
+                    requestSuccess.style.display = 'block';
+                  }
+                  requestSubmit.disabled = false;
+                })
+                .catch(function(err) {
+                  var isJa = document.documentElement.lang === 'ja';
+                  requestError.textContent = (err && err.message) ? err.message : (isJa ? '送信に失敗しました。' : 'Failed to send.');
+                  requestError.removeAttribute('hidden');
+                  requestError.style.display = 'block';
+                  requestSubmit.disabled = false;
+                });
+            };
+          }
+        }
+      }
+
+      if (hashToken && hashType === 'recovery') {
+        supabaseClient.auth.getSession().then(function(sessionResult) {
+          if (sessionResult.data && sessionResult.data.session) { showPasswordForm(); return; }
+          showFallbackMessage();
+        });
+        return;
+      }
+
+      if (!code) return;
+      supabaseClient.auth.exchangeCodeForSession(code)
+        .then(function(result) {
+          if (result.error) {
+            showFallbackMessage();
+            return;
+          }
+          showPasswordForm();
+        })
+        .catch(function() {
+          showFallbackMessage();
+        });
+    })();
+  </script>
+  <script>
+    (function() {
+      var nav = document.getElementById('nav');
+      var toggle = document.getElementById('nav-toggle');
+      var menu = document.getElementById('nav-menu');
+      if (!toggle || !menu) return;
+      function setOpen(open) {
+        nav.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? (document.documentElement.lang === 'en' ? 'Close menu' : 'メニューを閉じる') : (document.documentElement.lang === 'en' ? 'Open menu' : 'メニューを開く'));
+        document.body.style.overflow = open ? 'hidden' : '';
+      }
+      toggle.addEventListener('click', function() { setOpen(!nav.classList.contains('is-open')); });
+      menu.querySelectorAll('a').forEach(function(a) { a.addEventListener('click', function() { setOpen(false); }); });
+      window.addEventListener('resize', function() { if (window.innerWidth > 640) setOpen(false); });
+    })();
+  </script>
+</body>
+</html>

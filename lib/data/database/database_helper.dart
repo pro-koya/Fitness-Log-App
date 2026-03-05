@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 9,
+      version: 19,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -41,6 +41,9 @@ class DatabaseHelper {
         theme_settings TEXT,
         setup_completed INTEGER NOT NULL DEFAULT 0,
         tutorial_completed INTEGER NOT NULL DEFAULT 0,
+        timer_settings TEXT,
+        last_synced_at INTEGER,
+        subscription_expires_at INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -132,6 +135,121 @@ class DatabaseHelper {
     await db.execute('''
       CREATE INDEX idx_set_records_exercise_id_session_id
         ON set_records(exercise_id, session_id)
+    ''');
+
+    // 6. body_weight_records table
+    await db.execute('''
+      CREATE TABLE body_weight_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        weight_kg REAL NOT NULL,
+        weight_lb REAL NOT NULL,
+        memo TEXT,
+        recorded_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_body_weight_recorded_at ON body_weight_records(recorded_at DESC)
+    ''');
+
+    // 7. import_source_hashes table (for KintoreMemo import dedup)
+    await db.execute('''
+      CREATE TABLE import_source_hashes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_hash TEXT NOT NULL UNIQUE,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute(
+      'CREATE INDEX idx_import_source_hashes_hash ON import_source_hashes(source_hash)',
+    );
+
+    // 8. exercise_goals table (Pro: per-exercise goals)
+    await db.execute('''
+      CREATE TABLE exercise_goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exercise_id INTEGER NOT NULL UNIQUE,
+        goal_type TEXT NOT NULL CHECK(goal_type IN ('weight', 'reps', 'volume', 'time', 'distance')),
+        goal_value REAL NOT NULL,
+        deadline_ts INTEGER,
+        priority INTEGER NOT NULL DEFAULT 2,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (exercise_id) REFERENCES exercise_master(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_exercise_goals_exercise_id ON exercise_goals(exercise_id)',
+    );
+
+    // 9. goal_achievements table (Pro: log for "今週達成した目標")
+    await db.execute('''
+      CREATE TABLE goal_achievements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exercise_id INTEGER NOT NULL,
+        exercise_name_en TEXT NOT NULL,
+        goal_type TEXT NOT NULL,
+        goal_value_display TEXT NOT NULL,
+        achieved_at INTEGER NOT NULL,
+        is_standard INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_goal_achievements_achieved_at ON goal_achievements(achieved_at)',
+    );
+
+    // 10. routine_templates table
+    await db.execute('''
+      CREATE TABLE routine_templates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
+    // 11. routine_exercises table
+    await db.execute('''
+      CREATE TABLE routine_exercises (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        routine_id INTEGER NOT NULL,
+        exercise_id INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (routine_id) REFERENCES routine_templates(id) ON DELETE CASCADE,
+        FOREIGN KEY (exercise_id) REFERENCES exercise_master(id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_routine_exercises_routine_id
+        ON routine_exercises(routine_id, order_index)
+    ''');
+
+    // 12. routine_sets table
+    await db.execute('''
+      CREATE TABLE routine_sets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        routine_exercise_id INTEGER NOT NULL,
+        set_number INTEGER NOT NULL,
+        weight_kg REAL NOT NULL DEFAULT 0,
+        weight_lb REAL NOT NULL DEFAULT 0,
+        reps INTEGER,
+        duration_seconds INTEGER,
+        distance_meters REAL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (routine_exercise_id) REFERENCES routine_exercises(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_routine_sets_routine_exercise_id
+        ON routine_sets(routine_exercise_id, set_number)
     ''');
 
     // Insert initial data
@@ -265,6 +383,160 @@ class DatabaseHelper {
       // Migration from version 8 to 9: Add tutorial_completed flag
       await _migrateToVersion9(db);
     }
+    if (oldVersion < 10) {
+      // Migration from version 9 to 10: Add body_weight_records table
+      await _migrateToVersion10(db);
+    }
+    if (oldVersion < 11) {
+      // Migration from version 10 to 11: Add import_source_hashes for dedup
+      await _migrateToVersion11(db);
+    }
+    if (oldVersion < 12) {
+      await _migrateToVersion12(db);
+    }
+    if (oldVersion < 13) {
+      await _migrateToVersion13(db);
+    }
+    if (oldVersion < 14) {
+      await _migrateToVersion14(db);
+    }
+    if (oldVersion < 15) {
+      await _migrateToVersion15(db);
+    }
+    if (oldVersion < 16) {
+      await _migrateToVersion16(db);
+    }
+    if (oldVersion < 17) {
+      await _migrateToVersion17(db);
+    }
+    if (oldVersion < 18) {
+      await _migrateToVersion18(db);
+    }
+    if (oldVersion < 19) {
+      await _migrateToVersion19(db);
+    }
+  }
+
+  /// Migrate to version 18 (exercise_goals: add priority 重要度)
+  Future<void> _migrateToVersion18(Database db) async {
+    final info = await db.rawQuery('PRAGMA table_info(exercise_goals)');
+    final hasPriority = info.any((row) => row['name'] == 'priority');
+    if (!hasPriority) {
+      await db.execute(
+        'ALTER TABLE exercise_goals ADD COLUMN priority INTEGER DEFAULT 2',
+      );
+    }
+  }
+
+  /// Migrate to version 17 (goal_achievements for home "今週達成した目標")
+  Future<void> _migrateToVersion17(Database db) async {
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='goal_achievements'",
+    );
+    if (tables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE goal_achievements (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          exercise_id INTEGER NOT NULL,
+          exercise_name_en TEXT NOT NULL,
+          goal_type TEXT NOT NULL,
+          goal_value_display TEXT NOT NULL,
+          achieved_at INTEGER NOT NULL,
+          is_standard INTEGER NOT NULL DEFAULT 1
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX idx_goal_achievements_achieved_at ON goal_achievements(achieved_at)',
+      );
+    }
+  }
+
+  /// Migrate to version 16 (exercise_goals for Pro goal tracking)
+  Future<void> _migrateToVersion16(Database db) async {
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='exercise_goals'",
+    );
+    if (tables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE exercise_goals (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          exercise_id INTEGER NOT NULL UNIQUE,
+          goal_type TEXT NOT NULL CHECK(goal_type IN ('weight', 'reps', 'volume', 'time', 'distance')),
+          goal_value REAL NOT NULL,
+          deadline_ts INTEGER,
+          priority INTEGER NOT NULL DEFAULT 2,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY (exercise_id) REFERENCES exercise_master(id) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX idx_exercise_goals_exercise_id ON exercise_goals(exercise_id)',
+      );
+    }
+  }
+
+  /// Migrate to version 15 (subscription_expires_at for expiry detection)
+  Future<void> _migrateToVersion15(Database db) async {
+    final info = await db.rawQuery('PRAGMA table_info(settings)');
+    final hasColumn = info.any((row) => row['name'] == 'subscription_expires_at');
+    if (!hasColumn) {
+      await db.execute(
+        'ALTER TABLE settings ADD COLUMN subscription_expires_at INTEGER',
+      );
+    }
+  }
+
+  /// Migrate to version 14 (last_synced_at for Pro sync)
+  Future<void> _migrateToVersion14(Database db) async {
+    final info = await db.rawQuery('PRAGMA table_info(settings)');
+    final hasColumn = info.any((row) => row['name'] == 'last_synced_at');
+    if (!hasColumn) {
+      await db.execute(
+        'ALTER TABLE settings ADD COLUMN last_synced_at INTEGER',
+      );
+    }
+  }
+
+  /// Migrate to version 13 (ensure import_source_hashes table exists)
+  Future<void> _migrateToVersion13(Database db) async {
+    // v11 マイグレーションで作成済みの場合はスキップ
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='import_source_hashes'",
+    );
+    if (tables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE import_source_hashes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          source_hash TEXT NOT NULL UNIQUE,
+          created_at INTEGER NOT NULL
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX idx_import_source_hashes_hash ON import_source_hashes(source_hash)',
+      );
+    }
+  }
+
+  /// Migrate to version 12 (timer_settings for timer notification preferences)
+  Future<void> _migrateToVersion12(Database db) async {
+    await db.execute(
+      'ALTER TABLE settings ADD COLUMN timer_settings TEXT',
+    );
+  }
+
+  /// Migrate to version 11 (import_source_hashes for KintoreMemo import dedup)
+  Future<void> _migrateToVersion11(Database db) async {
+    await db.execute('''
+      CREATE TABLE import_source_hashes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_hash TEXT NOT NULL UNIQUE,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_import_source_hashes_hash ON import_source_hashes(source_hash)',
+    );
   }
 
   /// Migrate to version 2 (dual unit support)
@@ -531,6 +803,92 @@ class DatabaseHelper {
           'updated_at': now,
         });
       }
+    }
+  }
+
+  /// Migrate to version 10 (add body_weight_records table)
+  Future<void> _migrateToVersion10(Database db) async {
+    await db.execute('''
+      CREATE TABLE body_weight_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        weight_kg REAL NOT NULL,
+        weight_lb REAL NOT NULL,
+        memo TEXT,
+        recorded_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_body_weight_recorded_at ON body_weight_records(recorded_at DESC)
+    ''');
+  }
+
+  /// Migrate to version 19 (routine_templates, routine_exercises, routine_sets)
+  Future<void> _migrateToVersion19(Database db) async {
+    // routine_templates
+    final tables1 = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='routine_templates'",
+    );
+    if (tables1.isEmpty) {
+      await db.execute('''
+        CREATE TABLE routine_templates (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        )
+      ''');
+    }
+
+    // routine_exercises
+    final tables2 = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='routine_exercises'",
+    );
+    if (tables2.isEmpty) {
+      await db.execute('''
+        CREATE TABLE routine_exercises (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          routine_id INTEGER NOT NULL,
+          exercise_id INTEGER NOT NULL,
+          order_index INTEGER NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY (routine_id) REFERENCES routine_templates(id) ON DELETE CASCADE,
+          FOREIGN KEY (exercise_id) REFERENCES exercise_master(id)
+        )
+      ''');
+      await db.execute('''
+        CREATE INDEX idx_routine_exercises_routine_id
+          ON routine_exercises(routine_id, order_index)
+      ''');
+    }
+
+    // routine_sets
+    final tables3 = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='routine_sets'",
+    );
+    if (tables3.isEmpty) {
+      await db.execute('''
+        CREATE TABLE routine_sets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          routine_exercise_id INTEGER NOT NULL,
+          set_number INTEGER NOT NULL,
+          weight_kg REAL NOT NULL DEFAULT 0,
+          weight_lb REAL NOT NULL DEFAULT 0,
+          reps INTEGER,
+          duration_seconds INTEGER,
+          distance_meters REAL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY (routine_exercise_id) REFERENCES routine_exercises(id) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute('''
+        CREATE INDEX idx_routine_sets_routine_exercise_id
+          ON routine_sets(routine_exercise_id, set_number)
+      ''');
     }
   }
 

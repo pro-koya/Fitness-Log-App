@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../providers/theme_settings_provider.dart';
 import '../../../utils/contrast_checker.dart';
+import '../../ads/widgets/banner_ad_widget.dart';
 import '../widgets/color_input_field.dart';
 import '../widgets/theme_preview_card.dart';
 
@@ -39,47 +40,55 @@ class _ThemeSettingsScreenState extends ConsumerState<ThemeSettingsScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // プレビューセクション
-            Text(
-              l10n.previewLabel,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ThemePreviewCard(colorScheme: colorScheme),
-            const SizedBox(height: 24),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // プレビューセクション
+                  Text(
+                    l10n.previewLabel,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ThemePreviewCard(colorScheme: colorScheme),
+                  const SizedBox(height: 24),
 
-            // プリセットテーマセクション
-            Text(
-              l10n.presetThemesLabel,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildPresetGrid(currentLanguage, themeSettings.preset),
-            const SizedBox(height: 24),
+                  // プリセットテーマセクション
+                  Text(
+                    l10n.presetThemesLabel,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPresetGrid(currentLanguage, themeSettings.preset),
+                  const SizedBox(height: 24),
 
-            // カスタムカラーセクション
-            Text(
-              l10n.customColorsLabel,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                  // カスタムカラーセクション
+                  Text(
+                    l10n.customColorsLabel,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildCustomColorSection(l10n, themeSettings, colorScheme),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            _buildCustomColorSection(l10n, themeSettings, colorScheme),
-          ],
-        ),
+          ),
+          // Banner ad (Fixed at bottom, Free users only)
+          const BannerAdWidget(),
+        ],
       ),
     );
   }

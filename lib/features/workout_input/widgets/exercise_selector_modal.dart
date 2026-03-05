@@ -48,7 +48,13 @@ class _ExerciseSelectorModalState
     setState(() => _isLoading = true);
 
     try {
-      final exercises = await widget.exerciseMasterDao.getAllExercises();
+      var exercises = await widget.exerciseMasterDao.getAllExercises();
+      // In tutorial mode, only show Bench Press
+      if (widget.isTutorialMode) {
+        exercises = exercises
+            .where((e) => e.name == 'Bench Press')
+            .toList();
+      }
       setState(() {
         _allExercises = exercises;
         _filteredExercises = exercises;
@@ -318,9 +324,9 @@ class _ExerciseSelectorModalState
       // Reload exercises to include the new custom exercise
       await _loadExercises();
 
-      // Auto-select the newly created exercise
+      // Auto-select the newly created exercise (return entity for routine edit; workout_input uses entity too)
       if (mounted) {
-        Navigator.of(context).pop(insertedExercise.id);
+        Navigator.of(context).pop(insertedExercise);
       }
     } catch (e) {
       if (mounted) {
@@ -731,28 +737,29 @@ class _ExerciseSelectorModalState
                                     )
                                   : null,
                               onTap: () {
-                                Navigator.of(context).pop(exercise.id);
+                                Navigator.of(context).pop(exercise);
                               },
                             );
                           },
                         ),
             ),
 
-            // Add custom exercise button
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _showAddCustomExerciseDialog,
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.addCustomExerciseButton),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+            // Add custom exercise button (hidden in tutorial mode)
+            if (!widget.isTutorialMode)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _showAddCustomExerciseDialog,
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.addCustomExerciseButton),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

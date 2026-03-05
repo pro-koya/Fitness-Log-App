@@ -84,12 +84,24 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // クローズボタン
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: _isPurchasing ? null : () => Navigator.pop(context, false),
+              // クローズボタン（タップ領域を十分に確保し、やや下に配置）
+              Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _isPurchasing ? null : () => Navigator.pop(context, false),
+                        borderRadius: BorderRadius.circular(24),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Icon(Icons.close),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -525,27 +537,14 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
 
   void _openPrivacyPolicy() {
     final locale = Localizations.localeOf(context);
-    final url = locale.languageCode == 'ja'
-        ? 'https://lovely-kitty-76f.notion.site/2f60ff4893228039a89fed882469cdde?source=copy_link'
-        : 'https://lovely-kitty-76f.notion.site/Privacy-Policy-2f60ff489322807398aac2e94993f0a9?source=copy_link';
+    final lang = locale.languageCode == 'ja' ? 'ja' : 'en';
+    final url = 'https://pro-koya.github.io/?lang=$lang';
     _openUrl(url);
   }
 
+  /// 有料プラン（Pro）のパワーアップ感を表すアイコン（理由によらず統一）
   IconData _getIcon() {
-    switch (widget.reason) {
-      case PaywallReason.historyLocked:
-        return Icons.block; // 履歴制限廃止のため未使用。フォールバックで広告アイコン
-      case PaywallReason.chart:
-        return Icons.show_chart;
-      case PaywallReason.theme:
-        return Icons.palette;
-      case PaywallReason.stats:
-        return Icons.analytics;
-      case PaywallReason.backup:
-        return Icons.backup;
-      case PaywallReason.ads:
-        return Icons.block;
-    }
+    return Icons.bolt;
   }
 
   String _getTitle(AppLocalizations l10n) {

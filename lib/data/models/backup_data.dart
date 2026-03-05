@@ -51,6 +51,10 @@ class BackupContent {
   final List<Map<String, dynamic>> workoutSets;
   final List<Map<String, dynamic>> exerciseMemos;
   final Map<String, dynamic>? settings;
+  final List<Map<String, dynamic>> bodyWeightRecords;
+  final List<Map<String, dynamic>> routineTemplates;
+  final List<Map<String, dynamic>> routineExercises;
+  final List<Map<String, dynamic>> routineSets;
 
   const BackupContent({
     required this.exercises,
@@ -59,6 +63,10 @@ class BackupContent {
     required this.workoutSets,
     required this.exerciseMemos,
     this.settings,
+    this.bodyWeightRecords = const [],
+    this.routineTemplates = const [],
+    this.routineExercises = const [],
+    this.routineSets = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -68,6 +76,10 @@ class BackupContent {
         'workoutSets': workoutSets,
         'exerciseMemos': exerciseMemos,
         'settings': settings,
+        'bodyWeightRecords': bodyWeightRecords,
+        'routineTemplates': routineTemplates,
+        'routineExercises': routineExercises,
+        'routineSets': routineSets,
       };
 
   factory BackupContent.fromJson(Map<String, dynamic> json) {
@@ -78,6 +90,10 @@ class BackupContent {
       workoutSets: _parseList(json['workoutSets']),
       exerciseMemos: _parseList(json['exerciseMemos']),
       settings: json['settings'] as Map<String, dynamic>?,
+      bodyWeightRecords: _parseList(json['bodyWeightRecords']),
+      routineTemplates: _parseList(json['routineTemplates']),
+      routineExercises: _parseList(json['routineExercises']),
+      routineSets: _parseList(json['routineSets']),
     );
   }
 

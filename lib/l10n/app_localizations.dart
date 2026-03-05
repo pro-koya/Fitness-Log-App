@@ -326,6 +326,90 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get timerClose;
 
+  /// No description provided for @timerRestComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest Complete!'**
+  String get timerRestComplete;
+
+  /// No description provided for @timerRestCompleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rest time is over. Ready for the next set?'**
+  String get timerRestCompleteMessage;
+
+  /// No description provided for @timerTapTimeToSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap time to set'**
+  String get timerTapTimeToSet;
+
+  /// No description provided for @timerQuickStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Start'**
+  String get timerQuickStart;
+
+  /// No description provided for @timerNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer ended'**
+  String get timerNotificationTitle;
+
+  /// No description provided for @timerNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rest timer has finished.'**
+  String get timerNotificationBody;
+
+  /// No description provided for @notificationPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Notifications'**
+  String get notificationPermissionTitle;
+
+  /// No description provided for @notificationPermissionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications so we can tell you when your rest timer ends, even when the app is in the background.'**
+  String get notificationPermissionMessage;
+
+  /// No description provided for @notificationPermissionAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get notificationPermissionAllow;
+
+  /// No description provided for @notificationPermissionNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Now'**
+  String get notificationPermissionNotNow;
+
+  /// No description provided for @notificationSettingsEnableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Send notifications'**
+  String get notificationSettingsEnableLabel;
+
+  /// No description provided for @notificationStateOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get notificationStateOn;
+
+  /// No description provided for @notificationStateOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get notificationStateOff;
+
+  /// No description provided for @notificationSectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationSectionLabel;
+
   /// Title for settings screen
   ///
   /// In en, this message translates to:
@@ -442,7 +526,7 @@ abstract class AppLocalizations {
   /// No description provided for @navHomeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Home'**
+  /// **'Record'**
   String get navHomeLabel;
 
   /// No description provided for @navHistoryLabel.
@@ -450,6 +534,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'History'**
   String get navHistoryLabel;
+
+  /// No description provided for @navListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get navListLabel;
+
+  /// No description provided for @navWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get navWeightLabel;
+
+  /// No description provided for @listMenuSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse exercises, records, and memos'**
+  String get listMenuSubtitle;
+
+  /// No description provided for @listMenuExerciseListDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your registered exercises'**
+  String get listMenuExerciseListDescription;
+
+  /// No description provided for @listMenuAllRecordsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'View all workout records by date'**
+  String get listMenuAllRecordsDescription;
+
+  /// No description provided for @listMenuMemoSearchDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Search memos by keyword'**
+  String get listMenuMemoSearchDescription;
 
   /// No description provided for @navSettingsLabel.
   ///
@@ -558,6 +678,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings saved'**
   String get settingsSaved;
+
+  /// No description provided for @settingsUnsavedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes'**
+  String get settingsUnsavedHint;
 
   /// Shows the number of workouts completed this month
   ///
@@ -1014,6 +1140,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Starting Top Volume'**
   String get startingTopVolume;
+
+  /// No description provided for @maxTopVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Top Volume'**
+  String get maxTopVolume;
 
   /// Label for improvement stat
   ///
@@ -1726,13 +1858,13 @@ abstract class AppLocalizations {
   /// Paywall headline - gentle encouragement to continue
   ///
   /// In en, this message translates to:
-  /// **'Would you like to keep\nthis habit going?'**
+  /// **'For ultimate focus.'**
   String get paywallTrialTitle;
 
   /// Paywall description - focus on state change, not features
   ///
   /// In en, this message translates to:
-  /// **'With Pro, all your workout records are saved, so you can look back on your progress and keep training.'**
+  /// **'Unlock advanced features with Pro, including ad removal and cloud synchronization.'**
   String get paywallTrialDescription;
 
   /// Notice about cancellation during trial
@@ -2161,6 +2293,30 @@ abstract class AppLocalizations {
   /// **'Workout Recorded'**
   String get workoutCompletionTitle;
 
+  /// Title for in-app review prompt dialog
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve logged 3 workouts!'**
+  String get reviewPromptTitle;
+
+  /// Message for in-app review prompt dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Would you mind leaving a review? It helps us a lot.'**
+  String get reviewPromptMessage;
+
+  /// Button to open store review
+  ///
+  /// In en, this message translates to:
+  /// **'Write a review'**
+  String get reviewPromptWriteReview;
+
+  /// Button to dismiss review prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get reviewPromptLater;
+
   /// No description provided for @workoutCompletionSummary.
   ///
   /// In en, this message translates to:
@@ -2522,6 +2678,564 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Memo (optional)'**
   String get csvGuideColMemo;
+
+  /// No description provided for @goalSetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set goal'**
+  String get goalSetTitle;
+
+  /// No description provided for @goalValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target value'**
+  String get goalValueLabel;
+
+  /// No description provided for @goalDeadlineOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline (optional)'**
+  String get goalDeadlineOptional;
+
+  /// No description provided for @goalSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get goalSave;
+
+  /// No description provided for @goalDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove goal'**
+  String get goalDelete;
+
+  /// No description provided for @goalDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this goal?'**
+  String get goalDeleteConfirmMessage;
+
+  /// No description provided for @goalProgressRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} to goal'**
+  String goalProgressRemaining(String value);
+
+  /// No description provided for @goalProgressPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% to goal'**
+  String goalProgressPercent(int percent);
+
+  /// No description provided for @goalProUpsell.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal tracking is available for free.'**
+  String get goalProUpsell;
+
+  /// No description provided for @goalAchievedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals achieved'**
+  String get goalAchievedTitle;
+
+  /// No description provided for @goalsAchievedThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals achieved this week'**
+  String get goalsAchievedThisWeek;
+
+  /// No description provided for @goalAchievedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal achieved on {exercise}: {value}.'**
+  String goalAchievedMessage(String exercise, String value);
+
+  /// No description provided for @goalTypeWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get goalTypeWeight;
+
+  /// No description provided for @goalTypeReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps'**
+  String get goalTypeReps;
+
+  /// No description provided for @goalTypeVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get goalTypeVolume;
+
+  /// No description provided for @goalTypeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get goalTypeTime;
+
+  /// No description provided for @goalTypeDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get goalTypeDistance;
+
+  /// No description provided for @goalListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get goalListTitle;
+
+  /// No description provided for @goalPriorityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get goalPriorityLabel;
+
+  /// No description provided for @goalAchievementRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get goalAchievementRateLabel;
+
+  /// No description provided for @goalPriorityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get goalPriorityLow;
+
+  /// No description provided for @goalPriorityMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get goalPriorityMedium;
+
+  /// No description provided for @goalPriorityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get goalPriorityHigh;
+
+  /// No description provided for @goalListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No goals set'**
+  String get goalListEmpty;
+
+  /// No description provided for @listMenuGoalListDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'View all your goals'**
+  String get listMenuGoalListDescription;
+
+  /// No description provided for @goalTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get goalTargetLabel;
+
+  /// No description provided for @goalDueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get goalDueLabel;
+
+  /// No description provided for @goalTimeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get goalTimeMinutes;
+
+  /// No description provided for @goalTimeSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'sec'**
+  String get goalTimeSeconds;
+
+  /// No description provided for @bulkGoalSetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set goals in bulk'**
+  String get bulkGoalSetTitle;
+
+  /// No description provided for @bulkGoalButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk set'**
+  String get bulkGoalButtonLabel;
+
+  /// No description provided for @bulkGoalCourseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal level'**
+  String get bulkGoalCourseLabel;
+
+  /// No description provided for @bulkGoalCourseEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it easy (1.1×)'**
+  String get bulkGoalCourseEasy;
+
+  /// No description provided for @bulkGoalCourseMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Step it up (1.2×)'**
+  String get bulkGoalCourseMedium;
+
+  /// No description provided for @bulkGoalCourseHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Push hard (1.3×)'**
+  String get bulkGoalCourseHard;
+
+  /// No description provided for @bulkGoalCourseMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Go big (1.5×)'**
+  String get bulkGoalCourseMax;
+
+  /// No description provided for @bulkGoalCourseShortEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get bulkGoalCourseShortEasy;
+
+  /// No description provided for @bulkGoalCourseShortMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Step up'**
+  String get bulkGoalCourseShortMedium;
+
+  /// No description provided for @bulkGoalCourseShortHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get bulkGoalCourseShortHard;
+
+  /// No description provided for @bulkGoalCourseShortMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get bulkGoalCourseShortMax;
+
+  /// No description provided for @bulkGoalCourseCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get bulkGoalCourseCustom;
+
+  /// No description provided for @bulkGoalCustomMultiplierHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter multiplier (e.g. 1.25)'**
+  String get bulkGoalCustomMultiplierHint;
+
+  /// No description provided for @bulkGoalCustomMultiplierInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a multiplier between 0.1 and 10'**
+  String get bulkGoalCustomMultiplierInvalid;
+
+  /// No description provided for @bulkGoalPastBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Past best'**
+  String get bulkGoalPastBest;
+
+  /// No description provided for @bulkGoalPastBestRepsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **' reps'**
+  String get bulkGoalPastBestRepsUnit;
+
+  /// No description provided for @bulkGoalSupplementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get bulkGoalSupplementTitle;
+
+  /// No description provided for @bulkGoalSupplementMultiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Target values are calculated by multiplying your current best record for each exercise by the selected rate (1.1× to 1.5×).'**
+  String get bulkGoalSupplementMultiplier;
+
+  /// No description provided for @bulkGoalSupplementExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Only exercises with past training history are shown.'**
+  String get bulkGoalSupplementExercises;
+
+  /// No description provided for @bulkGoalSelectExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Select exercises to set goals'**
+  String get bulkGoalSelectExercises;
+
+  /// No description provided for @bulkGoalSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get bulkGoalSelectAll;
+
+  /// No description provided for @bulkGoalDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get bulkGoalDeselectAll;
+
+  /// No description provided for @bulkGoalExecute.
+  ///
+  /// In en, this message translates to:
+  /// **'Set goals in bulk'**
+  String get bulkGoalExecute;
+
+  /// No description provided for @bulkGoalConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get bulkGoalConfirmTitle;
+
+  /// No description provided for @bulkGoalConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Set goals for {count} selected exercise(s)? Existing goals will be overwritten.'**
+  String bulkGoalConfirmMessage(int count);
+
+  /// No description provided for @bulkGoalResultMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals set for {count} exercise(s)'**
+  String bulkGoalResultMessage(int count);
+
+  /// No description provided for @bulkGoalResultMessageWithSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals set for {saved} exercise(s) ({skipped} skipped)'**
+  String bulkGoalResultMessageWithSkipped(int saved, int skipped);
+
+  /// No description provided for @bulkGoalResultSkippedReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped exercises have no best value matching their record type (weight, reps, time, etc.).'**
+  String get bulkGoalResultSkippedReason;
+
+  /// No description provided for @bulkGoalNoHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No history'**
+  String get bulkGoalNoHistoryTitle;
+
+  /// No description provided for @bulkGoalNoHistoryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No training history yet. Record some workouts and try again.'**
+  String get bulkGoalNoHistoryMessage;
+
+  /// No description provided for @bulkGoalNoTargetsToSetMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No exercises without a goal. Only exercises with training history and no goal set are shown here.'**
+  String get bulkGoalNoTargetsToSetMessage;
+
+  /// No description provided for @bulkGoalEditButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk edit'**
+  String get bulkGoalEditButtonLabel;
+
+  /// No description provided for @bulkGoalEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk edit goals'**
+  String get bulkGoalEditTitle;
+
+  /// No description provided for @bulkGoalEditSelectGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Select goals to edit or delete'**
+  String get bulkGoalEditSelectGoals;
+
+  /// No description provided for @bulkGoalDeleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected goals'**
+  String get bulkGoalDeleteSelected;
+
+  /// No description provided for @bulkGoalRecalcSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate selected goals'**
+  String get bulkGoalRecalcSelected;
+
+  /// No description provided for @bulkGoalEditConfirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} selected goal(s)?'**
+  String bulkGoalEditConfirmDelete(int count);
+
+  /// No description provided for @bulkGoalEditConfirmRecalc.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite {count} selected goal(s) with current best × selected rate. Continue?'**
+  String bulkGoalEditConfirmRecalc(int count);
+
+  /// No description provided for @bulkGoalEditResultDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} goal(s) deleted'**
+  String bulkGoalEditResultDeleted(int count);
+
+  /// No description provided for @bulkGoalEditResultRecalculated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} goal(s) recalculated'**
+  String bulkGoalEditResultRecalculated(int count);
+
+  /// No description provided for @bulkGoalEditResultRecalculatedWithSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{saved} recalculated ({skipped} skipped)'**
+  String bulkGoalEditResultRecalculatedWithSkipped(int saved, int skipped);
+
+  /// No description provided for @bulkGoalEditEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No goals'**
+  String get bulkGoalEditEmpty;
+
+  /// No description provided for @routineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Routines'**
+  String get routineTitle;
+
+  /// No description provided for @routineEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No routines yet.\nCreate one to quickly start workouts.'**
+  String get routineEmptyHint;
+
+  /// No description provided for @routineCreateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New Routine'**
+  String get routineCreateNew;
+
+  /// No description provided for @routineNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine Name'**
+  String get routineNameLabel;
+
+  /// No description provided for @routineNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Chest Day'**
+  String get routineNameHint;
+
+  /// No description provided for @routineSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Routine'**
+  String get routineSave;
+
+  /// No description provided for @routineDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Routine'**
+  String get routineDelete;
+
+  /// No description provided for @routineDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String routineDeleteConfirm(String name);
+
+  /// No description provided for @routineStartWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Workout'**
+  String get routineStartWorkout;
+
+  /// No description provided for @routineEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get routineEdit;
+
+  /// No description provided for @routineExerciseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} exercises'**
+  String routineExerciseCount(int count);
+
+  /// No description provided for @routineLoadIntoWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Load Routine'**
+  String get routineLoadIntoWorkout;
+
+  /// No description provided for @routineLoadConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Add exercises from this routine?'**
+  String get routineLoadConfirm;
+
+  /// No description provided for @routineAddToCurrentWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Routine to Workout'**
+  String get routineAddToCurrentWorkoutTitle;
+
+  /// No description provided for @routineAddToCurrentWorkoutMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This routine will be added to your current workout. Your existing entries will be kept.'**
+  String get routineAddToCurrentWorkoutMessage;
+
+  /// No description provided for @routineSaveAsRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as Routine'**
+  String get routineSaveAsRoutine;
+
+  /// No description provided for @routineSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine saved!'**
+  String get routineSaved;
+
+  /// No description provided for @routineManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get routineManage;
+
+  /// No description provided for @routineNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a routine name'**
+  String get routineNameRequired;
+
+  /// No description provided for @routineExerciseRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least one exercise'**
+  String get routineExerciseRequired;
+
+  /// No description provided for @listMenuRoutineDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'View and manage workout routines'**
+  String get listMenuRoutineDescription;
+
+  /// No description provided for @routineSetCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sets'**
+  String routineSetCount(int count);
 }
 
 class _AppLocalizationsDelegate

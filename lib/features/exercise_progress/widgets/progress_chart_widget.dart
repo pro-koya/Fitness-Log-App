@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/exercise_progress_provider.dart';
 import '../../../providers/settings_provider.dart';
+import '../../../utils/chart_aggregation.dart';
 import '../../../utils/date_formatter.dart';
 
 class ProgressChartWidget extends ConsumerWidget {
@@ -12,6 +13,8 @@ class ProgressChartWidget extends ConsumerWidget {
   final String chartMode;
   /// Distance unit for cardio (km or mile)
   final String distanceUnit;
+  /// グラフのX軸バケット（指定時はラベルを期間単位で表示）
+  final ChartXAxisBucket? xAxisBucket;
 
   const ProgressChartWidget({
     super.key,
@@ -19,6 +22,7 @@ class ProgressChartWidget extends ConsumerWidget {
     required this.unit,
     this.chartMode = 'weight',
     this.distanceUnit = 'km',
+    this.xAxisBucket,
   });
 
   @override
@@ -173,7 +177,7 @@ class ProgressChartWidget extends ConsumerWidget {
       lineBarsData: [
         LineChartBarData(
           spots: spots,
-          isCurved: true,
+          isCurved: false,
           color: Colors.blue,
           barWidth: 3,
           dotData: FlDotData(
@@ -220,33 +224,49 @@ class ProgressChartWidget extends ConsumerWidget {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 32,
+            reservedSize: 36,
             interval: 1,
             getTitlesWidget: (value, meta) {
               final index = value.toInt();
-              // Only show labels for exact integer positions
               if (value != index.toDouble()) {
                 return const SizedBox.shrink();
               }
-              if (index < 0 || index >= dataPoints.length) {
+              final n = dataPoints.length;
+              if (index < 0 || index >= n) {
                 return const SizedBox.shrink();
               }
 
-              // Show fewer labels if there are many data points
-              final showEveryN = dataPoints.length > 7 ? 2 : 1;
-              if (index % showEveryN != 0 && index != dataPoints.length - 1) {
+              // バケット種別に応じてラベル最大表示数を決定
+              // 年付き月ラベル（例: 24年4月）は幅が広いため少なめに
+              final isWideLabel = xAxisBucket == ChartXAxisBucket.month ||
+                  xAxisBucket == ChartXAxisBucket.threeMonths ||
+                  xAxisBucket == ChartXAxisBucket.fourMonths;
+              final maxLabels = isWideLabel ? 5 : 7;
+              final showEveryN = n <= maxLabels
+                  ? 1
+                  : ((n - 1) / (maxLabels - 1)).ceil().clamp(1, 999);
+
+              final isFirst = index == 0;
+              final isLast = index == n - 1;
+              if (!isFirst && !isLast && index % showEveryN != 0) {
                 return const SizedBox.shrink();
+              }
+              // 最後のラベルが直前の表示ラベルと近すぎる場合はスキップ
+              if (isLast && !isFirst) {
+                final prevShown = ((n - 2) ~/ showEveryN) * showEveryN;
+                if (n - 1 - prevShown < (showEveryN / 2).ceil()) {
+                  return const SizedBox.shrink();
+                }
               }
 
               final date = dataPoints[index].date;
-              final dateStr = DateFormatter.formatVeryShortDate(date, language);
-              final isFirst = index == 0;
-              final isLast = index == dataPoints.length - 1;
-              // Prevent the first/last label from being clipped by shifting it inward.
+              final dateStr = xAxisBucket != null
+                  ? DateFormatter.formatForChartAxis(date, language, xAxisBucket!)
+                  : DateFormatter.formatVeryShortDate(date, language);
               final shiftX = isFirst ? 10.0 : (isLast ? -10.0 : 0.0);
 
               return Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: 6),
                 child: Transform.translate(
                   offset: Offset(shiftX, 0),
                   child: Text(
@@ -254,7 +274,7 @@ class ProgressChartWidget extends ConsumerWidget {
                     style: const TextStyle(fontSize: 10),
                     maxLines: 1,
                     softWrap: false,
-                    overflow: TextOverflow.visible,
+                    overflow: TextOverflow.clip,
                   ),
                 ),
               );

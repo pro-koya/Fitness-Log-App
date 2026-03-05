@@ -131,6 +131,20 @@
   "timerPause": "Pause",
   "timerReset": "Reset",
   "timerClose": "Close",
+  "timerRestComplete": "Rest Complete!",
+  "timerRestCompleteMessage": "Your rest time is over. Ready for the next set?",
+  "timerTapTimeToSet": "Tap time to set",
+  "timerQuickStart": "Quick Start",
+  "timerNotificationTitle": "Timer ended",
+  "timerNotificationBody": "Your rest timer has finished.",
+  "notificationPermissionTitle": "Allow Notifications",
+  "notificationPermissionMessage": "Allow notifications so we can tell you when your rest timer ends, even when the app is in the background.",
+  "notificationPermissionAllow": "Allow",
+  "notificationPermissionNotNow": "Not Now",
+  "notificationSettingsEnableLabel": "Send notifications",
+  "notificationStateOn": "On",
+  "notificationStateOff": "Off",
+  "notificationSectionLabel": "Notifications",
 
   "settingsTitle": "Settings",
   "@settingsTitle": {
@@ -223,8 +237,14 @@
   "@recentWorkoutsLabel": {
     "description": "Label for recent workouts section"
   },
-  "navHomeLabel": "Home",
+  "navHomeLabel": "Record",
   "navHistoryLabel": "History",
+  "navListLabel": "List",
+  "navWeightLabel": "Weight",
+  "listMenuSubtitle": "Browse exercises, records, and memos",
+  "listMenuExerciseListDescription": "Manage your registered exercises",
+  "listMenuAllRecordsDescription": "View all workout records by date",
+  "listMenuMemoSearchDescription": "Search memos by keyword",
   "navSettingsLabel": "Settings",
   "errorLoadingWorkouts": "Error loading workouts",
   "@errorLoadingWorkouts": {
@@ -301,6 +321,7 @@
   "@settingsSaved": {
     "description": "Message shown when settings are saved successfully"
   },
+  "settingsUnsavedHint": "You have unsaved changes",
   "monthlyWorkoutCount": "{count} workouts",
   "@monthlyWorkoutCount": {
     "description": "Shows the number of workouts completed this month",
@@ -657,6 +678,7 @@
   "@startingTopVolume": {
     "description": "Label for starting top volume"
   },
+  "maxTopVolume": "Max Top Volume",
   "improvement": "Improvement",
   "@improvement": {
     "description": "Label for improvement stat"
@@ -1140,11 +1162,11 @@
   "@paywallPrivacyPolicy": {
     "description": "Privacy policy link"
   },
-  "paywallTrialTitle": "Would you like to keep\nthis habit going?",
+  "paywallTrialTitle": "For ultimate focus.",
   "@paywallTrialTitle": {
     "description": "Paywall headline - gentle encouragement to continue"
   },
-  "paywallTrialDescription": "With Pro, all your workout records are saved, so you can look back on your progress and keep training.",
+  "paywallTrialDescription": "Unlock advanced features with Pro, including ad removal and cloud synchronization.",
   "@paywallTrialDescription": {
     "description": "Paywall description - focus on state change, not features"
   },
@@ -1343,6 +1365,22 @@
   "importCsvFormatHint": "Select a CSV or JSON file exported by Liftly's backup feature.",
 
   "workoutCompletionTitle": "Workout Recorded",
+  "reviewPromptTitle": "You've logged 3 workouts!",
+  "@reviewPromptTitle": {
+    "description": "Title for in-app review prompt dialog"
+  },
+  "reviewPromptMessage": "Would you mind leaving a review? It helps us a lot.",
+  "@reviewPromptMessage": {
+    "description": "Message for in-app review prompt dialog"
+  },
+  "reviewPromptWriteReview": "Write a review",
+  "@reviewPromptWriteReview": {
+    "description": "Button to open store review"
+  },
+  "reviewPromptLater": "Later",
+  "@reviewPromptLater": {
+    "description": "Button to dismiss review prompt"
+  },
   "workoutCompletionSummary": "{exerciseCount} exercises, {setCount} sets, {volume}{unit} total volume",
   "@workoutCompletionSummary": {
     "placeholders": {
@@ -1433,5 +1471,163 @@
   "csvGuideColReps": "Reps (leave empty for time-based)",
   "csvGuideColDurationSeconds": "Duration in seconds (optional)",
   "csvGuideColDistanceMeters": "Distance in meters (optional)",
-  "csvGuideColMemo": "Memo (optional)"
+  "csvGuideColMemo": "Memo (optional)",
+
+  "goalSetTitle": "Set goal",
+  "goalValueLabel": "Target value",
+  "goalDeadlineOptional": "Deadline (optional)",
+  "goalSave": "Save",
+  "goalDelete": "Remove goal",
+  "goalDeleteConfirmMessage": "Remove this goal?",
+  "goalProgressRemaining": "{value} to goal",
+  "goalProgressPercent": "{percent}% to goal",
+  "goalProUpsell": "Goal tracking is available for free.",
+  "goalAchievedTitle": "Goals achieved",
+  "goalsAchievedThisWeek": "Goals achieved this week",
+  "goalAchievedMessage": "Goal achieved on {exercise}: {value}.",
+  "goalTypeWeight": "Weight",
+  "goalTypeReps": "Reps",
+  "goalTypeVolume": "Volume",
+  "goalTypeTime": "Time",
+  "goalTypeDistance": "Distance",
+  "goalListTitle": "Goals",
+  "goalPriorityLabel": "Priority",
+  "goalAchievementRateLabel": "Progress",
+  "goalPriorityLow": "Low",
+  "goalPriorityMedium": "Medium",
+  "goalPriorityHigh": "High",
+  "goalListEmpty": "No goals set",
+  "listMenuGoalListDescription": "View all your goals",
+  "goalTargetLabel": "Target",
+  "goalDueLabel": "Due",
+  "goalTimeMinutes": "min",
+  "goalTimeSeconds": "sec",
+
+  "bulkGoalSetTitle": "Set goals in bulk",
+  "bulkGoalButtonLabel": "Bulk set",
+  "bulkGoalCourseLabel": "Goal level",
+  "bulkGoalCourseEasy": "Take it easy (1.1×)",
+  "bulkGoalCourseMedium": "Step it up (1.2×)",
+  "bulkGoalCourseHard": "Push hard (1.3×)",
+  "bulkGoalCourseMax": "Go big (1.5×)",
+  "bulkGoalCourseShortEasy": "Easy",
+  "bulkGoalCourseShortMedium": "Step up",
+  "bulkGoalCourseShortHard": "Hard",
+  "bulkGoalCourseShortMax": "Max",
+  "bulkGoalCourseCustom": "Custom",
+  "bulkGoalCustomMultiplierHint": "Enter multiplier (e.g. 1.25)",
+  "bulkGoalCustomMultiplierInvalid": "Enter a multiplier between 0.1 and 10",
+  "bulkGoalPastBest": "Past best",
+  "bulkGoalPastBestRepsUnit": " reps",
+  "bulkGoalSupplementTitle": "About",
+  "bulkGoalSupplementMultiplier": "Target values are calculated by multiplying your current best record for each exercise by the selected rate (1.1× to 1.5×).",
+  "bulkGoalSupplementExercises": "Only exercises with past training history are shown.",
+  "bulkGoalSelectExercises": "Select exercises to set goals",
+  "bulkGoalSelectAll": "Select all",
+  "bulkGoalDeselectAll": "Deselect all",
+  "bulkGoalExecute": "Set goals in bulk",
+  "bulkGoalConfirmTitle": "Confirm",
+  "bulkGoalConfirmMessage": "Set goals for {count} selected exercise(s)? Existing goals will be overwritten.",
+  "@bulkGoalConfirmMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalResultMessage": "Goals set for {count} exercise(s)",
+  "@bulkGoalResultMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalResultMessageWithSkipped": "Goals set for {saved} exercise(s) ({skipped} skipped)",
+  "@bulkGoalResultMessageWithSkipped": {
+    "placeholders": {
+      "saved": { "type": "int" },
+      "skipped": { "type": "int" }
+    }
+  },
+  "bulkGoalResultSkippedReason": "Skipped exercises have no best value matching their record type (weight, reps, time, etc.).",
+  "bulkGoalNoHistoryTitle": "No history",
+  "bulkGoalNoHistoryMessage": "No training history yet. Record some workouts and try again.",
+  "bulkGoalNoTargetsToSetMessage": "No exercises without a goal. Only exercises with training history and no goal set are shown here.",
+
+  "bulkGoalEditButtonLabel": "Bulk edit",
+  "bulkGoalEditTitle": "Bulk edit goals",
+  "bulkGoalEditSelectGoals": "Select goals to edit or delete",
+  "bulkGoalDeleteSelected": "Delete selected goals",
+  "bulkGoalRecalcSelected": "Recalculate selected goals",
+  "bulkGoalEditConfirmDelete": "Delete {count} selected goal(s)?",
+  "@bulkGoalEditConfirmDelete": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditConfirmRecalc": "Overwrite {count} selected goal(s) with current best × selected rate. Continue?",
+  "@bulkGoalEditConfirmRecalc": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditResultDeleted": "{count} goal(s) deleted",
+  "@bulkGoalEditResultDeleted": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditResultRecalculated": "{count} goal(s) recalculated",
+  "@bulkGoalEditResultRecalculated": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkGoalEditResultRecalculatedWithSkipped": "{saved} recalculated ({skipped} skipped)",
+  "@bulkGoalEditResultRecalculatedWithSkipped": {
+    "placeholders": {
+      "saved": { "type": "int" },
+      "skipped": { "type": "int" }
+    }
+  },
+  "bulkGoalEditEmpty": "No goals",
+
+  "goalProgressRemaining": "{value} to goal",
+  "@goalProgressRemaining": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "goalProgressPercent": "{percent}% to goal",
+  "@goalProgressPercent": {
+    "placeholders": { "percent": { "type": "int" } }
+  },
+  "goalAchievedMessage": "Goal achieved on {exercise}: {value}.",
+  "@goalAchievedMessage": {
+    "placeholders": {
+      "exercise": { "type": "String" },
+      "value": { "type": "String" }
+    }
+  },
+
+  "routineTitle": "Routines",
+  "routineEmptyHint": "No routines yet.\nCreate one to quickly start workouts.",
+  "routineCreateNew": "New Routine",
+  "routineNameLabel": "Routine Name",
+  "routineNameHint": "e.g., Chest Day",
+  "routineSave": "Save Routine",
+  "routineDelete": "Delete Routine",
+  "routineDeleteConfirm": "Delete \"{name}\"?",
+  "@routineDeleteConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "routineStartWorkout": "Start Workout",
+  "routineEdit": "Edit",
+  "routineExerciseCount": "{count} exercises",
+  "@routineExerciseCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "routineLoadIntoWorkout": "Load Routine",
+  "routineLoadConfirm": "Add exercises from this routine?",
+  "routineAddToCurrentWorkoutTitle": "Add Routine to Workout",
+  "routineAddToCurrentWorkoutMessage": "This routine will be added to your current workout. Your existing entries will be kept.",
+  "routineSaveAsRoutine": "Save as Routine",
+  "routineSaved": "Routine saved!",
+  "routineManage": "Manage",
+  "routineNameRequired": "Please enter a routine name",
+  "routineExerciseRequired": "Please add at least one exercise",
+  "listMenuRoutineDescription": "View and manage workout routines",
+  "routineSetCount": "{count} sets",
+  "@routineSetCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

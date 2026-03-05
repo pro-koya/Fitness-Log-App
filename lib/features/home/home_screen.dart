@@ -19,6 +19,11 @@ import '../tutorial/models/tutorial_step.dart';
 import '../tutorial/widgets/tutorial_overlay.dart';
 import '../body_weight/body_weight_screen.dart';
 import '../body_weight/providers/body_weight_provider.dart';
+import '../goal_list/goal_list_screen.dart';
+import '../routine/routine_list_screen.dart';
+import '../routine/widgets/routine_selector_modal.dart';
+import '../../providers/routine_provider.dart';
+import '../../data/entities/routine_template_entity.dart';
 
 /// Home screen - main entry point after initial setup.
 /// When [isEmbeddedInTab] is true, used as the first tab of [MainTabScreen]; AppBar shows only Timer.
@@ -45,13 +50,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isTutorialActive = tutorialState.isActive &&
         tutorialState.currentStep == TutorialStep.homeStartWorkout;
 
+    // ヘッダーなし: 設定・タイマーは MainTabScreen で左上/右下に固定。メイン動線はフッターとホーム内のショートカットで確保。
     return Scaffold(
       appBar: widget.isEmbeddedInTab
-          ? AppBar(
-              title: const SizedBox.shrink(),
-              centerTitle: true,
-              actions: const [TimerIconButton()],
-            )
+          ? null
           : AppBar(
               title: const SizedBox.shrink(),
               centerTitle: true,
@@ -111,99 +113,118 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     );
                   },
                 ),
+                _buildCompactIconButton(
+                  icon: Icons.flag,
+                  tooltip: l10n.goalListTitle,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const GoalListScreen(),
+                      ),
+                    );
+                  },
+                ),
                 const TimerIconButton(),
               ],
             ),
       body: Stack(
         children: [
           SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Date Display
-              Text(
-                DateFormatter.formatMediumDate(now, currentLanguage),
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Statistics Cards (Monthly count & Streak)
-              _buildStatisticsCards(context),
-
-              const SizedBox(height: 24),
-
-              // Session Status + differentiator hint (P1-1)
-              sessionAsync.when(
-                data: (session) {
-                  if (session != null) {
-                    // In-progress session exists
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildInProgressCard(context, ref, session),
-                        const SizedBox(height: 16),
-                        _buildStartNewButton(context, ref, isSecondary: true),
-                        const SizedBox(height: 8),
-                        _buildDifferentiatorHint(context),
-                      ],
-                    );
-                  } else {
-                    // No in-progress session
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildStartNewButton(context, ref),
-                        const SizedBox(height: 8),
-                        _buildDifferentiatorHint(context),
-                      ],
-                    );
-                  }
-                },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                error: (error, stack) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.errorLoadFailed,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton.icon(
-                          onPressed: () => ref.invalidate(workoutSessionNotifierProvider),
-                          icon: const Icon(Icons.refresh, size: 18),
-                          label: Text(l10n.retryButton),
-                        ),
-                      ],
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // タブ埋め込み時: 記録一覧・種目一覧・メモ検索へのショートカット（フッターと併用）
+                  if (widget.isEmbeddedInTab) ...[
+                    _buildShortcutRow(context, l10n),
+                    const SizedBox(height: 16),
+                  ],
+                  // Date Display
+                  Text(
+                    DateFormatter.formatMediumDate(now, currentLanguage),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+
+                  // Statistics Cards (Monthly count & Streak)
+                  _buildStatisticsCards(context),
+
+                  const SizedBox(height: 16),
+
+                  // Routine section
+                  _buildRoutineSection(context, ref),
+
+                  const SizedBox(height: 16),
+
+                  // Session Status + differentiator hint (P1-1)
+                  sessionAsync.when(
+                    data: (session) {
+                      if (session != null) {
+                        // In-progress session exists
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildInProgressCard(context, ref, session),
+                            const SizedBox(height: 16),
+                            _buildStartNewButton(context, ref, isSecondary: true),
+                            const SizedBox(height: 8),
+                            _buildDifferentiatorHint(context),
+                          ],
+                        );
+                      } else {
+                        // No in-progress session
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildStartNewButton(context, ref),
+                            const SizedBox(height: 8),
+                            _buildDifferentiatorHint(context),
+                          ],
+                        );
+                      }
+                    },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    error: (error, stack) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
+                            const SizedBox(height: 12),
+                            Text(
+                              l10n.errorLoadFailed,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton.icon(
+                              onPressed: () => ref.invalidate(workoutSessionNotifierProvider),
+                              icon: const Icon(Icons.refresh, size: 18),
+                              label: Text(l10n.retryButton),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Recent Workouts Section (scrolls with page for wider scroll range)
+                  _buildRecentWorkoutsTitle(context, ref),
+                  const SizedBox(height: 16),
+
+                  _buildRecentWorkouts(context, ref),
+                ],
               ),
-
-              const SizedBox(height: 32),
-
-              // Recent Workouts Section
-              _buildRecentWorkoutsTitle(context, ref),
-              const SizedBox(height: 16),
-
-              Expanded(
-                child: _buildRecentWorkouts(context, ref),
-              ),
-            ],
-          ),
-        ),
+            ),
           ),
           // Tutorial overlay - must be Positioned.fill to correctly align spotlight
           if (isTutorialActive)
@@ -221,7 +242,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildStatisticsCards(BuildContext context) {
+Widget _buildStatisticsCards(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
 
@@ -381,6 +402,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
 
         return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
@@ -711,6 +734,258 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Build compact icon button with reduced padding for AppBar
+  /// タブ埋め込み時用: 記録一覧・種目一覧・メモ検索への1行ショートカット
+  Widget _buildShortcutRow(BuildContext context, AppLocalizations l10n) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _shortcutChip(
+            context: context,
+            icon: Icons.list_alt,
+            label: l10n.allRecordsTitle,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AllRecordsScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+          _shortcutChip(
+            context: context,
+            icon: Icons.fitness_center,
+            label: l10n.exerciseListTooltip,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ExerciseListScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+          _shortcutChip(
+            context: context,
+            icon: Icons.search,
+            label: l10n.memoSearch,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const MemoSearchScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _shortcutChip({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: Theme.of(context).colorScheme.onSurface),
+              const SizedBox(width: 6),
+              Text(label, style: const TextStyle(fontSize: 13)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoutineSection(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final routinesAsync = ref.watch(routineListProvider);
+
+    return routinesAsync.when(
+      data: (routines) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  l10n.routineTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const RoutineListScreen(),
+                      ),
+                    ).then((_) => ref.invalidate(routineListProvider));
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                  ),
+                  child: Text(
+                    l10n.routineManage,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: routines.isEmpty
+                    ? null
+                    : () => _openRoutineSelectorAndStart(context, ref),
+                icon: const Icon(Icons.repeat_rounded, size: 20),
+                label: Text(l10n.routineLoadIntoWorkout),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  foregroundColor: routines.isEmpty ? Colors.grey : null,
+                ),
+              ),
+            ),
+            if (routines.isEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.routineEmptyHint,
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Future<void> _openRoutineSelectorAndStart(BuildContext context, WidgetRef ref) async {
+    final routine = await showModalBottomSheet<RoutineTemplateEntity>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.25,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: const RoutineSelectorModal(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (routine == null || !context.mounted) return;
+
+    final sessionAsync = ref.read(workoutSessionNotifierProvider);
+    final currentSession = sessionAsync.valueOrNull;
+
+    if (currentSession != null && currentSession.id != null) {
+      final l10n = AppLocalizations.of(context)!;
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.routineAddToCurrentWorkoutTitle),
+          content: Text(l10n.routineAddToCurrentWorkoutMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancelButton),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.routineLoadIntoWorkout),
+            ),
+          ],
+        ),
+      );
+      if (confirm == true && context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => WorkoutInputScreen(
+              sessionId: currentSession.id!,
+              addRoutineId: routine.id,
+              isTutorialMode: ref.read(interactiveTutorialProvider).isActive,
+            ),
+          ),
+        ).then((_) {
+          ref.read(workoutSessionNotifierProvider.notifier).refresh();
+          ref.invalidate(recentWorkoutItemsProvider);
+        });
+      }
+      return;
+    }
+
+    await _startFromRoutine(context, ref, routine);
+  }
+
+  Future<void> _startFromRoutine(
+    BuildContext context,
+    WidgetRef ref,
+    RoutineTemplateEntity routine,
+  ) async {
+    final notifier = ref.read(workoutSessionNotifierProvider.notifier);
+    final sessionId = await notifier.createNewSession();
+
+    if (sessionId != null && context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => WorkoutInputScreen(
+            sessionId: sessionId,
+            routineId: routine.id,
+          ),
+        ),
+      ).then((_) {
+        ref.read(workoutSessionNotifierProvider.notifier).refresh();
+        ref.invalidate(recentWorkoutItemsProvider);
+      });
+    }
+  }
+
   Widget _buildCompactIconButton({
     required IconData icon,
     required String tooltip,

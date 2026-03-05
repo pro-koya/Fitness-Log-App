@@ -10,6 +10,7 @@ class SetRowWidget extends StatefulWidget {
   final Function(double? weight, int? reps, int? durationSeconds, double? distance) onUpdate;
   final VoidCallback onDuplicate;
   final VoidCallback onDelete;
+  final bool autoFocus;
 
   const SetRowWidget({
     super.key,
@@ -19,6 +20,7 @@ class SetRowWidget extends StatefulWidget {
     required this.onUpdate,
     required this.onDuplicate,
     required this.onDelete,
+    this.autoFocus = false,
   });
 
   @override
@@ -31,6 +33,7 @@ class _SetRowWidgetState extends State<SetRowWidget> {
   late TextEditingController _minutesController;
   late TextEditingController _secondsController;
   late TextEditingController _distanceController;
+  final FocusNode _firstFieldFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -54,6 +57,14 @@ class _SetRowWidgetState extends State<SetRowWidget> {
     _distanceController = TextEditingController(
       text: widget.set.distance != null ? _formatNumber(widget.set.distance!) : '',
     );
+
+    if (widget.autoFocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _firstFieldFocusNode.requestFocus();
+        }
+      });
+    }
   }
 
   String _formatNumber(double value) {
@@ -92,6 +103,7 @@ class _SetRowWidgetState extends State<SetRowWidget> {
 
   @override
   void dispose() {
+    _firstFieldFocusNode.dispose();
     _weightController.dispose();
     _repsController.dispose();
     _minutesController.dispose();
@@ -155,6 +167,7 @@ class _SetRowWidgetState extends State<SetRowWidget> {
                   child: _buildNumberInput(
                     controller: _weightController,
                     label: widget.set.unit,
+                    focusNode: _firstFieldFocusNode,
                     onChanged: (value) {
                       final weight = double.tryParse(value);
                       // Keep duration intact even if weight is edited after setting time.
@@ -166,6 +179,7 @@ class _SetRowWidgetState extends State<SetRowWidget> {
                   child: _buildNumberInput(
                     controller: _weightController,
                     label: widget.set.unit,
+                    focusNode: _firstFieldFocusNode,
                     onChanged: (value) {
                       final weight = double.tryParse(value);
                       widget.onUpdate(weight, widget.set.reps, null, null);
@@ -290,6 +304,7 @@ class _SetRowWidgetState extends State<SetRowWidget> {
             child: _buildNumberInput(
               controller: _minutesController,
               label: 'm',
+              focusNode: _firstFieldFocusNode,
               onChanged: (value) {
                 final durationSeconds = _calculateDurationSeconds();
                 widget.onUpdate(null, null, durationSeconds, _parseDistance());
@@ -373,9 +388,11 @@ class _SetRowWidgetState extends State<SetRowWidget> {
     required Function(String) onChanged,
     bool allowDecimal = true,
     int? maxValue,
+    FocusNode? focusNode,
   }) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: allowDecimal
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.number,

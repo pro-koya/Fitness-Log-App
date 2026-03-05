@@ -160,6 +160,12 @@ class WorkoutSessionDao {
     );
   }
 
+  /// Delete all sessions (Pro sync: pull from server でローカル全削除時に使用)
+  Future<int> deleteAll() async {
+    final db = await _dbHelper.database;
+    return await db.delete('workout_sessions', where: '1');
+  }
+
   /// Count sessions in current month
   Future<int> countSessionsInMonth(int year, int month) async {
     final db = await _dbHelper.database;
@@ -226,9 +232,64 @@ class WorkoutSessionDao {
     return maps.map((map) => WorkoutSessionEntity.fromMap(map)).toList();
   }
 
+  /// Get count of completed sessions this week (Mon–Sun)
+  Future<int> countSessionsThisWeek() async {
+    final db = await _dbHelper.database;
+    final now = DateTime.now();
+    // Start of week (Monday)
+    final weekday = now.weekday;
+    final daysToMonday = weekday == 7 ? 0 : weekday - 1;
+    final startOfWeek =
+        DateTime(now.year, now.month, now.day).subtract(Duration(days: daysToMonday));
+    final endOfWeek = startOfWeek.add(const Duration(days: 7));
+    final startTimestamp = startOfWeek.millisecondsSinceEpoch ~/ 1000;
+    final endTimestamp = endOfWeek.millisecondsSinceEpoch ~/ 1000;
+
+    final result = await db.rawQuery(
+      '''
+      SELECT COUNT(*) as count
+      FROM workout_sessions
+      WHERE status = 'completed'
+        AND completed_at >= ?
+        AND completed_at < ?
+      ''',
+      [startTimestamp, endTimestamp],
+    );
+
+    return result.first['count'] as int;
+  }
+
+  /// Get count of completed sessions last week (Mon–Sun)
+  Future<int> countSessionsLastWeek() async {
+    final db = await _dbHelper.database;
+    final now = DateTime.now();
+    final weekday = now.weekday;
+    final daysToMonday = weekday == 7 ? 0 : weekday - 1;
+    final startOfThisWeek =
+        DateTime(now.year, now.month, now.day).subtract(Duration(days: daysToMonday));
+    final startOfLastWeek = startOfThisWeek.subtract(const Duration(days: 7));
+    final endOfLastWeek = startOfLastWeek.add(const Duration(days: 7));
+    final startTimestamp = startOfLastWeek.millisecondsSinceEpoch ~/ 1000;
+    final endTimestamp = endOfLastWeek.millisecondsSinceEpoch ~/ 1000;
+
+    final result = await db.rawQuery(
+      '''
+      SELECT COUNT(*) as count
+      FROM workout_sessions
+      WHERE status = 'completed'
+        AND completed_at >= ?
+        AND completed_at < ?
+      ''',
+      [startTimestamp, endTimestamp],
+    );
+
+    return result.first['count'] as int;
+  }
+
   /// Get current workout streak (consecutive days)
   /// Returns the number of consecutive days the user has worked out
   /// Workouts are considered consecutive if they're within 2 days of each other
+  /// Streak is reset to 0 if the most recent workout is more than 2 days ago
   Future<int> getCurrentStreak() async {
     final db = await _dbHelper.database;
 
@@ -244,6 +305,10 @@ class WorkoutSessionDao {
 
     final sessions =
         maps.map((map) => WorkoutSessionEntity.fromMap(map)).toList();
+
+    // Check if the most recent session is still within streak range from today
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
 
     int streak = 0;
     DateTime? previousDate;
@@ -263,7 +328,12 @@ class WorkoutSessionDao {
       );
 
       if (previousDate == null) {
-        // First session in the streak
+        // First (most recent) session: check distance from today
+        final daysFromToday = todayDate.difference(currentDate).inDays;
+        if (daysFromToday > 2) {
+          // Most recent workout is too far from today, streak is broken
+          return 0;
+        }
         streak = 1;
         previousDate = currentDate;
       } else {

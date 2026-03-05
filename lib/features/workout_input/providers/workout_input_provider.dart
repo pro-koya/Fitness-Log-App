@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/entities/exercise_master_entity.dart';
-import '../../../data/entities/set_record_entity.dart';
 import '../../../data/entities/workout_exercise_entity.dart';
+import '../../../data/entities/goal_achievement_entity.dart';
 import '../../../providers/database_providers.dart';
+import '../../../providers/routine_provider.dart';
 import '../../../providers/settings_provider.dart';
+import '../../../utils/duration_formatter.dart';
+import '../../../utils/feature_gate.dart';
+import '../../workout_completion/models/workout_completion_result.dart';
 import '../models/workout_exercise_model.dart';
 
 /// State for workout input
@@ -13,12 +17,15 @@ class WorkoutInputState {
   final List<WorkoutExerciseModel> exercises;
   final bool isLoading;
   final String? error;
+  /// Goals achieved in the last saveAll() (for completion modal)
+  final List<GoalAchievedDisplay> achievedGoalsInLastSave;
 
   const WorkoutInputState({
     required this.sessionId,
     this.exercises = const [],
     this.isLoading = false,
     this.error,
+    this.achievedGoalsInLastSave = const [],
   });
 
   WorkoutInputState copyWith({
@@ -26,12 +33,14 @@ class WorkoutInputState {
     List<WorkoutExerciseModel>? exercises,
     bool? isLoading,
     String? error,
+    List<GoalAchievedDisplay>? achievedGoalsInLastSave,
   }) {
     return WorkoutInputState(
       sessionId: sessionId ?? this.sessionId,
       exercises: exercises ?? this.exercises,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      achievedGoalsInLastSave: achievedGoalsInLastSave ?? this.achievedGoalsInLastSave,
     );
   }
 }
@@ -138,8 +147,14 @@ class WorkoutInputNotifier extends StateNotifier<WorkoutInputState> {
     }
   }
 
-  /// Add exercise to session
-  Future<void> addExercise(ExerciseMasterEntity exercise) async {
+  /// Add exercise to session.
+  /// Returns true if added, false if the same exercise is already in the session (duplicate).
+  Future<bool> addExercise(ExerciseMasterEntity exercise) async {
+    if (exercise.id == null) return false;
+    final alreadyAdded = state.exercises
+        .any((e) => e.exercise.id == exercise.id);
+    if (alreadyAdded) return false;
+
     try {
       final workoutExerciseDao = ref.read(workoutExerciseDaoProvider);
       final setRecordDao = ref.read(setRecordDaoProvider);
@@ -185,6 +200,50 @@ class WorkoutInputNotifier extends StateNotifier<WorkoutInputState> {
       state = state.copyWith(
         exercises: [...state.exercises, newExercise],
       );
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  /// Load exercises from a routine template
+  Future<void> loadFromRoutine(int routineId) async {
+    try {
+      final routineDetail = await ref.read(routineDetailProvider(routineId).future);
+      final currentUnit = ref.read(currentUnitProvider);
+      final currentDistanceUnit = ref.read(currentDistanceUnitProvider);
+
+      for (final routineExercise in routineDetail.exercises) {
+        // Add the exercise (creates workout_exercise row and empty first set)
+        final added = await addExercise(routineExercise.exercise);
+        if (!added) continue;
+
+        final exerciseIndex = state.exercises.length - 1;
+        final exercise = state.exercises[exerciseIndex];
+
+        // Replace the auto-created empty set with routine's target sets
+        if (routineExercise.targetSets.isNotEmpty) {
+          final targetSets = routineExercise.targetSets
+              .map((ts) => SetRecordModel(
+                    setNumber: ts.setNumber,
+                    weight: ts.weight,
+                    reps: ts.reps,
+                    durationSeconds: ts.durationSeconds,
+                    distance: ts.distance,
+                    unit: currentUnit,
+                    distanceUnit: currentDistanceUnit,
+                    recordType: routineExercise.exercise.recordType,
+                  ))
+              .toList();
+
+          final updatedExercise = exercise.copyWith(sets: targetSets);
+          final updatedList = [...state.exercises];
+          updatedList[exerciseIndex] = updatedExercise;
+          state = state.copyWith(exercises: updatedList);
+        }
+      }
+      _scheduleAutoSave();
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
@@ -395,9 +454,25 @@ class WorkoutInputNotifier extends StateNotifier<WorkoutInputState> {
     try {
       final setRecordDao = ref.read(setRecordDaoProvider);
       final workoutExerciseDao = ref.read(workoutExerciseDaoProvider);
+      final goalDao = ref.read(exerciseGoalDaoProvider);
+      final gate = ref.read(featureGateProvider);
+      final unit = ref.read(currentUnitProvider);
+      final language = ref.read(currentLanguageProvider);
+      final achievedInThisSave = <GoalAchievedDisplay>[];
 
       for (final exercise in state.exercises) {
-        if (exercise.workoutExerciseId == null) continue;
+        if (exercise.workoutExerciseId == null || exercise.exercise.id == null) continue;
+
+        final exerciseId = exercise.exercise.id!;
+
+        // Pro: check goal achievement (best before save)
+        double? bestBefore;
+        if (gate.canAccessExerciseGoals) {
+          final goal = await goalDao.getByExerciseId(exerciseId);
+          if (goal != null) {
+            bestBefore = await setRecordDao.getBestValueForExercise(exerciseId, goal.goalType);
+          }
+        }
 
         // Save memo
         await workoutExerciseDao.updateMemo(
@@ -417,14 +492,83 @@ class WorkoutInputNotifier extends StateNotifier<WorkoutInputState> {
             set.toEntity(
               workoutExerciseId: exercise.workoutExerciseId!,
               sessionId: state.sessionId,
-              exerciseId: exercise.exercise.id!,
+              exerciseId: exerciseId,
             ),
           );
         }
+
+        // Pro: if we just crossed the goal threshold, add to list for completion modal and persist
+        if (gate.canAccessExerciseGoals) {
+          final goal = await goalDao.getByExerciseId(exerciseId);
+          if (goal != null) {
+            final bestAfter = await setRecordDao.getBestValueForExercise(
+              exerciseId,
+              goal.goalType,
+              includeSessionId: state.sessionId,
+            );
+            if (bestAfter != null &&
+                (bestBefore == null || bestBefore < goal.goalValue) &&
+                bestAfter >= goal.goalValue) {
+              final valueStr = _formatGoalValueForMessage(goal.goalType, goal.goalValue, unit, language);
+              final isStandard = exercise.exercise.isCustom == 0;
+              achievedInThisSave.add(GoalAchievedDisplay(
+                exerciseNameEn: exercise.exercise.name,
+                valueStr: valueStr,
+                isStandard: isStandard,
+              ));
+              await _persistGoalAchievement(
+                ref,
+                exerciseId: exerciseId,
+                exerciseNameEn: exercise.exercise.name,
+                goalType: goal.goalType,
+                valueStr: valueStr,
+                isStandard: isStandard,
+              );
+            }
+          }
+        }
       }
+      state = state.copyWith(achievedGoalsInLastSave: achievedInThisSave);
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
+  }
+
+  static Future<void> _persistGoalAchievement(
+    Ref ref, {
+    required int exerciseId,
+    required String exerciseNameEn,
+    required String goalType,
+    required String valueStr,
+    required bool isStandard,
+  }) async {
+    try {
+      final dao = ref.read(goalAchievementDaoProvider);
+      await dao.insert(GoalAchievementEntity(
+        id: null,
+        exerciseId: exerciseId,
+        exerciseNameEn: exerciseNameEn,
+        goalType: goalType,
+        goalValueDisplay: valueStr,
+        achievedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        isStandard: isStandard,
+      ));
+    } catch (_) {
+      // Optional: don't fail saveAll if log fails
+    }
+  }
+
+  static String _formatGoalValueForMessage(String goalType, double value, String unit, String language) {
+    // goal_value for weight is stored in kg
+    if (goalType == 'weight') {
+      final display = unit == 'lb' ? value * 2.20462 : value;
+      return '${display.toStringAsFixed(1)}$unit';
+    }
+    if (goalType == 'reps') return value.toInt().toString();
+    if (goalType == 'time') return formatDurationForGoal(value.toInt(), language);
+    if (goalType == 'volume') return value.toStringAsFixed(0);
+    if (goalType == 'distance') return '${(value / 1000).toStringAsFixed(1)}km';
+    return value.toString();
   }
 }
 

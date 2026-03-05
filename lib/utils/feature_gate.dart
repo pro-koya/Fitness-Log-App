@@ -4,57 +4,48 @@ import '../providers/entitlement_provider.dart';
 
 /// 機能ゲートヘルパークラス
 ///
-/// Free/Proプランに応じて各機能へのアクセスを制御する
+/// Free/Proプランに応じて各機能へのアクセスを制御する。
+/// 履歴は Free/Pro ともに全件閲覧可能（セッション数制限廃止）。
 class FeatureGate {
   final EntitlementState entitlement;
 
   const FeatureGate(this.entitlement);
 
-  /// Free版で閲覧可能な履歴の上限（セッション数）
-  static const int freeHistoryLimit = 20;
-
   /// Proプランかどうか
   bool get isPro => entitlement.isPro;
 
-  /// 全履歴にアクセス可能か
-  bool get canAccessFullHistory => entitlement.isPro;
+  /// 全履歴にアクセス可能か（Free/Pro 共通で常に true）
+  bool get canAccessFullHistory => true;
 
-  /// グラフ機能にアクセス可能か
-  bool get canAccessCharts => entitlement.isPro;
+  /// サーバー同期が可能か（Pro のみ）
+  bool get canSync => entitlement.isPro;
 
-  /// テーマカスタマイズ可能か
-  bool get canCustomizeTheme => entitlement.isPro;
+  /// グラフ機能にアクセス可能か（Free/Pro共通）
+  bool get canAccessCharts => true;
 
-  /// 詳細統計にアクセス可能か
-  bool get canAccessDetailedStats => entitlement.isPro;
+  /// テーマカスタマイズ可能か（Free/Pro共通）
+  bool get canCustomizeTheme => true;
 
-  /// バックアップ/復元可能か
-  bool get canBackup => entitlement.isPro;
+  /// 詳細統計にアクセス可能か（Free/Pro共通）
+  bool get canAccessDetailedStats => true;
 
-  /// 高度な種目検索・フィルタが可能か
-  bool get canUseAdvancedSearch => entitlement.isPro;
+  /// バックアップ/復元可能か（Free/Pro共通）
+  bool get canBackup => true;
 
-  /// セッションがロックされているか判定
-  ///
-  /// [sessionIndex] は 0-indexed（新しい順）
-  /// Proユーザーは全てアクセス可能
-  /// Freeユーザーは直近20件のみアクセス可能
-  bool isSessionLocked(int sessionIndex) {
-    if (entitlement.isPro) return false;
-    return sessionIndex >= freeHistoryLimit;
-  }
+  /// 高度な種目検索・フィルタが可能か（Free/Pro共通）
+  bool get canUseAdvancedSearch => true;
 
-  /// ロックされているセッション数を計算
-  int getLockedCount(int totalSessions) {
-    if (entitlement.isPro) return 0;
-    return (totalSessions - freeHistoryLimit).clamp(0, totalSessions);
-  }
+  /// 種目別目標の設定・表示が可能か（Free/Pro 共通）
+  bool get canAccessExerciseGoals => true;
 
-  /// アクセス可能なセッション数を計算
-  int getAccessibleCount(int totalSessions) {
-    if (entitlement.isPro) return totalSessions;
-    return totalSessions.clamp(0, freeHistoryLimit);
-  }
+  /// セッションがロックされているか判定（履歴制限廃止のため常に false）
+  bool isSessionLocked(int sessionIndex) => false;
+
+  /// ロックされているセッション数を計算（常に 0）
+  int getLockedCount(int totalSessions) => 0;
+
+  /// アクセス可能なセッション数を計算（常に全件）
+  int getAccessibleCount(int totalSessions) => totalSessions;
 }
 
 /// 機能ゲートプロバイダー
@@ -63,8 +54,7 @@ final featureGateProvider = Provider<FeatureGate>((ref) {
   return FeatureGate(entitlement);
 });
 
-/// 特定セッションがロックされているかのプロバイダー（ファミリー）
+/// 特定セッションがロックされているか（履歴制限廃止のため常に false）
 final isSessionLockedProvider = Provider.family<bool, int>((ref, sessionIndex) {
-  final gate = ref.watch(featureGateProvider);
-  return gate.isSessionLocked(sessionIndex);
+  return false;
 });

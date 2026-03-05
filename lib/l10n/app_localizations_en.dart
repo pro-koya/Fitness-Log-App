@@ -132,6 +132,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timerClose => 'Close';
 
   @override
+  String get timerRestComplete => 'Rest Complete!';
+
+  @override
+  String get timerRestCompleteMessage =>
+      'Your rest time is over. Ready for the next set?';
+
+  @override
+  String get timerTapTimeToSet => 'Tap time to set';
+
+  @override
+  String get timerQuickStart => 'Quick Start';
+
+  @override
+  String get timerNotificationTitle => 'Timer ended';
+
+  @override
+  String get timerNotificationBody => 'Your rest timer has finished.';
+
+  @override
+  String get notificationPermissionTitle => 'Allow Notifications';
+
+  @override
+  String get notificationPermissionMessage =>
+      'Allow notifications so we can tell you when your rest timer ends, even when the app is in the background.';
+
+  @override
+  String get notificationPermissionAllow => 'Allow';
+
+  @override
+  String get notificationPermissionNotNow => 'Not Now';
+
+  @override
+  String get notificationSettingsEnableLabel => 'Send notifications';
+
+  @override
+  String get notificationStateOn => 'On';
+
+  @override
+  String get notificationStateOff => 'Off';
+
+  @override
+  String get notificationSectionLabel => 'Notifications';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -198,10 +242,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentWorkoutsLabel => 'Recent Workouts';
 
   @override
-  String get navHomeLabel => 'Home';
+  String get navHomeLabel => 'Record';
 
   @override
   String get navHistoryLabel => 'History';
+
+  @override
+  String get navListLabel => 'List';
+
+  @override
+  String get navWeightLabel => 'Weight';
+
+  @override
+  String get listMenuSubtitle => 'Browse exercises, records, and memos';
+
+  @override
+  String get listMenuExerciseListDescription =>
+      'Manage your registered exercises';
+
+  @override
+  String get listMenuAllRecordsDescription =>
+      'View all workout records by date';
+
+  @override
+  String get listMenuMemoSearchDescription => 'Search memos by keyword';
 
   @override
   String get navSettingsLabel => 'Settings';
@@ -267,6 +331,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSaved => 'Settings saved';
+
+  @override
+  String get settingsUnsavedHint => 'You have unsaved changes';
 
   @override
   String monthlyWorkoutCount(int count) {
@@ -525,6 +592,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startingTopVolume => 'Starting Top Volume';
+
+  @override
+  String get maxTopVolume => 'Max Top Volume';
 
   @override
   String get improvement => 'Improvement';
@@ -906,11 +976,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paywallPrivacyPolicy => 'Privacy Policy';
 
   @override
-  String get paywallTrialTitle => 'Would you like to keep\nthis habit going?';
+  String get paywallTrialTitle => 'For ultimate focus.';
 
   @override
   String get paywallTrialDescription =>
-      'With Pro, all your workout records are saved, so you can look back on your progress and keep training.';
+      'Unlock advanced features with Pro, including ad removal and cloud synchronization.';
 
   @override
   String get paywallTrialNotice =>
@@ -1158,6 +1228,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workoutCompletionTitle => 'Workout Recorded';
 
   @override
+  String get reviewPromptTitle => 'You\'ve logged 3 workouts!';
+
+  @override
+  String get reviewPromptMessage =>
+      'Would you mind leaving a review? It helps us a lot.';
+
+  @override
+  String get reviewPromptWriteReview => 'Write a review';
+
+  @override
+  String get reviewPromptLater => 'Later';
+
+  @override
   String workoutCompletionSummary(
     int exerciseCount,
     int setCount,
@@ -1368,4 +1451,319 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get csvGuideColMemo => 'Memo (optional)';
+
+  @override
+  String get goalSetTitle => 'Set goal';
+
+  @override
+  String get goalValueLabel => 'Target value';
+
+  @override
+  String get goalDeadlineOptional => 'Deadline (optional)';
+
+  @override
+  String get goalSave => 'Save';
+
+  @override
+  String get goalDelete => 'Remove goal';
+
+  @override
+  String get goalDeleteConfirmMessage => 'Remove this goal?';
+
+  @override
+  String goalProgressRemaining(String value) {
+    return '$value to goal';
+  }
+
+  @override
+  String goalProgressPercent(int percent) {
+    return '$percent% to goal';
+  }
+
+  @override
+  String get goalProUpsell => 'Goal tracking is available for free.';
+
+  @override
+  String get goalAchievedTitle => 'Goals achieved';
+
+  @override
+  String get goalsAchievedThisWeek => 'Goals achieved this week';
+
+  @override
+  String goalAchievedMessage(String exercise, String value) {
+    return 'Goal achieved on $exercise: $value.';
+  }
+
+  @override
+  String get goalTypeWeight => 'Weight';
+
+  @override
+  String get goalTypeReps => 'Reps';
+
+  @override
+  String get goalTypeVolume => 'Volume';
+
+  @override
+  String get goalTypeTime => 'Time';
+
+  @override
+  String get goalTypeDistance => 'Distance';
+
+  @override
+  String get goalListTitle => 'Goals';
+
+  @override
+  String get goalPriorityLabel => 'Priority';
+
+  @override
+  String get goalAchievementRateLabel => 'Progress';
+
+  @override
+  String get goalPriorityLow => 'Low';
+
+  @override
+  String get goalPriorityMedium => 'Medium';
+
+  @override
+  String get goalPriorityHigh => 'High';
+
+  @override
+  String get goalListEmpty => 'No goals set';
+
+  @override
+  String get listMenuGoalListDescription => 'View all your goals';
+
+  @override
+  String get goalTargetLabel => 'Target';
+
+  @override
+  String get goalDueLabel => 'Due';
+
+  @override
+  String get goalTimeMinutes => 'min';
+
+  @override
+  String get goalTimeSeconds => 'sec';
+
+  @override
+  String get bulkGoalSetTitle => 'Set goals in bulk';
+
+  @override
+  String get bulkGoalButtonLabel => 'Bulk set';
+
+  @override
+  String get bulkGoalCourseLabel => 'Goal level';
+
+  @override
+  String get bulkGoalCourseEasy => 'Take it easy (1.1×)';
+
+  @override
+  String get bulkGoalCourseMedium => 'Step it up (1.2×)';
+
+  @override
+  String get bulkGoalCourseHard => 'Push hard (1.3×)';
+
+  @override
+  String get bulkGoalCourseMax => 'Go big (1.5×)';
+
+  @override
+  String get bulkGoalCourseShortEasy => 'Easy';
+
+  @override
+  String get bulkGoalCourseShortMedium => 'Step up';
+
+  @override
+  String get bulkGoalCourseShortHard => 'Hard';
+
+  @override
+  String get bulkGoalCourseShortMax => 'Max';
+
+  @override
+  String get bulkGoalCourseCustom => 'Custom';
+
+  @override
+  String get bulkGoalCustomMultiplierHint => 'Enter multiplier (e.g. 1.25)';
+
+  @override
+  String get bulkGoalCustomMultiplierInvalid =>
+      'Enter a multiplier between 0.1 and 10';
+
+  @override
+  String get bulkGoalPastBest => 'Past best';
+
+  @override
+  String get bulkGoalPastBestRepsUnit => ' reps';
+
+  @override
+  String get bulkGoalSupplementTitle => 'About';
+
+  @override
+  String get bulkGoalSupplementMultiplier =>
+      'Target values are calculated by multiplying your current best record for each exercise by the selected rate (1.1× to 1.5×).';
+
+  @override
+  String get bulkGoalSupplementExercises =>
+      'Only exercises with past training history are shown.';
+
+  @override
+  String get bulkGoalSelectExercises => 'Select exercises to set goals';
+
+  @override
+  String get bulkGoalSelectAll => 'Select all';
+
+  @override
+  String get bulkGoalDeselectAll => 'Deselect all';
+
+  @override
+  String get bulkGoalExecute => 'Set goals in bulk';
+
+  @override
+  String get bulkGoalConfirmTitle => 'Confirm';
+
+  @override
+  String bulkGoalConfirmMessage(int count) {
+    return 'Set goals for $count selected exercise(s)? Existing goals will be overwritten.';
+  }
+
+  @override
+  String bulkGoalResultMessage(int count) {
+    return 'Goals set for $count exercise(s)';
+  }
+
+  @override
+  String bulkGoalResultMessageWithSkipped(int saved, int skipped) {
+    return 'Goals set for $saved exercise(s) ($skipped skipped)';
+  }
+
+  @override
+  String get bulkGoalResultSkippedReason =>
+      'Skipped exercises have no best value matching their record type (weight, reps, time, etc.).';
+
+  @override
+  String get bulkGoalNoHistoryTitle => 'No history';
+
+  @override
+  String get bulkGoalNoHistoryMessage =>
+      'No training history yet. Record some workouts and try again.';
+
+  @override
+  String get bulkGoalNoTargetsToSetMessage =>
+      'No exercises without a goal. Only exercises with training history and no goal set are shown here.';
+
+  @override
+  String get bulkGoalEditButtonLabel => 'Bulk edit';
+
+  @override
+  String get bulkGoalEditTitle => 'Bulk edit goals';
+
+  @override
+  String get bulkGoalEditSelectGoals => 'Select goals to edit or delete';
+
+  @override
+  String get bulkGoalDeleteSelected => 'Delete selected goals';
+
+  @override
+  String get bulkGoalRecalcSelected => 'Recalculate selected goals';
+
+  @override
+  String bulkGoalEditConfirmDelete(int count) {
+    return 'Delete $count selected goal(s)?';
+  }
+
+  @override
+  String bulkGoalEditConfirmRecalc(int count) {
+    return 'Overwrite $count selected goal(s) with current best × selected rate. Continue?';
+  }
+
+  @override
+  String bulkGoalEditResultDeleted(int count) {
+    return '$count goal(s) deleted';
+  }
+
+  @override
+  String bulkGoalEditResultRecalculated(int count) {
+    return '$count goal(s) recalculated';
+  }
+
+  @override
+  String bulkGoalEditResultRecalculatedWithSkipped(int saved, int skipped) {
+    return '$saved recalculated ($skipped skipped)';
+  }
+
+  @override
+  String get bulkGoalEditEmpty => 'No goals';
+
+  @override
+  String get routineTitle => 'Routines';
+
+  @override
+  String get routineEmptyHint =>
+      'No routines yet.\nCreate one to quickly start workouts.';
+
+  @override
+  String get routineCreateNew => 'New Routine';
+
+  @override
+  String get routineNameLabel => 'Routine Name';
+
+  @override
+  String get routineNameHint => 'e.g., Chest Day';
+
+  @override
+  String get routineSave => 'Save Routine';
+
+  @override
+  String get routineDelete => 'Delete Routine';
+
+  @override
+  String routineDeleteConfirm(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get routineStartWorkout => 'Start Workout';
+
+  @override
+  String get routineEdit => 'Edit';
+
+  @override
+  String routineExerciseCount(int count) {
+    return '$count exercises';
+  }
+
+  @override
+  String get routineLoadIntoWorkout => 'Load Routine';
+
+  @override
+  String get routineLoadConfirm => 'Add exercises from this routine?';
+
+  @override
+  String get routineAddToCurrentWorkoutTitle => 'Add Routine to Workout';
+
+  @override
+  String get routineAddToCurrentWorkoutMessage =>
+      'This routine will be added to your current workout. Your existing entries will be kept.';
+
+  @override
+  String get routineSaveAsRoutine => 'Save as Routine';
+
+  @override
+  String get routineSaved => 'Routine saved!';
+
+  @override
+  String get routineManage => 'Manage';
+
+  @override
+  String get routineNameRequired => 'Please enter a routine name';
+
+  @override
+  String get routineExerciseRequired => 'Please add at least one exercise';
+
+  @override
+  String get listMenuRoutineDescription => 'View and manage workout routines';
+
+  @override
+  String routineSetCount(int count) {
+    return '$count sets';
+  }
 }

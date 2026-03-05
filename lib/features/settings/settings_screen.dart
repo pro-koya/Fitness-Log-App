@@ -23,14 +23,18 @@ import '../paywall/models/paywall_reason.dart';
 import '../workout_input/widgets/timer_icon_button.dart';
 import 'screens/theme_settings_screen.dart';
 import 'screens/timer_notification_settings_screen.dart';
+import 'screens/notification_permission_screen.dart';
 import 'screens/backup_screen.dart';
 import '../import_kintore_memo/import_screen.dart';
 import '../ads/widgets/banner_ad_widget.dart';
 import 'package:intl/intl.dart';
 
-/// Settings screen for changing language and unit
+/// Settings screen for changing language and unit.
+/// When [isEmbeddedInTab] is true, used as a tab of [MainTabScreen]; no AppBar.
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.isEmbeddedInTab = false});
+
+  final bool isEmbeddedInTab;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -116,8 +120,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         );
 
-        // Go back to previous screen
-        Navigator.of(context).pop();
+        // タブで表示している場合は pop しない（スタックに戻る画面がなく黒画面になるため）
+        if (!widget.isEmbeddedInTab) {
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -144,12 +150,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n?.settingsTitle ?? 'Settings / 設定'),
-        actions: [
-          TimerIconButton(),
-        ],
-      ),
+      appBar: widget.isEmbeddedInTab
+          ? null
+          : AppBar(
+              title: Text(l10n?.settingsTitle ?? 'Settings / 設定'),
+              actions: [
+                TimerIconButton(),
+              ],
+            ),
       body: settingsAsync.when(
         data: (settings) {
           if (settings == null) {
@@ -182,11 +190,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _selectedDistanceUnit = settings.distanceUnit;
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Padding(
+          return SafeArea(
+            top: widget.isEmbeddedInTab,
+            child: Column(
+              children: [
+                // 言語・単位等を変更したときに上部からスライドインする保存バー
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: _hasChanges
+                      ? SizedBox(
+                          height: 56,
+                          child: Material(
+                            elevation: 2,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.edit_note, size: 20, color: Theme.of(context).colorScheme.primary),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n?.settingsUnsavedHint ?? '変更を保存できます',
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  FilledButton(
+                                    onPressed: _isSaving ? null : _saveSettings,
+                                    child: _isSaving
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                          )
+                                        : Text(l10n?.saveButton ?? 'Save'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,55 +297,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           const SizedBox(height: 16),
                           _buildDevSection(),
                         ],
+                        SizedBox(height: widget.isEmbeddedInTab ? 48 : 24),
                       ],
-                    ),
-                  ),
-                ),
-              ),
-              // Banner ad (Free users only)
-              const BannerAdWidget(),
-              // Save Button
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _hasChanges && !_isSaving ? _saveSettings : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              l10n?.saveButton ?? 'Save',
-                              style: const TextStyle(fontSize: 16),
-                            ),
                     ),
                   ),
                 ),
-              ),
-            ],
+                // 広告をナビ下部に固定（体重・履歴画面と同じ構成）
+                const BannerAdWidget(),
+              ],
+            ),
           );
         },
         loading: () => const Center(
@@ -501,16 +512,80 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildTimerSection(AppLocalizations? l10n) {
+    final timerSettings = ref.watch(timerSettingsProvider);
     final lang = ref.watch(currentLanguageProvider);
     final isJa = lang == 'ja';
-    final title = isJa ? 'タイマー終了時の通知' : 'Timer notification';
-    final description = isJa ? 'バイブ・音の設定' : 'Vibration & sound settings';
+    final theme = Theme.of(context);
+    final timerTitle = isJa ? 'タイマー終了時の通知' : 'Timer notification';
+    final timerDescription = isJa ? 'バイブ・音の設定' : 'Vibration & sound settings';
+    final enableLabel = l10n?.notificationSettingsEnableLabel ?? (isJa ? '通知を送る' : 'Send notifications');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionLabel(title),
+        _buildSectionLabel(l10n?.notificationSectionLabel ?? 'Notifications'),
         const SizedBox(height: 12),
+        // 通知オン・オフのトグル。ON にすると許可確認画面へ（動線はここだけ）
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.notifications_active_outlined, size: 24, color: theme.colorScheme.primary),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      enableLabel,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    value: timerSettings.notificationsEnabled,
+                    onChanged: (value) async {
+                      if (value) {
+                        final result = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationPermissionScreen(),
+                          ),
+                        );
+                        if (result == true && mounted) {
+                          ref.invalidate(settingsProvider);
+                        }
+                      } else {
+                        await ref.read(settingsNotifierProvider.notifier).saveTimerSettings(
+                              timerSettings.copyWith(notificationsEnabled: false),
+                            );
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                timerSettings.notificationsEnabled
+                    ? (l10n?.notificationStateOn ?? 'オン')
+                    : (l10n?.notificationStateOff ?? 'オフ'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // タイマー終了時の通知（バイブ・音の設定）
         InkWell(
           onTap: () {
             Navigator.push(
@@ -544,7 +619,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        timerTitle,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -552,7 +627,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        description,
+                        timerDescription,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -1499,9 +1574,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               InkWell(
                 onTap: () {
                   final locale = Localizations.localeOf(context);
-                  final url = locale.languageCode == 'ja'
-                      ? 'https://lovely-kitty-76f.notion.site/2f60ff4893228039a89fed882469cdde?source=copy_link'
-                      : 'https://lovely-kitty-76f.notion.site/Privacy-Policy-2f60ff489322807398aac2e94993f0a9?source=copy_link';
+                  final lang = locale.languageCode == 'ja' ? 'ja' : 'en';
+                  final url = 'https://pro-koya.github.io/?lang=$lang';
                   _openLegalUrl(url);
                 },
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),

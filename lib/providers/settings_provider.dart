@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/entities/settings_entity.dart';
+import '../data/models/timer_settings.dart';
 import 'database_providers.dart';
 
 /// Provider for user settings
@@ -35,6 +36,16 @@ final currentDistanceUnitProvider = Provider<String>((ref) {
     data: (settings) => settings?.distanceUnit ?? 'km',
     loading: () => 'km',
     error: (_, __) => 'km',
+  );
+});
+
+/// Provider for timer notification settings (vibration, sound)
+final timerSettingsProvider = Provider<TimerSettings>((ref) {
+  final settingsAsync = ref.watch(settingsProvider);
+  return settingsAsync.when(
+    data: (s) => TimerSettings.fromJsonString(s?.timerSettings),
+    loading: () => const TimerSettings(),
+    error: (_, __) => const TimerSettings(),
   );
 });
 
@@ -116,7 +127,18 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsEntity?>> {
       final dao = ref.read(settingsDaoProvider);
       await dao.markTutorialCompleted();
       await _loadSettings();
-      // Also invalidate the settingsProvider to refresh it
+      ref.invalidate(settingsProvider);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  /// Save timer notification settings
+  Future<void> saveTimerSettings(TimerSettings timerSettings) async {
+    try {
+      final dao = ref.read(settingsDaoProvider);
+      await dao.saveTimerSettings(timerSettings);
+      await _loadSettings();
       ref.invalidate(settingsProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

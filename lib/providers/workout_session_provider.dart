@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/entities/workout_session_entity.dart';
 import '../features/home/models/recent_workout_item.dart';
-import '../utils/feature_gate.dart';
 import 'database_providers.dart';
-import 'entitlement_provider.dart';
 
 /// Provider for in-progress workout session
 final inProgressSessionProvider =
@@ -136,24 +134,24 @@ final recentWorkoutsProvider =
   return await dao.getCompletedSessions(limit: 10);
 });
 
-/// Provider for recent workouts with lock status
-/// ホーム画面の履歴一覧で使用（ロック状態を含む）
+/// Provider for recent workouts (home screen list).
+/// 履歴制限廃止のため isLocked は常に false。
 final recentWorkoutItemsProvider =
     FutureProvider<List<RecentWorkoutItem>>((ref) async {
   final dao = ref.watch(workoutSessionDaoProvider);
-  final entitlement = ref.watch(entitlementProvider);
-  final gate = FeatureGate(entitlement);
-
-  // ホーム画面では最大30件表示（ロック分も含む）
   final sessions = await dao.getCompletedSessions(limit: 30);
-
   return sessions.asMap().entries.map((entry) {
-    final index = entry.key;
-    final session = entry.value;
     return RecentWorkoutItem(
-      session: session,
-      globalIndex: index,
-      isLocked: gate.isSessionLocked(index),
+      session: entry.value,
+      globalIndex: entry.key,
+      isLocked: false,
     );
   }).toList();
+});
+
+/// Provider for all completed sessions (all records screen). Newest first.
+final allCompletedSessionsProvider =
+    FutureProvider<List<WorkoutSessionEntity>>((ref) async {
+  final dao = ref.watch(workoutSessionDaoProvider);
+  return await dao.getCompletedSessions();
 });

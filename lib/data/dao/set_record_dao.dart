@@ -124,6 +124,12 @@ class SetRecordDao {
     );
   }
 
+  /// Delete all set records (Pro sync: pull from server でローカル全削除時に使用)
+  Future<int> deleteAll() async {
+    final db = await _dbHelper.database;
+    return await db.delete('set_records', where: '1');
+  }
+
   /// Get max set number for a workout exercise
   Future<int> getMaxSetNumber(int workoutExerciseId) async {
     final db = await _dbHelper.database;
@@ -164,6 +170,136 @@ class SetRecordDao {
     return topWeight != null ? (topWeight as num).toDouble() : null;
   }
 
+  /// Get top weight for an exercise in a specific session
+  Future<double?> getTopWeightForExerciseInSession(
+    int exerciseId,
+    int sessionId,
+    String unit,
+  ) async {
+    final db = await _dbHelper.database;
+    final weightColumn = unit == 'kg' ? 'weight_kg' : 'weight_lb';
+
+    final result = await db.rawQuery(
+      '''
+      SELECT MAX($weightColumn) as top_weight
+      FROM set_records
+      WHERE exercise_id = ? AND session_id = ?
+        AND reps > 0
+      ''',
+      [exerciseId, sessionId],
+    );
+
+    final val = result.first['top_weight'];
+    return val != null ? (val as num).toDouble() : null;
+  }
+
+  /// Returns exercise IDs that have at least one set_record in a completed session.
+  /// Used for bulk goal registration (only exercises with history can have goals calculated).
+  Future<List<int>> getExerciseIdsWithHistory() async {
+    final db = await _dbHelper.database;
+    final maps = await db.rawQuery(
+      '''
+      SELECT DISTINCT sr.exercise_id
+      FROM set_records sr
+      JOIN workout_sessions ws ON sr.session_id = ws.id
+      WHERE ws.status = 'completed'
+      ORDER BY sr.exercise_id ASC
+      ''',
+    );
+    return maps.map((m) => m['exercise_id'] as int).toList();
+  }
+
+  /// Get best value for an exercise across all completed sessions (for Pro goal progress).
+  /// [goalType] one of: weight, reps, volume, time, distance.
+  /// [includeSessionId] when set, this session's sets are included even if the session is not completed (for goal check right after save).
+  /// Returns null if no sets. Weight in kg; volume = weight_kg*reps; time in seconds; distance in meters.
+  Future<double?> getBestValueForExercise(
+    int exerciseId,
+    String goalType, {
+    int? includeSessionId,
+  }) async {
+    final db = await _dbHelper.database;
+    String expr;
+    switch (goalType) {
+      case 'weight':
+        expr = 'MAX(sr.weight_kg)';
+        break;
+      case 'reps':
+        expr = 'MAX(sr.reps)';
+        break;
+      case 'volume':
+        expr = 'MAX(sr.weight_kg * sr.reps)';
+        break;
+      case 'time':
+        expr = 'MAX(sr.duration_seconds)';
+        break;
+      case 'distance':
+        expr = 'MAX(sr.distance_meters)';
+        break;
+      default:
+        return null;
+    }
+    final String whereClause = includeSessionId != null
+        ? 'sr.exercise_id = ? AND (ws.status = \'completed\' OR sr.session_id = ?)'
+        : 'sr.exercise_id = ? AND ws.status = \'completed\'';
+    final whereArgs = includeSessionId != null
+        ? [exerciseId, includeSessionId]
+        : [exerciseId];
+    final result = await db.rawQuery(
+      '''
+      SELECT $expr as best_value
+      FROM set_records sr
+      JOIN workout_sessions ws ON sr.session_id = ws.id
+      WHERE $whereClause
+      ''',
+      whereArgs,
+    );
+    final val = result.first['best_value'];
+    if (val == null) return null;
+    return (val as num).toDouble();
+  }
+
+  /// Get top duration (seconds) for a time-based exercise in a session
+  Future<int?> getTopDurationForExerciseInSession(
+    int exerciseId,
+    int sessionId,
+  ) async {
+    final db = await _dbHelper.database;
+
+    final result = await db.rawQuery(
+      '''
+      SELECT MAX(duration_seconds) as top_duration
+      FROM set_records
+      WHERE exercise_id = ? AND session_id = ?
+        AND duration_seconds IS NOT NULL
+        AND duration_seconds > 0
+      ''',
+      [exerciseId, sessionId],
+    );
+
+    final val = result.first['top_duration'];
+    return val != null ? (val as num).toInt() : null;
+  }
+
+  /// Get total volume for a session (weight * reps, uses unit column)
+  Future<double> getTotalVolumeForSession(int sessionId, String unit) async {
+    final db = await _dbHelper.database;
+    final weightColumn = unit == 'kg' ? 'weight_kg' : 'weight_lb';
+
+    final result = await db.rawQuery(
+      '''
+      SELECT SUM($weightColumn * COALESCE(reps, 0)) as total_volume
+      FROM set_records
+      WHERE session_id = ?
+        AND reps > 0
+      ''',
+      [sessionId],
+    );
+
+    final volume = result.first['total_volume'];
+    return volume != null ? (volume as num).toDouble() : 0.0;
+  }
+
   /// Get total volume for an exercise in a session
   Future<double> getTotalVolumeForExerciseInSession(
     int exerciseId,
@@ -189,12 +325,20 @@ class SetRecordDao {
   /// Automatically uses the correct weight column based on unit
   Future<List<Map<String, dynamic>>> getProgressDataForExercise(
     int exerciseId,
-    String unit,
-  ) async {
+    String unit, {
+    int? startTimestamp,
+  }) async {
     final db = await _dbHelper.database;
 
     // Select the appropriate weight column based on unit
     final weightColumn = unit == 'kg' ? 'weight_kg' : 'weight_lb';
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
 
     final maps = await db.rawQuery(
       '''
@@ -206,10 +350,11 @@ class SetRecordDao {
       JOIN workout_sessions ws ON sr.session_id = ws.id
       WHERE sr.exercise_id = ?
         AND ws.status = 'completed'
+        $dateFilter
       GROUP BY ws.id
       ORDER BY ws.completed_at ASC
       ''',
-      [exerciseId],
+      args,
     );
 
     return maps
@@ -224,9 +369,17 @@ class SetRecordDao {
   /// Get progress data for a time-based exercise (date, best duration, total duration)
   /// Returns a list of maps with keys: date, topDurationSeconds, totalDurationSeconds
   Future<List<Map<String, dynamic>>> getProgressDataForExerciseTime(
-    int exerciseId,
-  ) async {
+    int exerciseId, {
+    int? startTimestamp,
+  }) async {
     final db = await _dbHelper.database;
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
 
     final maps = await db.rawQuery(
       '''
@@ -238,10 +391,11 @@ class SetRecordDao {
       JOIN workout_sessions ws ON sr.session_id = ws.id
       WHERE sr.exercise_id = ?
         AND ws.status = 'completed'
+        $dateFilter
       GROUP BY ws.id
       ORDER BY ws.completed_at ASC
       ''',
-      [exerciseId],
+      args,
     );
 
     return maps
@@ -258,9 +412,17 @@ class SetRecordDao {
   /// Get progress data for a reps-based exercise (date, top reps, total reps)
   /// Returns a list of maps with keys: date, topReps, totalReps
   Future<List<Map<String, dynamic>>> getProgressDataForExerciseReps(
-    int exerciseId,
-  ) async {
+    int exerciseId, {
+    int? startTimestamp,
+  }) async {
     final db = await _dbHelper.database;
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
 
     final maps = await db.rawQuery(
       '''
@@ -272,10 +434,11 @@ class SetRecordDao {
       JOIN workout_sessions ws ON sr.session_id = ws.id
       WHERE sr.exercise_id = ?
         AND ws.status = 'completed'
+        $dateFilter
       GROUP BY ws.id
       ORDER BY ws.completed_at ASC
       ''',
-      [exerciseId],
+      args,
     );
 
     return maps
@@ -292,12 +455,20 @@ class SetRecordDao {
   /// Automatically uses the correct weight column based on unit
   Future<List<Map<String, dynamic>>> getProgressDataForExerciseVolume(
     int exerciseId,
-    String unit,
-  ) async {
+    String unit, {
+    int? startTimestamp,
+  }) async {
     final db = await _dbHelper.database;
 
     // Select the appropriate weight column based on unit
     final weightColumn = unit == 'kg' ? 'weight_kg' : 'weight_lb';
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
 
     final maps = await db.rawQuery(
       '''
@@ -309,10 +480,11 @@ class SetRecordDao {
       WHERE sr.exercise_id = ?
         AND ws.status = 'completed'
         AND sr.reps > 0
+        $dateFilter
       GROUP BY ws.id
       ORDER BY ws.completed_at ASC
       ''',
-      [exerciseId],
+      args,
     );
 
     // For each session, find the set with max volume and get its weight and reps
@@ -321,7 +493,7 @@ class SetRecordDao {
       final sessionDate = sessionMap['date'] as int;
       final maxVolume = (sessionMap['maxVolume'] as num?)?.toDouble() ?? 0.0;
 
-      // Find the set with this max volume to get weight and reps
+      // Find the set with max volume in this session (ORDER BY product DESC to avoid floating-point equality)
       final setMaps = await db.rawQuery(
         '''
         SELECT $weightColumn as weight, sr.reps
@@ -331,10 +503,10 @@ class SetRecordDao {
           AND ws.status = 'completed'
           AND ws.completed_at = ?
           AND sr.reps > 0
-          AND ($weightColumn * sr.reps) = ?
+        ORDER BY ($weightColumn * sr.reps) DESC
         LIMIT 1
         ''',
-        [exerciseId, sessionDate, maxVolume],
+        [exerciseId, sessionDate],
       );
 
       double? weight;
@@ -523,9 +695,17 @@ class SetRecordDao {
   /// Get progress data for cardio time (total duration per session)
   /// Returns a list of maps with keys: date, topDurationSeconds, totalDurationSeconds
   Future<List<Map<String, dynamic>>> getProgressDataForCardioTime(
-    int exerciseId,
-  ) async {
+    int exerciseId, {
+    int? startTimestamp,
+  }) async {
     final db = await _dbHelper.database;
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
 
     final maps = await db.rawQuery(
       '''
@@ -536,10 +716,11 @@ class SetRecordDao {
       JOIN workout_sessions ws ON sr.session_id = ws.id
       WHERE sr.exercise_id = ?
         AND ws.status = 'completed'
+        $dateFilter
       GROUP BY ws.id
       ORDER BY ws.completed_at ASC
       ''',
-      [exerciseId],
+      args,
     );
 
     return maps
@@ -554,9 +735,17 @@ class SetRecordDao {
   /// Get progress data for cardio distance (total distance per session)
   /// Returns a list of maps with keys: date, totalDistanceMeters
   Future<List<Map<String, dynamic>>> getProgressDataForCardioDistance(
-    int exerciseId,
-  ) async {
+    int exerciseId, {
+    int? startTimestamp,
+  }) async {
     final db = await _dbHelper.database;
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
 
     final maps = await db.rawQuery(
       '''
@@ -567,10 +756,11 @@ class SetRecordDao {
       JOIN workout_sessions ws ON sr.session_id = ws.id
       WHERE sr.exercise_id = ?
         AND ws.status = 'completed'
+        $dateFilter
       GROUP BY ws.id
       ORDER BY ws.completed_at ASC
       ''',
-      [exerciseId],
+      args,
     );
 
     return maps
@@ -586,9 +776,17 @@ class SetRecordDao {
   /// Returns a list of maps with keys: date, speedKmPerHour
   /// Speed is calculated as: totalDistanceKm / totalHours
   Future<List<Map<String, dynamic>>> getProgressDataForCardioPace(
-    int exerciseId,
-  ) async {
+    int exerciseId, {
+    int? startTimestamp,
+  }) async {
     final db = await _dbHelper.database;
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
 
     final maps = await db.rawQuery(
       '''
@@ -600,11 +798,12 @@ class SetRecordDao {
       JOIN workout_sessions ws ON sr.session_id = ws.id
       WHERE sr.exercise_id = ?
         AND ws.status = 'completed'
+        $dateFilter
       GROUP BY ws.id
       HAVING totalDistanceMeters > 0 AND totalDurationSeconds > 0
       ORDER BY ws.completed_at ASC
       ''',
-      [exerciseId],
+      args,
     );
 
     return maps

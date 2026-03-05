@@ -4,7 +4,9 @@ import '../../../l10n/app_localizations.dart';
 import '../../../providers/database_providers.dart';
 import '../../../providers/workout_session_provider.dart';
 import '../../../services/backup_service.dart';
+import '../../ads/widgets/banner_ad_widget.dart';
 import '../widgets/restore_confirm_dialog.dart';
+import 'csv_format_guide_sheet.dart';
 
 /// バックアップ/復元画面
 class BackupScreen extends ConsumerStatefulWidget {
@@ -17,6 +19,7 @@ class BackupScreen extends ConsumerStatefulWidget {
 class _BackupScreenState extends ConsumerState<BackupScreen> {
   bool _isLoading = false;
   String? _loadingMessage;
+  BackupFormat _selectedFormat = BackupFormat.json;
 
   @override
   Widget build(BuildContext context) {
@@ -28,23 +31,31 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // バックアップセクション
-                _buildBackupSection(l10n),
-                const SizedBox(height: 16),
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // バックアップセクション
+                      _buildBackupSection(l10n),
+                      const SizedBox(height: 16),
 
-                // 復元セクション
-                _buildRestoreSection(l10n),
-                const SizedBox(height: 24),
+                      // 復元セクション
+                      _buildRestoreSection(l10n),
+                      const SizedBox(height: 24),
 
-                // 注意事項
-                _buildWarningSection(l10n),
-              ],
-            ),
+                      // 注意事項
+                      _buildWarningSection(l10n),
+                    ],
+                  ),
+                ),
+              ),
+              // Banner ad (Fixed at bottom, Free users only)
+              const BannerAdWidget(),
+            ],
           ),
 
           // ローディングオーバーレイ
@@ -122,6 +133,35 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            Text(
+              l10n.backupFormatLabel,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<BackupFormat>(
+              segments: [
+                ButtonSegment(
+                  value: BackupFormat.json,
+                  label: Text(l10n.backupFormatJson),
+                  icon: const Icon(Icons.code),
+                ),
+                ButtonSegment(
+                  value: BackupFormat.csv,
+                  label: Text(l10n.backupFormatCsv),
+                  icon: const Icon(Icons.table_chart),
+                ),
+              ],
+              selected: {_selectedFormat},
+              onSelectionChanged: (Set<BackupFormat> selected) {
+                setState(() {
+                  _selectedFormat = selected.first;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -183,7 +223,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -192,8 +232,35 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 label: Text(l10n.restoreBackupButton),
               ),
             ),
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: () => _showCsvFormatGuide(context),
+              icon: Icon(Icons.help_outline, size: 18, color: Theme.of(context).colorScheme.primary),
+              label: Text(
+                l10n.csvGuideOpenButton,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showCsvFormatGuide(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        child: const CsvFormatGuideSheet(),
       ),
     );
   }
@@ -241,11 +308,20 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
     try {
       final backupService = ref.read(backupServiceProvider);
-      // ドキュメントディレクトリに保存
-      final savedPath = await backupService.exportToDocuments();
+      final savedPath = await backupService.exportBackup(format: _selectedFormat);
+
+      if (savedPath == null) {
+        // ユーザーがキャンセル
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _loadingMessage = null;
+          });
+        }
+        return;
+      }
 
       if (mounted) {
-        // 成功メッセージとファイルパスを表示
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.backupCreated),
@@ -254,7 +330,6 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           ),
         );
 
-        // ファイルの場所を案内するダイアログ
         _showBackupSuccessDialog(savedPath);
       }
     } catch (e) {
@@ -279,21 +354,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   /// バックアップ成功ダイアログを表示
   void _showBackupSuccessDialog(String filePath) {
     final fileName = filePath.split('/').last;
-    final isJapanese = Localizations.localeOf(context).languageCode == 'ja';
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isJapanese ? 'バックアップ完了' : 'Backup Complete'),
+        title: Text(l10n.backupCompleteTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              isJapanese
-                  ? 'バックアップファイルが保存されました。'
-                  : 'Backup file has been saved.',
-            ),
+            Text(l10n.backupCompleteMessage),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(8),
@@ -309,22 +380,12 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              isJapanese
-                  ? '「ファイル」アプリからアクセスできます。\n別の端末に転送するには、AirDrop やクラウドストレージをご利用ください。'
-                  : 'You can access it from the Files app.\nTo transfer to another device, use AirDrop or cloud storage.',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade600,
-              ),
-            ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(isJapanese ? '閉じる' : 'Close'),
+            child: Text(l10n.confirmButton),
           ),
         ],
       ),
