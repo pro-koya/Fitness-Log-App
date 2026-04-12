@@ -22,6 +22,7 @@ class BulkGoalEditModal extends ConsumerStatefulWidget {
 class _BulkGoalEditModalState extends ConsumerState<BulkGoalEditModal> {
   int _selectedCourseIndex = 1;
   Set<int> _selectedExerciseIds = {};
+  bool _hasInitializedSelection = false;
   bool _isExecuting = false;
   final TextEditingController _customMultiplierController = TextEditingController(text: '1.25');
 
@@ -80,7 +81,9 @@ class _BulkGoalEditModalState extends ConsumerState<BulkGoalEditModal> {
                       ),
                     );
                   }
-                  if (_selectedExerciseIds.isEmpty) {
+                  // 初回のみ全選択で初期化。「すべて解除」後に再び全選択に戻らないようにする。
+                  if (!_hasInitializedSelection && goals.isNotEmpty) {
+                    _hasInitializedSelection = true;
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) {
                         setState(() {

@@ -600,6 +600,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get improvement => 'Improvement';
 
   @override
+  String get allTimeBestSectionTitle => 'All-time best';
+
+  @override
+  String get allTimeMaxWeight => 'All-time max weight';
+
+  @override
+  String get allTimeMaxReps => 'All-time max reps';
+
+  @override
+  String get allTimeMaxVolume => 'All-time max volume';
+
+  @override
+  String get bestRepsByWeight => 'Best reps by weight';
+
+  @override
   String get repsUnit => 'reps';
 
   @override
@@ -1228,11 +1243,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workoutCompletionTitle => 'Workout Recorded';
 
   @override
-  String get reviewPromptTitle => 'You\'ve logged 3 workouts!';
+  String get reviewPromptTitle => 'Thanks for logging your workouts!';
 
   @override
   String get reviewPromptMessage =>
-      'Would you mind leaving a review? It helps us a lot.';
+      'How does this update feel so far? If you\'d like, we\'d love to hear your feedback in a review.';
+
+  @override
+  String get reviewPromptRateLabel => 'How would you rate the app?';
 
   @override
   String get reviewPromptWriteReview => 'Write a review';

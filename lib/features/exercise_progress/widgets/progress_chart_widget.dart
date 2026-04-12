@@ -42,7 +42,7 @@ class ProgressChartWidget extends ConsumerWidget {
         Text(
           _getChartTitle(),
           style: const TextStyle(
-            fontSize: 18,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),

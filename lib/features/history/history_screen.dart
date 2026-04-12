@@ -10,6 +10,7 @@ import '../../data/localization/exercise_localization.dart';
 import '../../data/localization/body_part_localization.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/workout_session_provider.dart';
 import '../workout_input/widgets/timer_icon_button.dart';
 import '../ads/widgets/banner_ad_widget.dart';
 import 'widgets/workout_summary_sheet.dart';
@@ -155,6 +156,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final l10n = AppLocalizations.of(context)!;
     final currentLanguage = ref.watch(currentLanguageProvider);
     final locale = currentLanguage == 'ja' ? 'ja_JP' : 'en_US';
+
+    // トレーニング削除などでトリガーされたらカレンダー・月間サマリを再読み込み（初回は initState で読むため prev != null でスキップ）
+    ref.listen(historyCalendarRefreshProvider, (prev, next) {
+      if (prev != null && prev != next && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _loadWorkouts();
+            _loadMonthlySummary();
+          }
+        });
+      }
+    });
 
     return Scaffold(
       appBar: widget.isEmbeddedInTab

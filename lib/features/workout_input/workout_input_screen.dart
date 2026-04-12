@@ -562,24 +562,22 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
       ref.read(interactiveTutorialProvider.notifier).endTutorial();
       // Yield to next frame so overlay removal runs, then show dialog (OK button must be tappable)
       await Future<void>.delayed(Duration.zero);
+      if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      bool? confirmed;
-      if (mounted) {
-        confirmed = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.tutorialCompletionTitle),
-            content: Text(l10n.tutorialCompletionMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.confirmButton),
-              ),
-            ],
-          ),
-        );
-      }
+      final confirmed = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.tutorialCompletionTitle),
+          content: Text(l10n.tutorialCompletionMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.confirmButton),
+            ),
+          ],
+        ),
+      );
       if (!mounted || confirmed != true) return;
 
       // Delete tutorial session and all its data so "記録中の続き" does not appear and tutorial data is removed
@@ -624,31 +622,19 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     if (mounted) {
       final reviewService = ReviewPromptService();
       final newCount = await reviewService.incrementCompletionCount();
-      if (newCount >= 3 && !(await reviewService.hasAlreadyShownPrompt())) {
-        await reviewService.markPromptShown();
+      if (await reviewService.shouldShowReviewPrompt(newCount)) {
+        // 完了モーダル閉じた直後は避け、UIが落ち着いてから依頼する
+        await Future.delayed(const Duration(milliseconds: 500));
         if (!mounted) return;
-        final l10n = AppLocalizations.of(context)!;
-        final writeReview = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(l10n.reviewPromptTitle),
-            content: Text(l10n.reviewPromptMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text(l10n.reviewPromptLater),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text(l10n.reviewPromptWriteReview),
-              ),
-            ],
-          ),
-        );
-        if (writeReview == true) {
+        final action = await reviewService.showReviewPromptDialog(context);
+        if (action == ReviewPromptAction.reviewNow) {
+          await reviewService.markReviewCompleted();
           await reviewService.requestReview();
+        } else {
+          await reviewService.markPromptSkipped(newCount);
         }
       }
+      if (!mounted) return;
       ref.invalidate(recentWorkoutItemsProvider);
       ref.invalidate(recentWorkoutsProvider);
       Navigator.of(context).pop();

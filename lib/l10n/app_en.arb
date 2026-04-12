@@ -683,6 +683,14 @@
   "@improvement": {
     "description": "Label for improvement stat"
   },
+  "allTimeBestSectionTitle": "All-time best",
+  "allTimeMaxWeight": "All-time max weight",
+  "allTimeMaxReps": "All-time max reps",
+  "allTimeMaxVolume": "All-time max volume",
+  "bestRepsByWeight": "Best reps by weight",
+  "@bestRepsByWeight": {
+    "description": "Label for best reps achieved at each weight"
+  },
   "repsUnit": "reps",
   "@repsUnit": {
     "description": "Unit for reps"
@@ -1365,13 +1373,17 @@
   "importCsvFormatHint": "Select a CSV or JSON file exported by Liftly's backup feature.",
 
   "workoutCompletionTitle": "Workout Recorded",
-  "reviewPromptTitle": "You've logged 3 workouts!",
+  "reviewPromptTitle": "Thanks for logging your workouts!",
   "@reviewPromptTitle": {
     "description": "Title for in-app review prompt dialog"
   },
-  "reviewPromptMessage": "Would you mind leaving a review? It helps us a lot.",
+  "reviewPromptMessage": "How does this update feel so far? If you'd like, we'd love to hear your feedback in a review.",
   "@reviewPromptMessage": {
     "description": "Message for in-app review prompt dialog"
+  },
+  "reviewPromptRateLabel": "How would you rate the app?",
+  "@reviewPromptRateLabel": {
+    "description": "Label for star rating in review prompt"
   },
   "reviewPromptWriteReview": "Write a review",
   "@reviewPromptWriteReview": {

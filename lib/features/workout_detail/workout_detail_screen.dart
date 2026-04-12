@@ -385,9 +385,10 @@ class WorkoutDetailScreen extends ConsumerWidget {
       final dao = ref.read(workoutSessionDaoProvider);
       await dao.deleteSession(sessionId);
 
-      // Invalidate providers to refresh the UI
+      // Invalidate providers to refresh the UI（ホーム・履歴カレンダーに即反映）
       ref.invalidate(recentWorkoutsProvider);
       ref.invalidate(workoutDetailProvider(sessionId));
+      ref.read(historyCalendarRefreshProvider.notifier).state += 1;
 
       if (context.mounted) {
         Navigator.of(context).pop(); // Go back to previous screen

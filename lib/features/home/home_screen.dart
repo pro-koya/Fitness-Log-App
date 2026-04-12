@@ -164,13 +164,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   sessionAsync.when(
                     data: (session) {
                       if (session != null) {
-                        // In-progress session exists
+                        // In-progress session exists: show only "記録中の続き". No "新しく開始" (one session at a time).
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildInProgressCard(context, ref, session),
-                            const SizedBox(height: 16),
-                            _buildStartNewButton(context, ref, isSecondary: true),
                             const SizedBox(height: 8),
                             _buildDifferentiatorHint(context),
                           ],
@@ -814,6 +812,8 @@ Widget _buildStatisticsCards(BuildContext context) {
   Widget _buildRoutineSection(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final routinesAsync = ref.watch(routineListProvider);
+    final sessionAsync = ref.watch(workoutSessionNotifierProvider);
+    final hasInProgressSession = sessionAsync.valueOrNull != null;
 
     return routinesAsync.when(
       data: (routines) {
@@ -850,21 +850,24 @@ Widget _buildStatisticsCards(BuildContext context) {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: routines.isEmpty
-                    ? null
-                    : () => _openRoutineSelectorAndStart(context, ref),
-                icon: const Icon(Icons.repeat_rounded, size: 20),
-                label: Text(l10n.routineLoadIntoWorkout),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  foregroundColor: routines.isEmpty ? Colors.grey : null,
+            // 記録進行中は「ルーティン読み込み」を非表示（進行中の記録は1つのみ）
+            if (!hasInProgressSession) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: routines.isEmpty
+                      ? null
+                      : () => _openRoutineSelectorAndStart(context, ref),
+                  icon: const Icon(Icons.repeat_rounded, size: 20),
+                  label: Text(l10n.routineLoadIntoWorkout),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    foregroundColor: routines.isEmpty ? Colors.grey : null,
+                  ),
                 ),
               ),
-            ),
+            ],
             if (routines.isEmpty) ...[
               const SizedBox(height: 8),
               Text(

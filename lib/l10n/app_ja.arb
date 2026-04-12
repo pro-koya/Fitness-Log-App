@@ -188,6 +188,11 @@
   "startingTopVolume": "初回のトップボリューム",
   "maxTopVolume": "最大のトップボリューム",
   "improvement": "成長",
+  "allTimeBestSectionTitle": "過去最高",
+  "allTimeMaxWeight": "過去最高重量",
+  "allTimeMaxReps": "過去最高回数",
+  "allTimeMaxVolume": "過去最高ボリューム",
+  "bestRepsByWeight": "重量別ベスト回数",
   "repsUnit": "回",
   "noBodyPartWorkoutsThisMonth": "今月は「{bodyPart}」のトレーニングが行われていません。",
   "@noBodyPartWorkoutsThisMonth": {
@@ -436,8 +441,9 @@
   "importCsvFormatHint": "Liftlyのバックアップ機能でエクスポートしたCSV/JSON形式のファイルを選択してください。",
 
   "workoutCompletionTitle": "トレーニング記録完了",
-  "reviewPromptTitle": "3回記録できました！",
-  "reviewPromptMessage": "よろしければ App Store でレビューをお願いします。",
+  "reviewPromptTitle": "トレーニングの記録ありがとうございます！",
+  "reviewPromptMessage": "今回のアップデートはいかがですか？よろしければレビューで感想を聞かせてください。",
+  "reviewPromptRateLabel": "アプリの評価を教えてください",
   "reviewPromptWriteReview": "レビューを書く",
   "reviewPromptLater": "あとで",
   "workoutCompletionSummary": "{exerciseCount}種目・{setCount}セット・総ボリューム {volume}{unit}",

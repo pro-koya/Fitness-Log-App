@@ -450,6 +450,50 @@ class SetRecordDao {
         .toList();
   }
 
+  /// Get best reps for each weight used in completed sessions.
+  /// Returns a list of maps with keys: weight, maxReps
+  /// Automatically uses the correct weight column based on unit.
+  Future<List<Map<String, dynamic>>> getBestRepsByWeightForExercise(
+    int exerciseId,
+    String unit, {
+    int? startTimestamp,
+  }) async {
+    final db = await _dbHelper.database;
+    final weightColumn = unit == 'kg' ? 'weight_kg' : 'weight_lb';
+
+    String dateFilter = '';
+    final List<dynamic> args = [exerciseId];
+    if (startTimestamp != null) {
+      dateFilter = 'AND ws.completed_at >= ?';
+      args.add(startTimestamp);
+    }
+
+    final maps = await db.rawQuery(
+      '''
+      SELECT
+        ROUND(sr.$weightColumn, 1) as weight,
+        MAX(COALESCE(sr.reps, 0)) as maxReps
+      FROM set_records sr
+      JOIN workout_sessions ws ON sr.session_id = ws.id
+      WHERE sr.exercise_id = ?
+        AND ws.status = 'completed'
+        AND sr.reps > 0
+        AND sr.$weightColumn > 0
+        $dateFilter
+      GROUP BY ROUND(sr.$weightColumn, 1)
+      ORDER BY weight DESC
+      ''',
+      args,
+    );
+
+    return maps
+        .map((map) => {
+              'weight': (map['weight'] as num?)?.toDouble() ?? 0.0,
+              'maxReps': (map['maxReps'] as num?)?.toInt() ?? 0,
+            })
+        .toList();
+  }
+
   /// Get progress data for volume (weight * reps per set)
   /// Returns a list of maps with keys: date, maxVolume (max weight*reps per session), weight, reps
   /// Automatically uses the correct weight column based on unit

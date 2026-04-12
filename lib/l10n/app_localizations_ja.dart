@@ -594,6 +594,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get improvement => '成長';
 
   @override
+  String get allTimeBestSectionTitle => '過去最高';
+
+  @override
+  String get allTimeMaxWeight => '過去最高重量';
+
+  @override
+  String get allTimeMaxReps => '過去最高回数';
+
+  @override
+  String get allTimeMaxVolume => '過去最高ボリューム';
+
+  @override
+  String get bestRepsByWeight => '重量別ベスト回数';
+
+  @override
   String get repsUnit => '回';
 
   @override
@@ -1206,10 +1221,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get workoutCompletionTitle => 'トレーニング記録完了';
 
   @override
-  String get reviewPromptTitle => '3回記録できました！';
+  String get reviewPromptTitle => 'トレーニングの記録ありがとうございます！';
 
   @override
-  String get reviewPromptMessage => 'よろしければ App Store でレビューをお願いします。';
+  String get reviewPromptMessage => '今回のアップデートはいかがですか？よろしければレビューで感想を聞かせてください。';
+
+  @override
+  String get reviewPromptRateLabel => 'アプリの評価を教えてください';
 
   @override
   String get reviewPromptWriteReview => 'レビューを書く';

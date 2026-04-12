@@ -99,6 +99,11 @@ final exerciseProgressPeriodProvider = StateProvider.family<ProgressPeriod, int>
   (ref, exerciseId) => ProgressPeriod.threeMonths,
 );
 
+/// 種目ごとのメトリックタブ（0=Weight, 1=Reps, 2=Volume）。スクロール内でタブ切り替え用。
+final exerciseProgressMetricTabProvider = StateProvider.family<int, int>(
+  (ref, exerciseId) => 0,
+);
+
 /// Model for exercise progress data point
 class ExerciseProgressDataPoint {
   final DateTime date;
@@ -252,6 +257,110 @@ final exerciseProgressProvider = FutureProvider.autoDispose.family<
 
     final bucket = workoutBucketForPeriod(query.period);
     return aggregateWorkoutProgress(points, bucket);
+  },
+);
+
+/// 期間内の過去最高（重量・回数・ボリューム）。成長グラフのサマリ用。
+class AllTimeMaxStats {
+  final double? maxWeight;
+  final double? maxReps;
+  final double? maxVolume;
+
+  const AllTimeMaxStats({
+    this.maxWeight,
+    this.maxReps,
+    this.maxVolume,
+  });
+}
+
+final exerciseProgressAllTimeMaxProvider = FutureProvider.autoDispose.family<
+    AllTimeMaxStats, ({int exerciseId, ProgressPeriod period, String unit})>(
+  (ref, params) async {
+    final setDao = SetRecordDao();
+    final startDate = params.period.getStartDate();
+    final int? startTimestamp = startDate != null
+        ? startDate.millisecondsSinceEpoch ~/ 1000
+        : null;
+
+    double? maxWeight;
+    double? maxReps;
+    double? maxVolume;
+
+    final weightMaps = await setDao.getProgressDataForExercise(
+      params.exerciseId,
+      params.unit,
+      startTimestamp: startTimestamp,
+    );
+    if (weightMaps.isNotEmpty) {
+      maxWeight = weightMaps
+          .map((m) => (m['topWeight'] as num?)?.toDouble() ?? 0.0)
+          .reduce((a, b) => a > b ? a : b);
+    }
+
+    final repsMaps = await setDao.getProgressDataForExerciseReps(
+      params.exerciseId,
+      startTimestamp: startTimestamp,
+    );
+    if (repsMaps.isNotEmpty) {
+      maxReps = repsMaps
+          .map((m) => (m['topReps'] as num?)?.toInt() ?? 0)
+          .reduce((a, b) => a > b ? a : b)
+          .toDouble();
+    }
+
+    final volumeMaps = await setDao.getProgressDataForExerciseVolume(
+      params.exerciseId,
+      params.unit,
+      startTimestamp: startTimestamp,
+    );
+    if (volumeMaps.isNotEmpty) {
+      maxVolume = volumeMaps
+          .map((m) => (m['maxVolume'] as num?)?.toDouble() ?? 0.0)
+          .reduce((a, b) => a > b ? a : b);
+    }
+
+    return AllTimeMaxStats(
+      maxWeight: maxWeight,
+      maxReps: maxReps,
+      maxVolume: maxVolume,
+    );
+  },
+);
+
+class WeightRepBestEntry {
+  final double weight;
+  final int maxReps;
+
+  const WeightRepBestEntry({
+    required this.weight,
+    required this.maxReps,
+  });
+}
+
+final exerciseProgressWeightRepBestProvider = FutureProvider.autoDispose.family<
+    List<WeightRepBestEntry>, ({int exerciseId, ProgressPeriod period, String unit})>(
+  (ref, params) async {
+    final setDao = SetRecordDao();
+    final startDate = params.period.getStartDate();
+    final int? startTimestamp = startDate != null
+        ? startDate.millisecondsSinceEpoch ~/ 1000
+        : null;
+
+    final maps = await setDao.getBestRepsByWeightForExercise(
+      params.exerciseId,
+      params.unit,
+      startTimestamp: startTimestamp,
+    );
+
+    return maps
+        .map(
+          (map) => WeightRepBestEntry(
+            weight: (map['weight'] as num?)?.toDouble() ?? 0.0,
+            maxReps: (map['maxReps'] as num?)?.toInt() ?? 0,
+          ),
+        )
+        .where((entry) => entry.weight > 0 && entry.maxReps > 0)
+        .toList();
   },
 );
 

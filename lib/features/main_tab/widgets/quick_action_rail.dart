@@ -52,12 +52,14 @@ class _QuickActionRailState extends ConsumerState<QuickActionRail> {
           children: [
             // メニューは開閉ボタンの上に展開（開閉ボタンは常に同じ位置＝右下）
             if (_expanded) ...[
-              _RailButton(
-                size: _kButtonSize,
-                icon: Icon(Icons.repeat_rounded, size: 22, color: theme.colorScheme.tertiary),
-                tooltip: l10n.routineLoadIntoWorkout,
-                onTap: () => _startFromRoutineModal(context),
-              ),
+              // 記録進行中は「ルーティン読み込み」を非表示（進行中の記録は1つのみ）
+              if (!hasSession)
+                _RailButton(
+                  size: _kButtonSize,
+                  icon: Icon(Icons.repeat_rounded, size: 22, color: theme.colorScheme.tertiary),
+                  tooltip: l10n.routineLoadIntoWorkout,
+                  onTap: () => _startFromRoutineModal(context),
+                ),
               _RecordRailButton(
                 hasSession: hasSession,
                 sessionId: sessionAsync.valueOrNull?.id,

@@ -127,6 +127,9 @@ final workoutSessionNotifierProvider = StateNotifierProvider<
   (ref) => WorkoutSessionNotifier(ref),
 );
 
+/// 履歴カレンダー用リフレッシュトリガー。トレーニング削除などで increment すると履歴画面が再読み込みする。
+final historyCalendarRefreshProvider = StateProvider<int>((ref) => 0);
+
 /// Provider for recent completed workout sessions
 final recentWorkoutsProvider =
     FutureProvider<List<WorkoutSessionEntity>>((ref) async {

@@ -36,6 +36,7 @@ class BulkGoalSelectModal extends ConsumerStatefulWidget {
 class _BulkGoalSelectModalState extends ConsumerState<BulkGoalSelectModal> {
   int _selectedCourseIndex = 1; // default: 1.2 (しっかり伸ばす)
   Set<int> _selectedIds = {};
+  bool _hasInitializedSelection = false;
   bool _isExecuting = false;
 
   @override
@@ -86,8 +87,9 @@ class _BulkGoalSelectModalState extends ConsumerState<BulkGoalSelectModal> {
                       ),
                     );
                   }
-                  // Init selection to all when we first get data
-                  if (_selectedIds.isEmpty) {
+                  // 初回のみ全選択で初期化。「すべて解除」後に再び全選択に戻らないようにする。
+                  if (!_hasInitializedSelection && exercises.isNotEmpty) {
+                    _hasInitializedSelection = true;
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) {
                         setState(() {

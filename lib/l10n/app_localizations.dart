@@ -1153,6 +1153,36 @@ abstract class AppLocalizations {
   /// **'Improvement'**
   String get improvement;
 
+  /// No description provided for @allTimeBestSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time best'**
+  String get allTimeBestSectionTitle;
+
+  /// No description provided for @allTimeMaxWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time max weight'**
+  String get allTimeMaxWeight;
+
+  /// No description provided for @allTimeMaxReps.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time max reps'**
+  String get allTimeMaxReps;
+
+  /// No description provided for @allTimeMaxVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time max volume'**
+  String get allTimeMaxVolume;
+
+  /// Label for best reps achieved at each weight
+  ///
+  /// In en, this message translates to:
+  /// **'Best reps by weight'**
+  String get bestRepsByWeight;
+
   /// Unit for reps
   ///
   /// In en, this message translates to:
@@ -2296,14 +2326,20 @@ abstract class AppLocalizations {
   /// Title for in-app review prompt dialog
   ///
   /// In en, this message translates to:
-  /// **'You\'ve logged 3 workouts!'**
+  /// **'Thanks for logging your workouts!'**
   String get reviewPromptTitle;
 
   /// Message for in-app review prompt dialog
   ///
   /// In en, this message translates to:
-  /// **'Would you mind leaving a review? It helps us a lot.'**
+  /// **'How does this update feel so far? If you\'d like, we\'d love to hear your feedback in a review.'**
   String get reviewPromptMessage;
+
+  /// Label for star rating in review prompt
+  ///
+  /// In en, this message translates to:
+  /// **'How would you rate the app?'**
+  String get reviewPromptRateLabel;
 
   /// Button to open store review
   ///
