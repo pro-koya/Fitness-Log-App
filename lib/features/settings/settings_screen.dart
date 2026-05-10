@@ -46,9 +46,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String? _selectedUnit;
   String? _selectedDistanceUnit;
   bool _isSaving = false;
+
   /// 同期中は 'push' または 'pull'。押した方のボタンにだけインジケーターを表示する
   String? _syncingOperation;
   bool _isGoogleSigningIn = false;
+  bool _isAppleSigningIn = false;
+  bool _isDeletingAccount = false;
 
   @override
   void initState() {
@@ -154,21 +157,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ? null
           : AppBar(
               title: Text(l10n?.settingsTitle ?? 'Settings / 設定'),
-              actions: [
-                TimerIconButton(),
-              ],
+              actions: [TimerIconButton()],
             ),
       body: settingsAsync.when(
         data: (settings) {
           if (settings == null) {
-            final msg = l10n?.errorLoadFailed ?? 'Something went wrong. Please try again.';
+            final msg =
+                l10n?.errorLoadFailed ??
+                'Something went wrong. Please try again.';
             return Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
+                    Icon(
+                      Icons.error_outline,
+                      size: 40,
+                      color: Colors.grey[600],
+                    ),
                     const SizedBox(height: 12),
                     Text(msg, textAlign: TextAlign.center),
                     const SizedBox(height: 16),
@@ -184,7 +191,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           }
 
           // Initialize temporary state if not yet set
-          if (_selectedLanguage == null || _selectedUnit == null || _selectedDistanceUnit == null) {
+          if (_selectedLanguage == null ||
+              _selectedUnit == null ||
+              _selectedDistanceUnit == null) {
             _selectedLanguage = settings.language;
             _selectedUnit = settings.unit;
             _selectedDistanceUnit = settings.distanceUnit;
@@ -205,16 +214,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           child: Material(
                             elevation: 2,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                               alignment: Alignment.center,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.edit_note, size: 20, color: Theme.of(context).colorScheme.primary),
+                                  Icon(
+                                    Icons.edit_note,
+                                    size: 20,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
                                     l10n?.settingsUnsavedHint ?? '変更を保存できます',
-                                    style: Theme.of(context).textTheme.bodyMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
                                   ),
                                   const SizedBox(width: 16),
                                   FilledButton(
@@ -223,7 +243,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         ? const SizedBox(
                                             width: 20,
                                             height: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
                                           )
                                         : Text(l10n?.saveButton ?? 'Save'),
                                   ),
@@ -237,68 +260,80 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Expanded(
                   child: SingleChildScrollView(
                     child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Language Selection
-                        _buildSectionLabel(l10n?.languageLabel ?? 'Language / 言語'),
-                        const SizedBox(height: 12),
-                        _buildLanguageSelector(_selectedLanguage ?? settings.language),
-                        const SizedBox(height: 32),
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Language Selection
+                          _buildSectionLabel(
+                            l10n?.languageLabel ?? 'Language / 言語',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildLanguageSelector(
+                            _selectedLanguage ?? settings.language,
+                          ),
+                          const SizedBox(height: 32),
 
-                        // Unit Selection
-                        _buildSectionLabel(l10n?.unitLabel ?? 'Unit / 単位'),
-                        const SizedBox(height: 12),
-                        _buildUnitSelector(_selectedUnit ?? settings.unit),
-                        const SizedBox(height: 32),
+                          // Unit Selection
+                          _buildSectionLabel(l10n?.unitLabel ?? 'Unit / 単位'),
+                          const SizedBox(height: 12),
+                          _buildUnitSelector(_selectedUnit ?? settings.unit),
+                          const SizedBox(height: 32),
 
-                        // Distance Unit Selection
-                        _buildSectionLabel(l10n?.distanceUnitLabel ?? 'Distance Unit / 距離単位'),
-                        const SizedBox(height: 12),
-                        _buildDistanceUnitSelector(_selectedDistanceUnit ?? settings.distanceUnit),
-                        const SizedBox(height: 32),
+                          // Distance Unit Selection
+                          _buildSectionLabel(
+                            l10n?.distanceUnitLabel ?? 'Distance Unit / 距離単位',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildDistanceUnitSelector(
+                            _selectedDistanceUnit ?? settings.distanceUnit,
+                          ),
+                          const SizedBox(height: 32),
 
-                        // Timer notification section
-                        _buildTimerSection(l10n),
-                        const SizedBox(height: 32),
+                          // Timer notification section
+                          _buildTimerSection(l10n),
+                          const SizedBox(height: 32),
 
-                        // Theme Section
-                        _buildThemeSection(l10n),
-                        const SizedBox(height: 32),
+                          // Theme Section
+                          _buildThemeSection(l10n),
+                          const SizedBox(height: 32),
 
-                        // Backup Section
-                        _buildBackupSection(l10n),
-                        const SizedBox(height: 32),
+                          // Backup Section
+                          _buildBackupSection(l10n),
+                          const SizedBox(height: 32),
 
-                        // Pro Sync Section (Pro only)
-                        _buildSyncSection(l10n),
-                        const SizedBox(height: 32),
+                          // Pro Sync Section (Pro only)
+                          _buildSyncSection(l10n),
+                          const SizedBox(height: 32),
 
-                        // KintoreMemo Import Section
-                        _buildKintoreMemoImportSection(l10n),
-                        const SizedBox(height: 32),
+                          // KintoreMemo Import Section
+                          _buildKintoreMemoImportSection(l10n),
+                          const SizedBox(height: 32),
 
-                        // Plan Section (Upgrade to Pro / Manage subscription) — バックアップの下
-                        _buildPlanSection(l10n),
-                        const SizedBox(height: 32),
+                          // SorryGains (筋肉ごめん) Download Section
+                          _buildSorryGainsSection(l10n),
+                          const SizedBox(height: 32),
 
-                        // Restore Purchases Section
-                        _buildRestorePurchasesSection(l10n),
+                          // Plan Section (Upgrade to Pro / Manage subscription) — バックアップの下
+                          _buildPlanSection(l10n),
+                          const SizedBox(height: 32),
 
-                        // Legal Links Section
-                        const SizedBox(height: 32),
-                        _buildLegalSection(l10n),
+                          // Restore Purchases Section
+                          _buildRestorePurchasesSection(l10n),
 
-                        // Dev: Pro/Free toggle (only in debug mode)
-                        if (kDebugMode) ...[
-                          const SizedBox(height: 48),
-                          const Divider(),
-                          const SizedBox(height: 16),
-                          _buildDevSection(),
+                          // Legal Links Section
+                          const SizedBox(height: 32),
+                          _buildLegalSection(l10n),
+
+                          // Dev: Pro/Free toggle (only in debug mode)
+                          if (kDebugMode) ...[
+                            const SizedBox(height: 48),
+                            const Divider(),
+                            const SizedBox(height: 16),
+                            _buildDevSection(),
+                          ],
+                          SizedBox(height: widget.isEmbeddedInTab ? 48 : 24),
                         ],
-                        SizedBox(height: widget.isEmbeddedInTab ? 48 : 24),
-                      ],
                       ),
                     ),
                   ),
@@ -309,9 +344,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -321,7 +354,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
                 const SizedBox(height: 12),
                 Text(
-                  l10n?.errorLoadFailed ?? 'Something went wrong. Please try again.',
+                  l10n?.errorLoadFailed ??
+                      'Something went wrong. Please try again.',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -341,10 +375,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildSectionLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-      ),
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
     );
   }
 
@@ -359,14 +390,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Expanded(
             child: _buildLanguageOption('English', 'en', currentLanguage),
           ),
-          Container(
-            width: 1,
-            height: 48,
-            color: Colors.grey.shade300,
-          ),
-          Expanded(
-            child: _buildLanguageOption('日本語', 'ja', currentLanguage),
-          ),
+          Container(width: 1, height: 48, color: Colors.grey.shade300),
+          Expanded(child: _buildLanguageOption('日本語', 'ja', currentLanguage)),
         ],
       ),
     );
@@ -413,17 +438,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: _buildUnitOption('kg', 'kg', currentUnit),
-          ),
-          Container(
-            width: 1,
-            height: 48,
-            color: Colors.grey.shade300,
-          ),
-          Expanded(
-            child: _buildUnitOption('lb', 'lb', currentUnit),
-          ),
+          Expanded(child: _buildUnitOption('kg', 'kg', currentUnit)),
+          Container(width: 1, height: 48, color: Colors.grey.shade300),
+          Expanded(child: _buildUnitOption('lb', 'lb', currentUnit)),
         ],
       ),
     );
@@ -469,20 +486,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Expanded(
             child: _buildDistanceUnitOption('km', 'km', currentDistanceUnit),
           ),
-          Container(
-            width: 1,
-            height: 48,
-            color: Colors.grey.shade300,
-          ),
+          Container(width: 1, height: 48, color: Colors.grey.shade300),
           Expanded(
-            child: _buildDistanceUnitOption('mile', 'mile', currentDistanceUnit),
+            child: _buildDistanceUnitOption(
+              'mile',
+              'mile',
+              currentDistanceUnit,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDistanceUnitOption(String label, String value, String currentDistanceUnit) {
+  Widget _buildDistanceUnitOption(
+    String label,
+    String value,
+    String currentDistanceUnit,
+  ) {
     final isSelected = currentDistanceUnit == value;
 
     return InkWell(
@@ -518,7 +539,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = Theme.of(context);
     final timerTitle = isJa ? 'タイマー終了時の通知' : 'Timer notification';
     final timerDescription = isJa ? 'バイブ・音の設定' : 'Vibration & sound settings';
-    final enableLabel = l10n?.notificationSettingsEnableLabel ?? (isJa ? '通知を送る' : 'Send notifications');
+    final enableLabel =
+        l10n?.notificationSettingsEnableLabel ??
+        (isJa ? '通知を送る' : 'Send notifications');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,7 +561,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.notifications_active_outlined, size: 24, color: theme.colorScheme.primary),
+                  Icon(
+                    Icons.notifications_active_outlined,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
@@ -556,15 +583,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         final result = await Navigator.push<bool>(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const NotificationPermissionScreen(),
+                            builder: (_) =>
+                                const NotificationPermissionScreen(),
                           ),
                         );
                         if (result == true && mounted) {
                           ref.invalidate(settingsProvider);
                         }
                       } else {
-                        await ref.read(settingsNotifierProvider.notifier).saveTimerSettings(
-                              timerSettings.copyWith(notificationsEnabled: false),
+                        await ref
+                            .read(settingsNotifierProvider.notifier)
+                            .saveTimerSettings(
+                              timerSettings.copyWith(
+                                notificationsEnabled: false,
+                              ),
                             );
                       }
                     },
@@ -655,7 +687,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (isPro) {
       // Proユーザー: サブスクリプション管理
       final title = l10n?.settingsManageSubscription ?? 'Manage Subscription';
-      final description = l10n?.settingsManageSubscriptionHint ?? 'Cancel or change your subscription';
+      final description =
+          l10n?.settingsManageSubscriptionHint ??
+          'Cancel or change your subscription';
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -719,8 +753,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     // Freeユーザー: Proへアップグレード (P1-5: Proの価値の一文を表示)
     final upgradeTitle = l10n?.settingsUpgradeToPro ?? 'Upgrade to Pro';
-    final upgradeDescription = l10n?.settingsProPlanDescription ?? 'Hide ads, full history, theme, backup & more';
-    final proOneLiner = l10n?.proValueOneLiner ?? 'Sync across devices & no ads';
+    final upgradeDescription =
+        l10n?.settingsProPlanDescription ??
+        'Hide ads, full history, theme, backup & more';
+    final proOneLiner =
+        l10n?.proValueOneLiner ?? 'Sync across devices & no ads';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -748,10 +785,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: Colors.blue.shade100,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.star_outline,
-                    color: Colors.blue.shade700,
-                  ),
+                  child: Icon(Icons.star_outline, color: Colors.blue.shade700),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -824,9 +858,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             }
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const ThemeSettingsScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const ThemeSettingsScreen()),
             );
           },
           borderRadius: BorderRadius.circular(12),
@@ -899,7 +931,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildBackupSection(AppLocalizations? l10n) {
     final gate = ref.watch(featureGateProvider);
     final backupTitle = l10n?.backupTitle ?? 'Backup & Restore';
-    final backupDescription = l10n?.backupSettingsDescription ?? 'Save data to transfer to another device';
+    final backupDescription =
+        l10n?.backupSettingsDescription ??
+        'Save data to transfer to another device';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -914,9 +948,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             }
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const BackupScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const BackupScreen()),
             );
           },
           borderRadius: BorderRadius.circular(12),
@@ -1006,8 +1038,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: Text(loc?.syncConfirmTitle ?? 'Confirm'),
           content: Text(
             isPush
-                ? (loc?.syncConfirmPushMessage ?? 'All cloud data will be replaced by this device\'s data.')
-                : (loc?.syncConfirmPullMessage ?? 'All device data will be replaced by cloud data.'),
+                ? (loc?.syncConfirmPushMessage ??
+                      'All cloud data will be replaced by this device\'s data.')
+                : (loc?.syncConfirmPullMessage ??
+                      'All device data will be replaced by cloud data.'),
           ),
           actions: [
             TextButton(
@@ -1032,7 +1066,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         setState(() => _syncingOperation = null);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n?.syncSyncFailedWithReason('Sync timed out') ?? 'Sync timed out'),
+            content: Text(
+              l10n?.syncSyncFailedWithReason('Sync timed out') ??
+                  'Sync timed out',
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -1062,7 +1099,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (err != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n?.syncSyncFailedWithReason(err) ?? 'Sync failed: $err'),
+            content: Text(
+              l10n?.syncSyncFailedWithReason(err) ?? 'Sync failed: $err',
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -1082,7 +1121,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n?.syncSyncFailedWithReason(e.toString()) ?? 'Sync failed: $e'),
+            content: Text(
+              l10n?.syncSyncFailedWithReason(e.toString()) ?? 'Sync failed: $e',
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -1095,7 +1136,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  /// Pro 同期セクション（Pro のみ表示）
+  /// データ連携セクション（全ユーザー表示 — 筋肉360連携のため）
   Widget _buildSyncSection(AppLocalizations? l10n) {
     final gate = ref.watch(featureGateProvider);
     if (!gate.canSync) return const SizedBox.shrink();
@@ -1106,8 +1147,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final lastSyncedAsync = ref.watch(lastSyncedAtProvider);
     final isConfigured = SupabaseConfig.isConfigured;
 
-    final sectionTitle = l10n?.syncSectionTitle ?? 'Sync (Pro)';
-    final sectionDesc = l10n?.syncSectionDescription ?? 'Save data to the cloud for use across devices';
+    final sectionTitle = l10n?.syncSectionTitle ?? 'Data Sync';
+    final sectionDesc =
+        l10n?.syncSectionDescription ??
+        'Sign in to sync with SorryGains and enable cross-device data sync.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1148,7 +1191,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       : (l10n?.syncNotSignedIn ?? 'Not signed in'),
                   style: TextStyle(
                     fontSize: 13,
-                    color: auth.isSignedIn ? Colors.grey.shade800 : Colors.grey.shade600,
+                    color: auth.isSignedIn
+                        ? Colors.grey.shade800
+                        : Colors.grey.shade600,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1156,12 +1201,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Row(
                     children: [
                       TextButton(
-                        onPressed: _syncingOperation != null ? null : () async {
-                          await auth.signOut();
-                          ref.invalidate(lastSyncedAtProvider);
-                          if (mounted) setState(() {});
-                        },
+                        onPressed:
+                            _syncingOperation != null || _isDeletingAccount
+                            ? null
+                            : () async {
+                                await auth.signOut();
+                                ref.invalidate(lastSyncedAtProvider);
+                                if (mounted) setState(() {});
+                              },
                         child: Text(l10n?.syncSignOut ?? 'Sign out'),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed:
+                            _syncingOperation != null || _isDeletingAccount
+                            ? null
+                            : () => _confirmDeleteAccount(l10n),
+                        child: _isDeletingAccount
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                l10n?.syncDeleteAccount ?? 'Delete account',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
                       ),
                     ],
                   ),
@@ -1170,11 +1239,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: _syncingOperation != null ? null : () => _runSyncAfterConfirm(
-                            context,
-                            l10n,
-                            isPush: true,
-                          ),
+                          onPressed: _syncingOperation != null
+                              ? null
+                              : () => _runSyncAfterConfirm(
+                                  context,
+                                  l10n,
+                                  isPush: true,
+                                ),
                           child: _syncingOperation == 'push'
                               ? SizedBox(
                                   width: 20,
@@ -1189,11 +1260,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: _syncingOperation != null ? null : () => _runSyncAfterConfirm(
-                            context,
-                            l10n,
-                            isPush: false,
-                          ),
+                          onPressed: _syncingOperation != null
+                              ? null
+                              : () => _runSyncAfterConfirm(
+                                  context,
+                                  l10n,
+                                  isPush: false,
+                                ),
                           child: _syncingOperation == 'pull'
                               ? SizedBox(
                                   width: 20,
@@ -1220,7 +1293,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: _isGoogleSigningIn
+                      onPressed: _isAppleSigningIn || _isGoogleSigningIn
+                          ? null
+                          : () => _signInWithApple(),
+                      icon: _isAppleSigningIn
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            )
+                          : const Icon(Icons.apple, size: 22),
+                      label: Text(
+                        _isAppleSigningIn
+                            ? (l10n?.syncSigningIn ?? 'Signing in...')
+                            : (l10n?.syncSignInWithApple ??
+                                  'Sign in with Apple'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _isAppleSigningIn || _isGoogleSigningIn
                           ? null
                           : () => _signInWithGoogle(),
                       icon: _isGoogleSigningIn
@@ -1236,7 +1334,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       label: Text(
                         _isGoogleSigningIn
                             ? (l10n?.syncSigningIn ?? 'Signing in...')
-                            : (l10n?.syncSignInWithGoogle ?? 'Sign in with Google'),
+                            : (l10n?.syncSignInWithGoogle ??
+                                  'Sign in with Google'),
                       ),
                     ),
                   ),
@@ -1244,13 +1343,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 lastSyncedAsync.when(
                   data: (epoch) {
                     if (epoch == null) return const SizedBox.shrink();
-                    final dt = DateTime.fromMillisecondsSinceEpoch(epoch * 1000);
+                    final dt = DateTime.fromMillisecondsSinceEpoch(
+                      epoch * 1000,
+                    );
                     final timeStr = DateFormat('yyyy/MM/dd HH:mm').format(dt);
                     return Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
-                        l10n?.syncLastSynced(timeStr) ?? 'Last synced: $timeStr',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        l10n?.syncLastSynced(timeStr) ??
+                            'Last synced: $timeStr',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     );
                   },
@@ -1265,19 +1370,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// Apple でログイン（SSO）。ブラウザ／システム認証画面が開き、完了後にアプリに戻る。
+  Future<void> _signInWithApple() async {
+    final auth = ref.read(supabaseAuthServiceProvider);
+    if (_isAppleSigningIn || _isGoogleSigningIn) return;
+    setState(() => _isAppleSigningIn = true);
+    try {
+      final res = await auth.signInWithApple();
+      if (!mounted) return;
+      if (res is AuthFailure && res.message != 'cancelled') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res.message),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAppleSigningIn = false);
+    }
+  }
+
   /// Google でログイン（SSO）。ブラウザ／システム認証画面が開き、完了後にアプリに戻る。
   Future<void> _signInWithGoogle() async {
-    final l10n = AppLocalizations.of(context)!;
     final auth = ref.read(supabaseAuthServiceProvider);
-    if (_isGoogleSigningIn) return;
+    if (_isAppleSigningIn || _isGoogleSigningIn) return;
     setState(() => _isGoogleSigningIn = true);
     try {
       final res = await auth.signInWithGoogle();
       if (!mounted) return;
-      if (res is AuthFailure) {
+      if (res is AuthFailure && res.message != 'cancelled') {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text((res as AuthFailure).message),
+            content: Text(res.message),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -1288,15 +1414,68 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _confirmDeleteAccount(AppLocalizations? l10n) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n?.syncDeleteAccountTitle ?? 'Delete account?'),
+        content: Text(
+          l10n?.syncDeleteAccountMessage ??
+              'Your cloud account and synced data will be deleted. Local records on this device remain on the device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n?.cancelButton ?? 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: Text(l10n?.syncDeleteAccount ?? 'Delete account'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final auth = ref.read(supabaseAuthServiceProvider);
+    setState(() => _isDeletingAccount = true);
+    try {
+      final res = await auth.deleteAccount();
+      if (!mounted) return;
+      if (res is AuthFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res.message),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ref.invalidate(lastSyncedAtProvider);
+      }
+    } finally {
+      if (mounted) setState(() => _isDeletingAccount = false);
+    }
+  }
+
   /// 筋トレMemoインポートセクション
   Widget _buildKintoreMemoImportSection(AppLocalizations? l10n) {
     final title = l10n?.importKintoreMemoTitle ?? 'Import from KintoreMemo';
-    final description = l10n?.importKintoreMemoDescription ?? 'Import default.realm exported via iMazing etc.';
+    final description =
+        l10n?.importKintoreMemoDescription ??
+        'Import default.realm exported via iMazing etc.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionLabel(l10n?.importFromOtherAppsLabel ?? 'Import from other apps'),
+        _buildSectionLabel(
+          l10n?.importFromOtherAppsLabel ?? 'Import from other apps',
+        ),
         const SizedBox(height: 12),
         InkWell(
           onTap: () {
@@ -1320,7 +1499,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1371,7 +1552,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
 
     final restoreTitle = l10n?.paywallRestorePurchases ?? 'Restore Purchases';
-    final restoreDescription = l10n?.paywallRestoreDescription ?? 'Restore previously purchased Pro plan';
+    final restoreDescription =
+        l10n?.paywallRestoreDescription ??
+        'Restore previously purchased Pro plan';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1379,7 +1562,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _buildSectionLabel(restoreTitle),
         const SizedBox(height: 12),
         InkWell(
-          onTap: iapState.isPurchasing ? null : () => _handleRestorePurchases(l10n),
+          onTap: iapState.isPurchasing
+              ? null
+              : () => _handleRestorePurchases(l10n),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -1397,10 +1582,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: Colors.blue.shade50,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.refresh,
-                    color: Colors.blue.shade600,
-                  ),
+                  child: Icon(Icons.refresh, color: Colors.blue.shade600),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1459,12 +1641,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        final msg = AppLocalizations.of(context)?.subscriptionManagementOpenError ?? 'Could not open subscription settings';
+        final msg =
+            AppLocalizations.of(context)?.subscriptionManagementOpenError ??
+            'Could not open subscription settings';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(msg),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(msg), backgroundColor: Colors.red),
         );
       }
     }
@@ -1474,8 +1655,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _handleRestorePurchases(AppLocalizations? l10n) async {
     final restoringMsg = l10n?.paywallRestoring ?? 'Restoring...';
     final successMsg = l10n?.paywallRestoreSuccess ?? 'Purchases restored';
-    final noSubMsg = l10n?.paywallRestoreNoSubscription ?? 'No active subscription found';
-    final errorMsg = l10n?.paywallSubscriptionError ?? 'Restore failed. Please try again.';
+    final noSubMsg =
+        l10n?.paywallRestoreNoSubscription ?? 'No active subscription found';
+    final errorMsg =
+        l10n?.paywallSubscriptionError ?? 'Restore failed. Please try again.';
 
     // ローディング表示
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1499,7 +1682,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
 
     try {
-      final success = await ref.read(entitlementProvider.notifier).restorePurchases();
+      final success = await ref
+          .read(entitlementProvider.notifier)
+          .restorePurchases();
 
       if (!mounted) return;
 
@@ -1507,29 +1692,94 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(successMsg),
-            backgroundColor: Colors.green,
-          ),
+          SnackBar(content: Text(successMsg), backgroundColor: Colors.green),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(noSubMsg),
-            backgroundColor: Colors.orange,
-          ),
+          SnackBar(content: Text(noSubMsg), backgroundColor: Colors.orange),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
       );
     }
+  }
+
+  /// 筋肉ごめん (SorryGains) ダウンロード導線
+  Widget _buildSorryGainsSection(AppLocalizations? l10n) {
+    final isJa = ref.watch(currentLanguageProvider) == 'ja';
+    final title = isJa ? '筋肉ごめん' : 'SorryGains';
+    final description = isJa
+        ? '飲んだら筋肉に謝れ！飲酒とトレーニングの関係を可視化'
+        : 'Track drinks & see how they affect your gains';
+    final sectionTitle = isJa ? '関連アプリ' : 'Related App';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(sectionTitle),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: () async {
+            final url = Uri.parse(
+              'https://apps.apple.com/app/id6763986050',
+            );
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.amber.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.sports_bar,
+                    color: Colors.amber.shade700,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.open_in_new, size: 20, color: Colors.amber.shade700),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   /// 法的情報セクション
@@ -1550,13 +1800,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               // Terms of Use (EULA)
               InkWell(
-                onTap: () => _openLegalUrl('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                onTap: () => _openLegalUrl(
+                  'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                ),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(Icons.description_outlined, color: Colors.grey.shade600, size: 20),
+                      Icon(
+                        Icons.description_outlined,
+                        color: Colors.grey.shade600,
+                        size: 20,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -1564,7 +1822,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: const TextStyle(fontSize: 15),
                         ),
                       ),
-                      Icon(Icons.open_in_new, size: 16, color: Colors.grey.shade500),
+                      Icon(
+                        Icons.open_in_new,
+                        size: 16,
+                        color: Colors.grey.shade500,
+                      ),
                     ],
                   ),
                 ),
@@ -1578,12 +1840,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   final url = 'https://pro-koya.github.io/?lang=$lang';
                   _openLegalUrl(url);
                 },
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(Icons.privacy_tip_outlined, color: Colors.grey.shade600, size: 20),
+                      Icon(
+                        Icons.privacy_tip_outlined,
+                        color: Colors.grey.shade600,
+                        size: 20,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -1591,7 +1859,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: const TextStyle(fontSize: 15),
                         ),
                       ),
-                      Icon(Icons.open_in_new, size: 16, color: Colors.grey.shade500),
+                      Icon(
+                        Icons.open_in_new,
+                        size: 16,
+                        color: Colors.grey.shade500,
+                      ),
                     ],
                   ),
                 ),
@@ -1658,10 +1930,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   const Text(
                     'Subscription Plan',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -1796,8 +2065,7 @@ class _SeedBodyWeightDataButtonState extends State<_SeedBodyWeightDataButton> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.monitor_weight_outlined, size: 20),
-        label: Text(
-            _isLoading ? '登録中...' : '体重記録のテストデータを登録（約6ヶ月分）'),
+        label: Text(_isLoading ? '登録中...' : '体重記録のテストデータを登録（約6ヶ月分）'),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.orange.shade800,
           side: BorderSide(color: Colors.orange.shade300),

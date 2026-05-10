@@ -203,6 +203,7 @@ class BackupService {
       await txn.delete('goal_achievements');
       await txn.delete('exercise_master');
       await txn.delete('body_weight_records');
+      await txn.delete('sync_metadata');
 
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
@@ -290,7 +291,9 @@ class BackupService {
         final newWeId = oldWeId != null ? backupWeIdToNewId[oldWeId] : null;
         final newSessionId = oldSessionId != null ? backupSessionIdToNewId[oldSessionId] : null;
         final newExerciseId = oldExerciseId != null ? backupExerciseIdToTargetId[oldExerciseId] : null;
-        if (newWeId == null || newSessionId == null || newExerciseId == null) continue;
+        if (newWeId == null || newSessionId == null || newExerciseId == null) {
+          continue;
+        }
 
         await txn.insert('set_records', {
           'workout_exercise_id': newWeId,

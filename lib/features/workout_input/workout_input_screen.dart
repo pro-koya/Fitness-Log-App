@@ -23,8 +23,10 @@ import '../../data/entities/routine_template_entity.dart';
 class WorkoutInputScreen extends ConsumerStatefulWidget {
   final int sessionId;
   final bool isTutorialMode;
+
   /// When starting a new session with a routine (loads routine as initial content)
   final int? routineId;
+
   /// When adding a routine to an existing in-progress session (appends to current)
   final int? addRoutineId;
 
@@ -37,8 +39,7 @@ class WorkoutInputScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<WorkoutInputScreen> createState() =>
-      _WorkoutInputScreenState();
+  ConsumerState<WorkoutInputScreen> createState() => _WorkoutInputScreenState();
 }
 
 class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
@@ -76,7 +77,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
           if (step == TutorialStep.homeStartWorkout) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
-                ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
+                ref
+                    .read(interactiveTutorialProvider.notifier)
+                    .completeCurrentStep();
               }
             });
           }
@@ -91,7 +94,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
             // Unit mismatch: reload with correct unit
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
-                ref.read(workoutInputProvider(widget.sessionId).notifier).reloadExercises();
+                ref
+                    .read(workoutInputProvider(widget.sessionId).notifier)
+                    .reloadExercises();
               }
             });
           }
@@ -100,7 +105,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
             _addRoutineLoaded = true;
             WidgetsBinding.instance.addPostFrameCallback((_) async {
               if (mounted) {
-                await ref.read(workoutInputProvider(widget.sessionId).notifier).loadFromRoutine(widget.addRoutineId!);
+                await ref
+                    .read(workoutInputProvider(widget.sessionId).notifier)
+                    .loadFromRoutine(widget.addRoutineId!);
               }
             });
           }
@@ -108,19 +115,25 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
           // No exercises loaded yet, load them with correct unit
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (mounted) {
-              await ref.read(workoutInputProvider(widget.sessionId).notifier).reloadExercises();
+              await ref
+                  .read(workoutInputProvider(widget.sessionId).notifier)
+                  .reloadExercises();
               // Load routine exercises if routineId is provided (new session)
               if (widget.routineId != null && !_routineLoaded) {
                 _routineLoaded = true;
                 if (mounted) {
-                  await ref.read(workoutInputProvider(widget.sessionId).notifier).loadFromRoutine(widget.routineId!);
+                  await ref
+                      .read(workoutInputProvider(widget.sessionId).notifier)
+                      .loadFromRoutine(widget.routineId!);
                 }
               }
               // Add routine to current session (append)
               if (widget.addRoutineId != null && !_addRoutineLoaded) {
                 _addRoutineLoaded = true;
                 if (mounted) {
-                  await ref.read(workoutInputProvider(widget.sessionId).notifier).loadFromRoutine(widget.addRoutineId!);
+                  await ref
+                      .read(workoutInputProvider(widget.sessionId).notifier)
+                      .loadFromRoutine(widget.addRoutineId!);
                 }
               }
             }
@@ -131,7 +144,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         if (_lastUnit != null && _lastUnit != currentUnit) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              ref.read(workoutInputProvider(widget.sessionId).notifier).reloadExercises();
+              ref
+                  .read(workoutInputProvider(widget.sessionId).notifier)
+                  .reloadExercises();
             }
           });
         }
@@ -154,28 +169,28 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         },
         child: Scaffold(
           appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.workoutInputTitle),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.repeat, size: 22),
-              tooltip: AppLocalizations.of(context)!.routineLoadIntoWorkout,
-              onPressed: () => _loadRoutineIntoWorkout(context, ref),
-            ),
-            TimerIconButton(),
-          ],
-        ),
-        body: Stack(
-          children: [
-            // In tutorial step 2, show empty state immediately (no loading) so user goes straight to "種目を追加"
-            _shouldShowLoading(workoutState)
-                ? const Center(child: CircularProgressIndicator())
-                : workoutState.exercises.isEmpty
-                    ? _buildEmptyState()
-                    : _buildExerciseList(workoutState),
-            // Tutorial overlay
-            _buildTutorialOverlay(context, ref, workoutState),
-          ],
-        ),
+            title: Text(AppLocalizations.of(context)!.workoutInputTitle),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.repeat, size: 22),
+                tooltip: AppLocalizations.of(context)!.routineLoadIntoWorkout,
+                onPressed: () => _loadRoutineIntoWorkout(context, ref),
+              ),
+              TimerIconButton(),
+            ],
+          ),
+          body: Stack(
+            children: [
+              // In tutorial step 2, show empty state immediately (no loading) so user goes straight to "種目を追加"
+              _shouldShowLoading(workoutState)
+                  ? const Center(child: CircularProgressIndicator())
+                  : workoutState.exercises.isEmpty
+                  ? _buildEmptyState()
+                  : _buildExerciseList(workoutState),
+              // Tutorial overlay
+              _buildTutorialOverlay(context, ref, workoutState),
+            ],
+          ),
           bottomNavigationBar: _buildBottomBar(),
         ),
       ),
@@ -192,7 +207,8 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   Widget _buildEmptyState() {
     final l10n = AppLocalizations.of(context)!;
     final tutorialState = ref.watch(interactiveTutorialProvider);
-    final isStep2Active = tutorialState.isActive &&
+    final isStep2Active =
+        tutorialState.isActive &&
         tutorialState.currentStep == TutorialStep.workoutAddExercise;
 
     return Center(
@@ -201,33 +217,31 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.fitness_center,
-              size: 80,
-              color: Colors.grey,
-            ),
+            const Icon(Icons.fitness_center, size: 80, color: Colors.grey),
             const SizedBox(height: 24),
             Text(
               l10n.workoutEmptyStateHint,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               key: isStep2Active ? _addExerciseButtonKey : null,
               onPressed: () async {
                 if (isStep2Active) {
-                  ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
+                  ref
+                      .read(interactiveTutorialProvider.notifier)
+                      .completeCurrentStep();
                 }
                 await _showExerciseSelector();
               },
               icon: const Icon(Icons.add),
               label: Text(l10n.addExerciseButton),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
               ),
             ),
           ],
@@ -237,16 +251,26 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   }
 
   Widget _buildExerciseList(WorkoutInputState workoutState) {
-    return ListView.builder(
-      controller: _scrollController,
+    return ReorderableListView.builder(
+      scrollController: _scrollController,
       padding: const EdgeInsets.all(16).copyWith(bottom: 100),
       itemCount: workoutState.exercises.length,
+      buildDefaultDragHandles: false,
+      onReorder: (oldIndex, newIndex) {
+        FocusScope.of(context).unfocus();
+        ref
+            .read(workoutInputProvider(widget.sessionId).notifier)
+            .reorderExercises(oldIndex, newIndex);
+      },
       itemBuilder: (context, index) {
         final exercise = workoutState.exercises[index];
-        final notifier = ref.read(workoutInputProvider(widget.sessionId).notifier);
+        final notifier = ref.read(
+          workoutInputProvider(widget.sessionId).notifier,
+        );
 
         final tutorialState = ref.watch(interactiveTutorialProvider);
-        final isStep3Active = tutorialState.isActive &&
+        final isStep3Active =
+            tutorialState.isActive &&
             tutorialState.currentStep == TutorialStep.workoutInputSet &&
             index == 0;
 
@@ -261,14 +285,27 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
           });
         }
 
+        // ReorderableListView requires every child to have a stable Key.
+        final cardKey = ValueKey(
+          'workout_exercise_${exercise.workoutExerciseId ?? 'idx_$index'}',
+        );
+
         return ExerciseCardWidget(
+          key: cardKey,
           exercise: exercise,
           exerciseIndex: index,
           autoFocus: shouldAutoFocus,
           tutorialSetInputKey: isStep3Active ? _setInputKey : null,
+          showDragHandle: workoutState.exercises.length > 1,
           onUpdateSet: (setIndex, weight, reps, durationSeconds, distance) {
-            notifier.updateSet(index, setIndex,
-                weight: weight, reps: reps, durationSeconds: durationSeconds, distance: distance);
+            notifier.updateSet(
+              index,
+              setIndex,
+              weight: weight,
+              reps: reps,
+              durationSeconds: durationSeconds,
+              distance: distance,
+            );
           },
           onCopyFromPrevious: (setIndex) {
             notifier.copyFromPrevious(index, setIndex);
@@ -319,7 +356,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -346,7 +383,8 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
               child: Builder(
                 builder: (context) {
                   final tutorialState = ref.watch(interactiveTutorialProvider);
-                  final isStep6Active = tutorialState.isActive &&
+                  final isStep6Active =
+                      tutorialState.isActive &&
                       tutorialState.currentStep == TutorialStep.workoutComplete;
                   return ElevatedButton(
                     key: isStep6Active ? _completeButtonKey : null,
@@ -365,7 +403,10 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     );
   }
 
-  Future<void> _loadRoutineIntoWorkout(BuildContext context, WidgetRef ref) async {
+  Future<void> _loadRoutineIntoWorkout(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     final routine = await showModalBottomSheet<RoutineTemplateEntity>(
       context: context,
@@ -404,7 +445,8 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
   Future<void> _showExerciseSelector() async {
     final exerciseMasterDao = ref.read(exerciseMasterDaoProvider);
     final tutorialState = ref.watch(interactiveTutorialProvider);
-    final isStep2Active = tutorialState.isActive &&
+    final isStep2Active =
+        tutorialState.isActive &&
         tutorialState.currentStep == TutorialStep.workoutAddExercise;
 
     if (!mounted) return;
@@ -419,47 +461,50 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     );
 
     if (exercise != null) {
-        final notifier =
-            ref.read(workoutInputProvider(widget.sessionId).notifier);
-        final added = await notifier.addExercise(exercise);
+      final notifier = ref.read(
+        workoutInputProvider(widget.sessionId).notifier,
+      );
+      final added = await notifier.addExercise(exercise);
 
-        if (!mounted) return;
-        if (!added) {
-          final l10n = AppLocalizations.of(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n?.exerciseAlreadyAdded ?? 'Already added'),
-              backgroundColor: Colors.orange,
-            ),
+      if (!mounted) return;
+      if (!added) {
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n?.exerciseAlreadyAdded ?? 'Already added'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Track the newly added exercise index for auto-focus and scroll
+      final workoutState = ref.read(workoutInputProvider(widget.sessionId));
+      setState(() {
+        _newlyAddedExerciseIndex = workoutState.exercises.length - 1;
+      });
+
+      // Scroll to the newly added exercise
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
           );
-          return;
         }
+      });
 
-        // Track the newly added exercise index for auto-focus and scroll
-        final workoutState = ref.read(workoutInputProvider(widget.sessionId));
-        setState(() {
-          _newlyAddedExerciseIndex = workoutState.exercises.length - 1;
-        });
-
-        // Scroll to the newly added exercise
+      // Complete step 2 when exercise is added
+      if (isStep2Active) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _scrollController.hasClients) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
+          if (mounted) {
+            ref
+                .read(interactiveTutorialProvider.notifier)
+                .completeCurrentStep();
           }
         });
-
-        // Complete step 2 when exercise is added
-        if (isStep2Active) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              ref.read(interactiveTutorialProvider.notifier).completeCurrentStep();
-            }
-          });
-        }
+      }
     }
   }
 
@@ -477,7 +522,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
       // Save tutorial completion
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (mounted) {
-          await ref.read(settingsNotifierProvider.notifier).markTutorialCompleted();
+          await ref
+              .read(settingsNotifierProvider.notifier)
+              .markTutorialCompleted();
           ref.read(interactiveTutorialProvider.notifier).endTutorial();
         }
       });
@@ -599,7 +646,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     final notifier = ref.read(workoutInputProvider(widget.sessionId).notifier);
     await notifier.saveAll();
 
-    final achievedGoals = ref.read(workoutInputProvider(widget.sessionId)).achievedGoalsInLastSave;
+    final achievedGoals = ref
+        .read(workoutInputProvider(widget.sessionId))
+        .achievedGoalsInLastSave;
 
     final sessionNotifier = ref.read(workoutSessionNotifierProvider.notifier);
     await sessionNotifier.completeSession(widget.sessionId);
@@ -651,9 +700,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.deleteExerciseDialogTitle),
-        content: Text(
-          l10n.deleteExerciseDialogMessage(exerciseName),
-        ),
+        content: Text(l10n.deleteExerciseDialogMessage(exerciseName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -661,9 +708,7 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(l10n.deleteButton),
           ),
         ],
@@ -671,7 +716,9 @@ class _WorkoutInputScreenState extends ConsumerState<WorkoutInputScreen> {
     );
 
     if (result == true) {
-      final notifier = ref.read(workoutInputProvider(widget.sessionId).notifier);
+      final notifier = ref.read(
+        workoutInputProvider(widget.sessionId).notifier,
+      );
       await notifier.deleteExercise(exerciseIndex);
 
       if (mounted) {

@@ -39,9 +39,15 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-    
-    # Ensure dSYM files are generated for all frameworks (including Flutter's objective_c.framework)
+
+    # Keep every embedded Pod bundle/framework identifier distinct from Runner.app.
+    # Without this, App Store validation can reject Pods such as app_links as a
+    # CFBundleIdentifier collision with the app bundle.
+    bundle_identifier = "org.cocoapods.#{target.name.gsub(/[^A-Za-z0-9.-]/, '-')}"
+
     target.build_configurations.each do |config|
+      config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = bundle_identifier
+
       if config.name == 'Release' || config.name == 'Profile'
         config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
       end

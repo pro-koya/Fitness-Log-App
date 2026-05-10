@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../data/dao/body_weight_dao.dart';
 import '../../data/dao/workout_session_dao.dart';
@@ -225,44 +226,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // 月クイックボタン＋ピッカー
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 8.0),
-                        child: SizedBox(
-                          height: 48,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            shrinkWrap: true,
-                            physics: const ClampingScrollPhysics(),
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _buildMonthQuickButton(
-                                      l10n.lastMonthShort,
-                                      () => _jumpToMonth(-1)),
-                                  const SizedBox(width: 6),
-                                  _buildMonthQuickButton(
-                                      l10n.thisMonthShort,
-                                      () => _jumpToMonth(0)),
-                                  const SizedBox(width: 6),
-                                  _buildMonthQuickButton(
-                                      l10n.nextMonthShort,
-                                      () => _jumpToMonth(1)),
-                                  const SizedBox(width: 16),
-                                  TextButton.icon(
-                                    onPressed: _showMonthYearPicker,
-                                    icon: const Icon(
-                                        Icons.calendar_month, size: 20),
-                                    label: Text(l10n.selectMonthYear),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                       // カレンダー（高さ制限なし＝すべて表示、オーバーフロー防止）
                       TableCalendar(
                         firstDay: DateTime(2020, 1, 1),
@@ -306,6 +269,35 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             shape: BoxShape.circle,
                           ),
                         ),
+                        calendarBuilders: CalendarBuilders(
+                          headerTitleBuilder: (context, day) {
+                            final formatted =
+                                DateFormat.yMMMM(locale).format(day);
+                            return GestureDetector(
+                              onTap: _showMonthYearPicker,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    formatted,
+                                    style: const TextStyle(
+                                        fontSize: 17.0,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.calendar_month,
+                                    size: 20,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                         headerStyle: const HeaderStyle(
                           formatButtonVisible: false,
                           titleCentered: true,
@@ -348,18 +340,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     );
   }
 
-  Widget _buildMonthQuickButton(String label, VoidCallback onPressed) {
-    return FilledButton.tonal(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: Text(label, style: const TextStyle(fontSize: 13)),
-    );
-  }
-
   void _jumpToMonth(int offset) {
     final now = DateTime.now();
     final target = DateTime(now.year, now.month + offset, 1);
@@ -385,6 +365,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             return AlertDialog(
               title: Text(l10n.selectMonthYear),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -435,19 +416,35 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.cancelButton),
-                ),
-                FilledButton(
                   onPressed: () {
-                    setState(() {
-                      _focusedDay = DateTime(selectedYear, selectedMonth, 1);
+                    final now = DateTime.now();
+                    setDialogState(() {
+                      selectedYear = now.year;
+                      selectedMonth = now.month;
                     });
-                    _loadWorkouts();
-                    _loadMonthlySummary();
-                    Navigator.of(context).pop();
                   },
-                  child: Text(l10n.saveButton),
+                  child: Text(l10n.thisMonthLabel),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(l10n.cancelButton),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: () {
+                        setState(() {
+                          _focusedDay = DateTime(selectedYear, selectedMonth, 1);
+                        });
+                        _loadWorkouts();
+                        _loadMonthlySummary();
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(l10n.saveButton),
+                    ),
+                  ],
                 ),
               ],
             );

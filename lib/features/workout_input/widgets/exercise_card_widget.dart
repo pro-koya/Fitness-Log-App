@@ -25,6 +25,8 @@ class ExerciseCardWidget extends ConsumerStatefulWidget {
   final Function(String? memo) onUpdateMemo;
   final GlobalKey? tutorialSetInputKey; // Key for tutorial step 3
   final bool autoFocus;
+  /// When true, render a drag handle in the top-left for ReorderableListView.
+  final bool showDragHandle;
 
   const ExerciseCardWidget({
     super.key,
@@ -39,6 +41,7 @@ class ExerciseCardWidget extends ConsumerStatefulWidget {
     required this.onUpdateMemo,
     this.tutorialSetInputKey,
     this.autoFocus = false,
+    this.showDragHandle = false,
   });
 
   @override
@@ -115,6 +118,21 @@ class _ExerciseCardWidgetState extends ConsumerState<ExerciseCardWidget> {
             // Exercise name and body part
             Row(
               children: [
+                if (widget.showDragHandle)
+                  ReorderableDragStartListener(
+                    index: widget.exerciseIndex,
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.grab,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Icon(
+                          Icons.drag_indicator,
+                          color: Colors.grey.shade400,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

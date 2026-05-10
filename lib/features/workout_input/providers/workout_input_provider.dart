@@ -425,6 +425,36 @@ class WorkoutInputNotifier extends StateNotifier<WorkoutInputState> {
     }
   }
 
+  /// Reorder exercises (drag-and-drop). Persists new order_index to DB.
+  Future<void> reorderExercises(int oldIndex, int newIndex) async {
+    if (oldIndex < 0 || oldIndex >= state.exercises.length) return;
+
+    // ReorderableListView semantics: when moving down, target index includes the removed slot.
+    var targetIndex = newIndex;
+    if (targetIndex > oldIndex) targetIndex -= 1;
+    if (targetIndex < 0 || targetIndex >= state.exercises.length) return;
+    if (targetIndex == oldIndex) return;
+
+    // Immutable reorder
+    final updated = [...state.exercises];
+    final moved = updated.removeAt(oldIndex);
+    updated.insert(targetIndex, moved);
+
+    state = state.copyWith(exercises: updated);
+
+    try {
+      final ids = <int>[];
+      for (final e in updated) {
+        if (e.workoutExerciseId == null) return; // bail; cannot persist partial order
+        ids.add(e.workoutExerciseId!);
+      }
+      final workoutExerciseDao = ref.read(workoutExerciseDaoProvider);
+      await workoutExerciseDao.updateOrderIndices(state.sessionId, ids);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
   /// Update memo for an exercise
   Future<void> updateMemo(int exerciseIndex, String? memo) async {
     if (exerciseIndex >= state.exercises.length) return;

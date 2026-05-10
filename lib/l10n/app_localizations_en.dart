@@ -1288,17 +1288,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get syncSectionTitle => 'Sync (Pro)';
+  String get syncSectionTitle => 'Data Sync';
 
   @override
   String get syncSectionDescription =>
-      'Save data to the cloud for use across devices';
+      'Sign in to sync your training records to the cloud. Synced data can be used for connected features and across devices.';
 
   @override
   String get syncSignUp => 'Sign up';
 
   @override
   String get syncLogin => 'Log in';
+
+  @override
+  String get syncSignInWithApple => 'Sign in with Apple';
 
   @override
   String get syncSignInWithGoogle => 'Sign in with Google';
@@ -1308,6 +1311,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncSignOut => 'Sign out';
+
+  @override
+  String get syncDeleteAccount => 'Delete account';
+
+  @override
+  String get syncDeleteAccountTitle => 'Delete account?';
+
+  @override
+  String get syncDeleteAccountMessage =>
+      'Your cloud account and synced data will be deleted. Local records on this device remain on the device.';
 
   @override
   String get syncSignUpSuccess => 'Account created.';

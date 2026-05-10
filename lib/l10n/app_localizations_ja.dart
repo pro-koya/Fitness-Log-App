@@ -1265,16 +1265,20 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get syncSectionTitle => 'クラウド同期';
+  String get syncSectionTitle => 'データ連携';
 
   @override
-  String get syncSectionDescription => 'データをクラウドに保存して複数端末で利用';
+  String get syncSectionDescription =>
+      'ログインすると、トレーニング記録をクラウドに同期できます。同期したデータは、連携機能や複数端末で利用できます。';
 
   @override
   String get syncSignUp => '新規登録';
 
   @override
   String get syncLogin => 'ログイン';
+
+  @override
+  String get syncSignInWithApple => 'Apple でログイン';
 
   @override
   String get syncSignInWithGoogle => 'Google でログイン';
@@ -1284,6 +1288,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get syncSignOut => 'サインアウト';
+
+  @override
+  String get syncDeleteAccount => 'アカウントを削除';
+
+  @override
+  String get syncDeleteAccountTitle => 'アカウントを削除しますか？';
+
+  @override
+  String get syncDeleteAccountMessage =>
+      'クラウド上のアカウントと同期データを削除します。この端末内の記録は端末に残ります。';
 
   @override
   String get syncSignUpSuccess => 'アカウントを作成しました。';
@@ -1332,16 +1346,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get syncInProgress => '同期中...';
 
   @override
-  String get syncManualHint => '同期は手動で行います。「クラウドへ反映」または「クラウドから取得」で同期してください。';
+  String get syncManualHint => '同期は手動で行います。「クラウドへ同期」または「クラウドから取得」で同期してください。';
 
   @override
-  String get syncPushToServer => 'クラウドへデータを反映';
+  String get syncPushToServer => 'クラウドへデータを同期';
 
   @override
   String get syncPullFromServer => 'クラウドからデータを取得';
 
   @override
-  String get syncPushShort => '反映';
+  String get syncPushShort => '同期';
 
   @override
   String get syncPullShort => '取得';

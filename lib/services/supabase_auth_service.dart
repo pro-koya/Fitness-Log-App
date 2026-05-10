@@ -1,13 +1,11 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart' show LaunchMode;
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../core/supabase_config.dart';
 
-/// Pro 同期用 Supabase 認証サービス。
-/// 接続情報未設定時はサインイン・サインアウトは行わず null を返す。
+/// Supabase 認証サービス。
+/// ASWebAuthenticationSession を使用してアプリ内でOAuth認証を行い、
+/// 認証完了後に自動でアプリに戻る。
 class SupabaseAuthService {
   SupabaseClient? get _client {
     if (!SupabaseConfig.isConfigured) return null;
@@ -35,40 +33,78 @@ class SupabaseAuthService {
     await _client?.auth.signOut();
   }
 
-  /// OAuth 完了後にアプリへ戻るためのリダイレクト用 URL。
-  /// カスタムスキーム（アプリのディープリンク）。ネイティブで登録すること。
+  /// OAuth 完了後にアプリへ戻るためのカスタム URL スキーム
   static const String authRedirectScheme = 'com.fitnesslog.liftly';
   static const String authRedirectUrl = '$authRedirectScheme://auth/callback';
 
-  /// OAuth の redirectTo に使う HTTPS コールバック URL。
-  /// Supabase はここへリダイレクトし、このページがアプリスキームへ転送する。
-  /// デプロイ先に合わせて変更可能（Supabase の Redirect URLs にも同じ URL を登録すること）。
-  static const String authRedirectUrlHttps =
-      'https://pro-koya.github.io/auth/callback.html';
-
   /// Google アカウントでサインイン（SSO）
-  /// 初回は新規ユーザーとして登録され、2回目以降は同じ Google アカウントでログイン。
-  /// 外部 Safari で認証後、HTTPS コールバックページを経由してアプリに戻る。
-  ///
-  /// 流れ: Safari で認証 → Supabase が [authRedirectUrlHttps] へリダイレクト
-  /// → コールバックページが [authRedirectUrl] へ転送 → アプリが URL を受け取りセッション確立。
+  /// ASWebAuthenticationSession を使用してアプリ内ブラウザで認証し、
+  /// 認証完了後に自動でブラウザが閉じてアプリに戻る。
   Future<AuthResult> signInWithGoogle() async {
-    if (_client == null) {
-      return AuthFailure('Supabase is not configured');
-    }
-    try {
-      final useExternalOnIOS = !kIsWeb && Platform.isIOS;
+    return _signInWithOAuthProvider(OAuthProvider.google);
+  }
 
-      await _client!.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: authRedirectUrlHttps,
-        authScreenLaunchMode: useExternalOnIOS
-            ? LaunchMode.externalApplication
-            : LaunchMode.platformDefault,
-      );
+  /// Apple アカウントでサインイン（SSO）
+  /// Google と同じ Supabase OAuth + ASWebAuthenticationSession の経路を使う。
+  Future<AuthResult> signInWithApple() async {
+    return _signInWithOAuthProvider(OAuthProvider.apple);
+  }
+
+  /// 現在の Supabase アカウントとクラウド同期データの削除を要求する。
+  /// サーバー側 Edge Function `delete-current-user` が JWT を検証して削除する。
+  Future<AuthResult> deleteAccount() async {
+    final client = _client;
+    if (client == null) {
+      return const AuthFailure('Supabase is not configured');
+    }
+    if (client.auth.currentSession == null) {
+      return const AuthFailure('Not signed in');
+    }
+
+    try {
+      await client.functions.invoke('delete-current-user');
+      await client.auth.signOut();
       return const AuthSuccess();
     } on AuthException catch (e) {
       return AuthFailure(e.message);
+    } catch (e) {
+      return AuthFailure(e.toString());
+    }
+  }
+
+  Future<AuthResult> _signInWithOAuthProvider(OAuthProvider provider) async {
+    final client = _client;
+    if (client == null) {
+      return const AuthFailure('Supabase is not configured');
+    }
+    try {
+      // 1. Supabase から OAuth URL を取得
+      final oAuthResponse = await client.auth.getOAuthSignInUrl(
+        provider: provider,
+        redirectTo: authRedirectUrl,
+      );
+
+      // 2. ASWebAuthenticationSession でブラウザを開く
+      //    認証完了後、カスタムスキームへのリダイレクトを検知して自動で閉じる
+      final callbackUrl = await FlutterWebAuth2.authenticate(
+        url: oAuthResponse.url.toString(),
+        callbackUrlScheme: authRedirectScheme,
+      );
+
+      // 3. コールバック URL からセッションを確立
+      final uri = Uri.parse(callbackUrl);
+      await client.auth.getSessionFromUrl(uri);
+
+      return const AuthSuccess();
+    } on AuthException catch (e) {
+      return AuthFailure(e.message);
+    } catch (e) {
+      // ユーザーがキャンセルした場合など
+      if (e.toString().contains('CANCELED') ||
+          e.toString().contains('cancelled')) {
+        return const AuthFailure('cancelled');
+      }
+      return AuthFailure(e.toString());
     }
   }
 }

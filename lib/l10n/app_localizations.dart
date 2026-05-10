@@ -2388,13 +2388,13 @@ abstract class AppLocalizations {
   /// No description provided for @syncSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sync (Pro)'**
+  /// **'Data Sync'**
   String get syncSectionTitle;
 
   /// No description provided for @syncSectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'Save data to the cloud for use across devices'**
+  /// **'Sign in to sync your training records to the cloud. Synced data can be used for connected features and across devices.'**
   String get syncSectionDescription;
 
   /// No description provided for @syncSignUp.
@@ -2408,6 +2408,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log in'**
   String get syncLogin;
+
+  /// No description provided for @syncSignInWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Apple'**
+  String get syncSignInWithApple;
 
   /// No description provided for @syncSignInWithGoogle.
   ///
@@ -2426,6 +2432,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get syncSignOut;
+
+  /// No description provided for @syncDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get syncDeleteAccount;
+
+  /// No description provided for @syncDeleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account?'**
+  String get syncDeleteAccountTitle;
+
+  /// No description provided for @syncDeleteAccountMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cloud account and synced data will be deleted. Local records on this device remain on the device.'**
+  String get syncDeleteAccountMessage;
 
   /// No description provided for @syncSignUpSuccess.
   ///

@@ -17,8 +17,8 @@ class FeatureGate {
   /// 全履歴にアクセス可能か（Free/Pro 共通で常に true）
   bool get canAccessFullHistory => true;
 
-  /// サーバー同期が可能か（Pro のみ）
-  bool get canSync => entitlement.isPro;
+  /// サーバー同期が可能か（Free/Pro 共通 — 筋肉360連携のため全ユーザーに開放）
+  bool get canSync => true;
 
   /// グラフ機能にアクセス可能か（Free/Pro共通）
   bool get canAccessCharts => true;
