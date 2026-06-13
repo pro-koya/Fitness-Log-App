@@ -12,9 +12,9 @@ class IAPProductIds {
   static const String monthlySubscription = 'com.fitnesslog.liftly.pro.monthly';
   static const String yearlySubscription = 'com.fitnesslog.liftly.pro.yearly';
 
-  // Muscle360 Pro バンドル（Phase 2-2 追加）
-  static const String bundleMonthlySubscription = 'com.muscle360.bundle.pro.monthly';
-  static const String bundleYearlySubscription = 'com.muscle360.bundle.pro.yearly';
+  // Muscle360 Pro バンドル（Phase 2-2 追加 / Option B: Liftly 名義商品）
+  static const String bundleMonthlySubscription = 'com.fitnesslog.liftly.bundle.pro.monthly';
+  static const String bundleYearlySubscription = 'com.fitnesslog.liftly.bundle.pro.yearly';
 
   static const Set<String> allProductIds = {
     monthlySubscription,

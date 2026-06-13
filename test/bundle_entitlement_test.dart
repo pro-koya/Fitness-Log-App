@@ -27,8 +27,8 @@ void main() {
       expect(
         IAPProductIds.bundleProductIds,
         containsAll([
-          'com.muscle360.bundle.pro.monthly',
-          'com.muscle360.bundle.pro.yearly',
+          'com.fitnesslog.liftly.bundle.pro.monthly',
+          'com.fitnesslog.liftly.bundle.pro.yearly',
         ]),
       );
     });
@@ -47,8 +47,8 @@ void main() {
       expect(
         IAPProductIds.allProductIds,
         containsAll([
-          'com.muscle360.bundle.pro.monthly',
-          'com.muscle360.bundle.pro.yearly',
+          'com.fitnesslog.liftly.bundle.pro.monthly',
+          'com.fitnesslog.liftly.bundle.pro.yearly',
         ]),
       );
     });
@@ -76,7 +76,7 @@ void main() {
     // ケース 3: バンドル月額購入済み → hasActiveBundleSubscription = true
     test('bundle monthly purchased → hasActiveBundleSubscription', () {
       const state = IAPState(
-        purchasedProductIds: {'com.muscle360.bundle.pro.monthly'},
+        purchasedProductIds: {'com.fitnesslog.liftly.bundle.pro.monthly'},
       );
       expect(state.hasActiveSubscription, isFalse);
       expect(state.hasActiveBundleSubscription, isTrue);
@@ -86,7 +86,7 @@ void main() {
     // ケース 4: バンドル年額購入済み → hasActiveBundleSubscription = true
     test('bundle yearly purchased → hasActiveBundleSubscription', () {
       const state = IAPState(
-        purchasedProductIds: {'com.muscle360.bundle.pro.yearly'},
+        purchasedProductIds: {'com.fitnesslog.liftly.bundle.pro.yearly'},
       );
       expect(state.hasActiveSubscription, isFalse);
       expect(state.hasActiveBundleSubscription, isTrue);
@@ -98,7 +98,7 @@ void main() {
       const state = IAPState(
         purchasedProductIds: {
           'com.fitnesslog.liftly.pro.monthly',
-          'com.muscle360.bundle.pro.yearly',
+          'com.fitnesslog.liftly.bundle.pro.yearly',
         },
       );
       expect(state.hasActiveSubscription, isTrue);
@@ -150,10 +150,10 @@ void main() {
     test('after refresh with active bundle, isActive=true', () {
       const state = BundleEntitlementState(
         isActive: true,
-        productId: 'com.muscle360.bundle.pro.monthly',
+        productId: 'com.fitnesslog.liftly.bundle.pro.monthly',
       );
       expect(state.isActive, isTrue);
-      expect(state.productId, equals('com.muscle360.bundle.pro.monthly'));
+      expect(state.productId, equals('com.fitnesslog.liftly.bundle.pro.monthly'));
     });
 
     // ケース R-3: refresh() 実行中（isLoading=true）の状態では、既存の isActive は保持される
@@ -171,12 +171,12 @@ void main() {
     test('refresh failure does not overwrite existing active state', () {
       const preRefreshState = BundleEntitlementState(
         isActive: true,
-        productId: 'com.muscle360.bundle.pro.yearly',
+        productId: 'com.fitnesslog.liftly.bundle.pro.yearly',
       );
       // refresh() 失敗時はエラーハンドラで isLoading: false のみ更新する設計
       final afterFailureState = preRefreshState.copyWith(isLoading: false);
       expect(afterFailureState.isActive, isTrue);
-      expect(afterFailureState.productId, equals('com.muscle360.bundle.pro.yearly'));
+      expect(afterFailureState.productId, equals('com.fitnesslog.liftly.bundle.pro.yearly'));
     });
 
     // ケース R-5: bundle inactive で refresh 完了 → isActive=false は正当な Free 判定
@@ -201,7 +201,7 @@ void main() {
     final bundleActiveMap = <String, dynamic>{
       'user_id': 'test-user',
       'bundle_active': true,
-      'bundle_product_id': 'com.muscle360.bundle.pro.monthly',
+      'bundle_product_id': 'com.fitnesslog.liftly.bundle.pro.monthly',
       'bundle_expires_at': 9999999999,
       'checked_at': 1000000000,
     };
@@ -248,7 +248,7 @@ void main() {
     test('BundleStatusResponse.fromJson parses active bundle correctly', () {
       final status = BundleStatusResponse.fromJson(bundleActiveMap);
       expect(status.bundleActive, isTrue);
-      expect(status.bundleProductId, equals('com.muscle360.bundle.pro.monthly'));
+      expect(status.bundleProductId, equals('com.fitnesslog.liftly.bundle.pro.monthly'));
       expect(status.bundleExpiresAt, equals(9999999999));
     });
 

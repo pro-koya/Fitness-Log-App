@@ -185,9 +185,11 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
               ),
               const SizedBox(height: 24),
 
-              // Liftly 単独プラン選択（既存）
-              _buildSubscriptionSelector(l10n, monthlyPrice, yearlyPrice),
-              const SizedBox(height: 16),
+              // Liftly 単独プラン選択（バンドル加入済みの場合は非表示）
+              if (!bundleState.isActive) ...[
+                _buildSubscriptionSelector(l10n, monthlyPrice, yearlyPrice),
+                const SizedBox(height: 16),
+              ],
 
               // エラーメッセージ
               if (_errorMessage != null) ...[
@@ -202,30 +204,62 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
                 const SizedBox(height: 12),
               ],
 
-              // CTAボタン
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _isPurchasing || _isRestoring ? null : _handlePurchase,
-                  child: _isPurchasing
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+              // CTAボタン: バンドル加入済み（他アプリで購入済み含む）の場合は解放済み表示
+              if (bundleState.isActive)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Muscle360 Proで解放済み',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _isPurchasing || _isRestoring ? null : _handlePurchase,
+                    child: _isPurchasing
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(l10n.paywallSubscriptionPurchasing),
-                          ],
-                        )
-                      : Text(l10n.paywallCtaStartTrial),
+                              const SizedBox(width: 8),
+                              Text(l10n.paywallSubscriptionPurchasing),
+                            ],
+                          )
+                        : Text(l10n.paywallCtaStartTrial),
+                  ),
                 ),
-              ),
               const SizedBox(height: 8),
 
               // トライアル注意事項
