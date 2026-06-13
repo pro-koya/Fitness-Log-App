@@ -61,6 +61,7 @@ class GoalListScreen extends ConsumerWidget {
       if (!context.mounted) return;
       final setRecordDao = ref.read(setRecordDaoProvider);
       final idsWithHistory = await setRecordDao.getExerciseIdsWithHistory();
+      if (!context.mounted) return;
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(

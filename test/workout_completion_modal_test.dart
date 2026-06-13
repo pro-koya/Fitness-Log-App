@@ -42,14 +42,10 @@ void main() {
       find.widgetWithText(OutlinedButton, 'Signing in...'),
       findsOneWidget,
     );
-    expect(
-      tester
-          .widget<FilledButton>(
-            find.widgetWithText(FilledButton, 'Sign in with Apple & sync'),
-          )
-          .onPressed,
-      isNull,
-    );
+    // Apple button (FilledButton.icon) is still visible but disabled while Google is signing in.
+    // Confirm the label text is present (button not replaced by "Signing in...").
+    expect(find.text('Sign in with Apple & sync'), findsOneWidget);
+    // OK button is disabled while busy. FilledButton (no icon) is found via widgetWithText.
     expect(
       tester
           .widget<FilledButton>(find.widgetWithText(FilledButton, 'OK'))

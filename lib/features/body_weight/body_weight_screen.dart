@@ -416,6 +416,9 @@ class _BodyWeightScreenState extends ConsumerState<BodyWeightScreen> {
     final weight = double.tryParse(weightText);
     if (weight == null || weight <= 0) return;
 
+    // l10n を await の前に取得する（use_build_context_synchronously 対策）
+    final l10n = AppLocalizations.of(context)!;
+
     final settings = await ref.read(settingsProvider.future);
     final unit = settings?.unit ?? 'kg';
 
@@ -435,8 +438,7 @@ class _BodyWeightScreenState extends ConsumerState<BodyWeightScreen> {
     final recordedAt = startOfDay.millisecondsSinceEpoch ~/ 1000;
     final memo = _memoController.text.trim().isEmpty ? null : _memoController.text.trim();
 
-    final dao = BodyWeightDao();
-    final l10n = AppLocalizations.of(context)!;
+    final dao = BodyWeightDao();;
 
     if (_existingRecordId != null) {
       // Update
@@ -482,6 +484,7 @@ class _BodyWeightScreenState extends ConsumerState<BodyWeightScreen> {
     ref.invalidate(previousBodyWeightProvider);
 
     // Dismiss keyboard
+    if (!mounted) return;
     FocusScope.of(context).unfocus();
   }
 

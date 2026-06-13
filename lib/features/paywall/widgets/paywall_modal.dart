@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../data/models/entitlement.dart';
 import '../../../providers/entitlement_provider.dart';
 import '../../../services/iap_service.dart';
+import '../../../services/bundle_entitlement_service.dart';
 import '../models/paywall_reason.dart';
 import 'comparison_table.dart';
 
@@ -37,6 +38,9 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     final l10n = AppLocalizations.of(context)!;
     final monthlyPrice = ref.watch(monthlyPriceProvider);
     final yearlyPrice = ref.watch(yearlyPriceProvider);
+    final bundleMonthlyPrice = ref.watch(bundleMonthlyPriceProvider);
+    final bundleYearlyPrice = ref.watch(bundleYearlyPriceProvider);
+    final bundleState = ref.watch(bundleEntitlementProvider);
 
     // IAPStateを直接watchして、状態変化時にrebuildを確実にトリガー
     final iapState = ref.watch(iapServiceProvider);
@@ -170,7 +174,18 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
               const ComparisonTable(),
               const SizedBox(height: 24),
 
-              // サブスクリプション選択
+              // Muscle360 Pro バンドルセクション
+              _buildBundleSection(
+                context,
+                l10n,
+                bundleMonthlyPrice,
+                bundleYearlyPrice,
+                bundleState.isActive,
+                iapState.hasActiveSubscription,
+              ),
+              const SizedBox(height: 24),
+
+              // Liftly 単独プラン選択（既存）
               _buildSubscriptionSelector(l10n, monthlyPrice, yearlyPrice),
               const SizedBox(height: 16),
 
@@ -321,6 +336,210 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
         ),
       ),
     );
+  }
+
+  /// Muscle360 Pro バンドルセクション
+  Widget _buildBundleSection(
+    BuildContext context,
+    AppLocalizations l10n,
+    String bundleMonthlyPrice,
+    String bundleYearlyPrice,
+    bool isBundleActive,
+    bool hasLiftlyPro,
+  ) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.workspace_premium, color: primaryColor, size: 18),
+            const SizedBox(width: 6),
+            Text(
+              'Muscle360 Pro バンドル',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Liftly・Forge・筋肉ごめん 3アプリの Pro 機能がすべて使えます',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // バンドル機能リスト
+        _bundleFeatureRow(context, Icons.block, '全アプリの広告を非表示'),
+        _bundleFeatureRow(context, Icons.cloud_sync, 'Liftly クラウド同期'),
+        _bundleFeatureRow(context, Icons.smart_toy, '仙人助言の詳細モード（筋肉ごめん）'),
+        const SizedBox(height: 12),
+        // バンドルプラン選択
+        Row(
+          children: [
+            Expanded(
+              child: _buildBundleOption(
+                context: context,
+                price: bundleMonthlyPrice,
+                period: '月額',
+                isActive: isBundleActive,
+                onTap: isBundleActive || _isPurchasing
+                    ? null
+                    : () async {
+                        setState(() => _isPurchasing = true);
+                        final result = await ref
+                            .read(entitlementProvider.notifier)
+                            .purchaseBundleMonthly();
+                        if (!mounted) return;
+                        _handleBundlePurchaseResult(result);
+                      },
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildBundleOption(
+                context: context,
+                price: bundleYearlyPrice,
+                period: '年額',
+                badge: '17% OFF',
+                isActive: isBundleActive,
+                onTap: isBundleActive || _isPurchasing
+                    ? null
+                    : () async {
+                        setState(() => _isPurchasing = true);
+                        final result = await ref
+                            .read(entitlementProvider.notifier)
+                            .purchaseBundleYearly();
+                        if (!mounted) return;
+                        _handleBundlePurchaseResult(result);
+                      },
+              ),
+            ),
+          ],
+        ),
+        if (hasLiftlyPro && !isBundleActive) ...[
+          const SizedBox(height: 8),
+          Text(
+            '現在 Liftly Pro に加入中。Muscle360 Pro に切り替えると3アプリすべて Pro になります（Liftly Pro の解約後に加入してください）。',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.grey.shade600,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _bundleFeatureRow(BuildContext context, IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(text, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBundleOption({
+    required BuildContext context,
+    required String price,
+    required String period,
+    String? badge,
+    required bool isActive,
+    VoidCallback? onTap,
+  }) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isActive ? primaryColor : Colors.grey.shade300,
+            width: isActive ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          color: isActive ? primaryColor.withOpacity(0.05) : null,
+        ),
+        child: Column(
+          children: [
+            if (badge != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            else
+              const SizedBox(height: 18),
+            Text(
+              period,
+              style: TextStyle(
+                fontSize: 12,
+                color: isActive ? primaryColor : Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              price,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: isActive ? primaryColor : null,
+              ),
+            ),
+            if (isActive) ...[
+              const SizedBox(height: 4),
+              Icon(Icons.check_circle, size: 16, color: primaryColor),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleBundlePurchaseResult(PurchaseResult result) {
+    switch (result) {
+      case PurchaseResult.success:
+        if (mounted) Navigator.pop(context, true);
+        break;
+      case PurchaseResult.pending:
+        // ストリームイベント待ち
+        break;
+      case PurchaseResult.cancelled:
+        if (mounted) setState(() => _isPurchasing = false);
+        break;
+      case PurchaseResult.error:
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          setState(() {
+            _isPurchasing = false;
+            _errorMessage = l10n.paywallSubscriptionError;
+          });
+        }
+        break;
+    }
   }
 
   /// サブスクリプション選択UI

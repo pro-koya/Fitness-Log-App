@@ -312,6 +312,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                           // SorryGains (筋肉ごめん) Download Section
                           _buildSorryGainsSection(l10n),
+                          const SizedBox(height: 12),
+
+                          // Forge Download Section
+                          _buildForgeSection(l10n),
                           const SizedBox(height: 32),
 
                           // Plan Section (Upgrade to Pro / Manage subscription) — バックアップの下
@@ -1779,6 +1783,72 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Forge ダウンロード導線（関連アプリセクション内の 2 番目のカード）
+  Widget _buildForgeSection(AppLocalizations? l10n) {
+    final isJa = ref.watch(currentLanguageProvider) == 'ja';
+    final title = isJa ? 'Forge' : 'Forge';
+    final description = isJa
+        ? 'CrossFit・Hyrox WOD とタイムの記録'
+        : 'Track CrossFit & Hyrox WODs and times';
+
+    return InkWell(
+      onTap: () async {
+        final url = Uri.parse(
+          'https://apps.apple.com/app/id6766134975',
+        );
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.orange.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.local_fire_department,
+                color: Colors.orange.shade700,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.open_in_new, size: 20, color: Colors.orange.shade700),
+          ],
+        ),
+      ),
     );
   }
 

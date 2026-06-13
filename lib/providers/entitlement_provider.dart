@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/entitlement.dart';
 import '../services/iap_service.dart';
+import '../services/bundle_entitlement_service.dart';
 import 'database_providers.dart';
 
 /// 課金状態を管理するNotifier
@@ -18,6 +19,17 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
   Future<void> _initialize() async {
     // ストレージから課金状態を読み込む（有効期限チェック含む）
     await _loadFromStorage();
+
+    // バンドル購入確定時に Supabase RPC へ記録するコールバックを設定
+    _ref.read(iapServiceProvider.notifier).setOnBundlePurchaseCompleted(
+      ({required productId, required expiresAtEpoch, required transactionId}) async {
+        await _ref.read(bundleEntitlementProvider.notifier).recordBundlePurchase(
+          productId: productId,
+          expiresAtEpoch: expiresAtEpoch,
+          transactionId: transactionId,
+        );
+      },
+    );
 
     // IAPサービスに購入状態変更コールバックを設定
     _ref.read(iapServiceProvider.notifier).setOnPurchaseStatusChanged(
@@ -118,12 +130,31 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
     await _saveToStorage();
   }
 
-  /// 課金状態を確認
+  /// 課金状態を確認（Liftly 単独 OR バンドル加入 OR 両方）
+  ///
+  /// バンドル状態は BundleEntitlementNotifier.refresh() の完了後に判定する。
+  /// refresh() は内部で TTL（1時間）チェックを行うため、キャッシュ有効時は
+  /// 即時リターンし追加の Supabase RPC 呼び出しは発生しない。
   Future<void> checkEntitlement() async {
-    // IAP購入状態を確認
+    // バンドル状態が初期値（未ロード）のまま判定するレース条件を防ぐため、
+    // 判定前に refresh() を await する。
+    await _ref.read(bundleEntitlementProvider.notifier).refresh();
+
     final iapState = _ref.read(iapServiceProvider);
+    final bundleState = _ref.read(bundleEntitlementProvider);
+
+    // バンドル加入中はバンドル扱いで Pro 判定
+    if (bundleState.isActive) {
+      state = state.copyWith(
+        entitlement: Entitlement.pro,
+        subscriptionType: bundleState.productId ?? 'bundle',
+      );
+      await _saveToStorage();
+      return;
+    }
+
     if (iapState.hasActiveSubscription) {
-      // サブスクリプションタイプを判定
+      // Liftly 単独サブスクのサブスクリプションタイプを判定
       String? subscriptionType;
       if (iapState.purchasedProductIds.contains(IAPProductIds.monthlySubscription)) {
         subscriptionType = 'monthly';
@@ -194,6 +225,40 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
     return result;
   }
 
+  /// バンドル月額購入
+  Future<PurchaseResult> purchaseBundleMonthly() async {
+    final iapState = _ref.read(iapServiceProvider);
+    if (iapState.status != IAPStatus.available) {
+      if (kDebugMode) {
+        state = state.copyWith(
+          entitlement: Entitlement.pro,
+          subscriptionType: 'bundle_monthly',
+        );
+        await _saveToStorage();
+        return PurchaseResult.success;
+      }
+      return PurchaseResult.error;
+    }
+    return _ref.read(iapServiceProvider.notifier).purchaseBundleMonthly();
+  }
+
+  /// バンドル年額購入
+  Future<PurchaseResult> purchaseBundleYearly() async {
+    final iapState = _ref.read(iapServiceProvider);
+    if (iapState.status != IAPStatus.available) {
+      if (kDebugMode) {
+        state = state.copyWith(
+          entitlement: Entitlement.pro,
+          subscriptionType: 'bundle_yearly',
+        );
+        await _saveToStorage();
+        return PurchaseResult.success;
+      }
+      return PurchaseResult.error;
+    }
+    return _ref.read(iapServiceProvider.notifier).purchaseBundleYearly();
+  }
+
   /// 購入復元
   Future<bool> restorePurchases() async {
     final iapState = _ref.read(iapServiceProvider);
@@ -224,7 +289,9 @@ final entitlementProvider = StateNotifierProvider<EntitlementNotifier, Entitleme
   (ref) => EntitlementNotifier(ref),
 );
 
-/// Proプランかどうかの簡易プロバイダー
+/// Proプランかどうかの簡易プロバイダー（Liftly 単独 OR バンドル加入）
 final isProProvider = Provider<bool>((ref) {
-  return ref.watch(entitlementProvider).isPro;
+  final entitlement = ref.watch(entitlementProvider);
+  final bundle = ref.watch(bundleEntitlementProvider);
+  return entitlement.isPro || bundle.isActive;
 });

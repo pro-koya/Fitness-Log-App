@@ -8,12 +8,25 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 /// Product IDs for subscriptions
 /// These must match the product IDs configured in App Store Connect and Google Play Console
 class IAPProductIds {
+  // Liftly 単独プラン（既存）
   static const String monthlySubscription = 'com.fitnesslog.liftly.pro.monthly';
   static const String yearlySubscription = 'com.fitnesslog.liftly.pro.yearly';
+
+  // Muscle360 Pro バンドル（Phase 2-2 追加）
+  static const String bundleMonthlySubscription = 'com.muscle360.bundle.pro.monthly';
+  static const String bundleYearlySubscription = 'com.muscle360.bundle.pro.yearly';
 
   static const Set<String> allProductIds = {
     monthlySubscription,
     yearlySubscription,
+    bundleMonthlySubscription,
+    bundleYearlySubscription,
+  };
+
+  /// バンドル商品 ID セット
+  static const Set<String> bundleProductIds = {
+    bundleMonthlySubscription,
+    bundleYearlySubscription,
   };
 }
 
@@ -70,10 +83,43 @@ class IAPState {
     }
   }
 
-  /// Proサブスクリプションを持っているか
+  /// バンドル月額商品を取得
+  ProductDetails? get bundleMonthlyProduct {
+    try {
+      return products.firstWhere(
+        (p) => p.id == IAPProductIds.bundleMonthlySubscription,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// バンドル年額商品を取得
+  ProductDetails? get bundleYearlyProduct {
+    try {
+      return products.firstWhere(
+        (p) => p.id == IAPProductIds.bundleYearlySubscription,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Liftly 単独 Pro サブスクリプションを持っているか
   bool get hasActiveSubscription {
     return purchasedProductIds.contains(IAPProductIds.monthlySubscription) ||
         purchasedProductIds.contains(IAPProductIds.yearlySubscription);
+  }
+
+  /// バンドルサブスクリプションを持っているか
+  bool get hasActiveBundleSubscription {
+    return purchasedProductIds.contains(IAPProductIds.bundleMonthlySubscription) ||
+        purchasedProductIds.contains(IAPProductIds.bundleYearlySubscription);
+  }
+
+  /// Pro 判定（Liftly 単独 OR バンドル加入）
+  bool get hasAnyProAccess {
+    return hasActiveSubscription || hasActiveBundleSubscription;
   }
 
   IAPState copyWith({
@@ -101,11 +147,24 @@ enum PurchaseResult {
   error,
 }
 
+/// バンドル購入完了時に呼ばれるコールバック型。
+/// [productId]: 購入した bundle 商品 ID
+/// [expiresAtEpoch]: 有効期限（epoch 秒）。不明な場合は null。
+/// [transactionId]: App Store / Google Play のトランザクション ID。
+typedef BundlePurchaseCallback = Future<void> Function({
+  required String productId,
+  required int? expiresAtEpoch,
+  required String transactionId,
+});
+
 /// IAP Service Notifier
 class IAPServiceNotifier extends StateNotifier<IAPState> {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   Function(bool isPro, String? subscriptionType)? _onPurchaseStatusChanged;
+
+  /// バンドル購入確定時に呼ばれるコールバック（Supabase への記録用）
+  BundlePurchaseCallback? _onBundlePurchaseCompleted;
   Timer? _purchaseTimeoutTimer;
 
   IAPServiceNotifier() : super(const IAPState()) {
@@ -117,6 +176,11 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
     Function(bool isPro, String? subscriptionType) callback,
   ) {
     _onPurchaseStatusChanged = callback;
+  }
+
+  /// バンドル購入完了時のコールバックを設定（Supabase RPC 呼び出し用）
+  void setOnBundlePurchaseCompleted(BundlePurchaseCallback callback) {
+    _onBundlePurchaseCompleted = callback;
   }
 
   /// 初期化
@@ -216,6 +280,26 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
     final product = state.yearlyProduct;
     if (product == null) {
       state = state.copyWith(errorMessage: 'Yearly product not found');
+      return PurchaseResult.error;
+    }
+    return _purchase(product);
+  }
+
+  /// バンドル月額購入
+  Future<PurchaseResult> purchaseBundleMonthly() async {
+    final product = state.bundleMonthlyProduct;
+    if (product == null) {
+      state = state.copyWith(errorMessage: 'Bundle monthly product not found');
+      return PurchaseResult.error;
+    }
+    return _purchase(product);
+  }
+
+  /// バンドル年額購入
+  Future<PurchaseResult> purchaseBundleYearly() async {
+    final product = state.bundleYearlyProduct;
+    if (product == null) {
+      state = state.copyWith(errorMessage: 'Bundle yearly product not found');
       return PurchaseResult.error;
     }
     return _purchase(product);
@@ -346,16 +430,31 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
           isPurchasing: false,
         );
 
-        // サブスクリプションタイプを判定
+        // サブスクリプションタイプを判定（Liftly 単独 + バンドル両対応）
         String? subscriptionType;
         if (purchaseDetails.productID == IAPProductIds.monthlySubscription) {
           subscriptionType = 'monthly';
         } else if (purchaseDetails.productID == IAPProductIds.yearlySubscription) {
           subscriptionType = 'yearly';
+        } else if (purchaseDetails.productID == IAPProductIds.bundleMonthlySubscription) {
+          subscriptionType = 'bundle_monthly';
+        } else if (purchaseDetails.productID == IAPProductIds.bundleYearlySubscription) {
+          subscriptionType = 'bundle_yearly';
         }
 
         // コールバックを呼び出し（EntitlementProviderに通知）
         _onPurchaseStatusChanged?.call(true, subscriptionType);
+
+        // バンドル商品の場合は Supabase RPC で購入を記録する（ソフトフェイル）
+        if (IAPProductIds.bundleProductIds.contains(purchaseDetails.productID)) {
+          final transactionId =
+              purchaseDetails.purchaseID ?? purchaseDetails.productID;
+          _onBundlePurchaseCompleted?.call(
+            productId: purchaseDetails.productID,
+            expiresAtEpoch: null, // StoreKit 2 では receipt から取得するが今は null
+            transactionId: transactionId,
+          );
+        }
         break;
 
       case PurchaseStatus.error:
@@ -424,4 +523,16 @@ final monthlyPriceProvider = Provider<String>((ref) {
 final yearlyPriceProvider = Provider<String>((ref) {
   final iapState = ref.watch(iapServiceProvider);
   return iapState.yearlyProduct?.price ?? '¥1,500/年';
+});
+
+/// バンドル月額価格の表示用Provider
+final bundleMonthlyPriceProvider = Provider<String>((ref) {
+  final iapState = ref.watch(iapServiceProvider);
+  return iapState.bundleMonthlyProduct?.price ?? '¥250/月';
+});
+
+/// バンドル年額価格の表示用Provider
+final bundleYearlyPriceProvider = Provider<String>((ref) {
+  final iapState = ref.watch(iapServiceProvider);
+  return iapState.bundleYearlyProduct?.price ?? '¥2,500/年';
 });

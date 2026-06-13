@@ -11,6 +11,7 @@ import 'providers/settings_provider.dart';
 import 'providers/sync_providers.dart';
 import 'providers/timer_provider.dart';
 import 'providers/theme_settings_provider.dart';
+import 'services/bundle_entitlement_service.dart';
 import 'services/timer_persistence_service.dart';
 import 'services/timer_notification_service.dart';
 import 'services/timer_local_notification_service.dart';
@@ -61,9 +62,31 @@ class MyApp extends ConsumerStatefulWidget {
   ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends ConsumerState<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   bool _hasShownGlobalNotification = false;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// アプリがフォアグラウンドに戻った時にバンドル状態を再取得する。
+  /// TTL（60分）チェックは BundleEntitlementNotifier.refresh() が内部で行うため、
+  /// キャッシュが有効な間は余分な Supabase RPC 呼び出しは発生しない。
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(bundleEntitlementProvider.notifier).refresh();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
