@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+1
+version: 1.1.1+10
 
 environment:
   sdk: ^3.10.4
@@ -99,9 +99,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  # integration_test: Simulator 内完結の購入フロー自動化テスト用
-  integration_test:
-    sdk: flutter
+  # integration_test は release ビルドに XCTest リンクの framework が混入し App Store 審査で
+  # 弾かれるため、出荷ビルドでは無効化。ローカルで統合テストを回すときだけ下記を有効化し、
+  # integration_test/ を git history（commit 4a799b6）から復元して実行する。
+  #   integration_test:
+  #     sdk: flutter
   sqflite_common_ffi: ^2.3.6
 
   # The "flutter_lints" package below contains a set of recommended lints to
