@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter --version:*)",
+      "Bash(flutter create:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(cat:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter run:*)",
+      "Bash(sudo gem install:*)",
+      "Bash(tee:*)",
+      "Bash(pod --version:*)",
+      "Bash(/usr/local/lib/ruby/gems/3.4.0/bin/pod:*)",
+      "Bash(sudo ln:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter build:*)",
+      "Bash(ls:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(flutter devices:*)",
+      "Bash(xcrun simctl:*)",
+      "Bash(open:*)",
+      "Bash(nc:*)",
+      "Bash(dart analyze:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(xcodebuild:*)",
+      "Bash(dart compile kernel:*)",
+      "Bash(pod install:*)",
+      "Bash(flutter pub deps:*)",
+      "Bash(gem --version:*)",
+      "WebFetch(domain:dev.to)",
+      "Bash(gem list:*)",
+      "Bash(gem install:*)",
+      "Bash(brew:*)",
+      "Bash(python3:*)",
+      "Bash(find:*)"
+    ]
+  }
+}
