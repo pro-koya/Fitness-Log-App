@@ -46,3 +46,21 @@ flutter build ios --release --no-codesign
 ```
 
 署名/配布の前に実機の購入/復元/返金/アカウント切替と画面を確認し、ASCの最新ビルド番号より大きいbuild numberを設定する。
+
+## 署名済み配布候補（未アップロード）
+
+2026-11-10、既存のASC用キー・同じTeam設定を使い、署名付きarchiveとApp Store Connect向けIPAのローカルexportを完了。購入検証用SubscriptionKeyは配布に使用していない。
+
+| Item | Value |
+|---|---|
+| Version / build | 1.1.2 / 11 |
+| Source main | `dbe48d09d14c26044ee1f7ce2660b0327b239aca` |
+| Archive | `/Users/koya1104/.cache/koya-build/liftly/security-release/Runner.xcarchive` |
+| IPA | `/Users/koya1104/.cache/koya-build/liftly/security-release/appstore-export/fitness_log_app.ipa` |
+| IPA SHA256 | `463d01513bd9c80641375473bd49006ae5970817b13d160738e68a35e9656791` |
+| Minimum iOS | 15.0 |
+| Signature | Apple Distribution / Team 992BWJ82JX |
+
+archiveの既存開発署名をもとに、export時にIPAをApple Distributionへ再署名した。IPAを展開して `codesign --verify --deep --strict` とApple anchor/Team OU要件を確認。get-task-allow=false、App Store profile（端末リスト/全端末配布なし、beta-reports-active=true、有効期限内）、bundle ID・version/build・最低OSの一致を確認した。ExportOptionsはdestination=export、manageAppVersionAndBuildNumber=false。実機の正規購入/restore・更新/返金・アカウント切替の全通し、App Storeへのupload/審査/公開は未実施。
+
+採用ログとexportのPackaging.logにJWTやprivate keyの値を残さない。Xcodeが内部配布ログへ自動記録する一時JWTも、終了直後に走査・伏字化した。archive/IPAはdisk-guardで消されないよう各フォルダに.disk-guard-keepを置き、公開が承認されるまで保持する。
