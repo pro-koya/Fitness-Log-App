@@ -25,13 +25,15 @@
 
 参照: [Apple VerificationResult](https://developer.apple.com/documentation/storekit/verificationresult)、[Supabase Swift Functions](https://supabase.com/docs/reference/swift/functions-invoke)、[Flutter StoreKit JWS](https://pub.dev/packages/in_app_purchase_storekit/changelog)。
 
-## 全体ビルドの実測と配布上の制約
+## 全体ビルドの実測と最低OS
 
-2026-11-10、source main `b1e3d20e2e6e7afb7e36f24f57b4d1c08794ed98` で全unit test 5ファイル42件が成功。変更した9ファイルの静的解析はerror 0。既存UIにwithOpacity等の非推奨info 5件と未使用_getTitleのwarning 1件が残る。新しい共有サービスのbrace指摘は修正済み。
+2026-11-10、OS設定変更前のsource main `b1e3d20e2e6e7afb7e36f24f57b4d1c08794ed98` で全unit test 5ファイル42件が成功。変更した9ファイルの静的解析はerror 0。既存UIにwithOpacity等の非推奨info 5件と未使用_getTitleのwarning 1件が残る。新しい共有サービスのbrace指摘は修正済み。
 
-現在の唯一のXcode 27.2では、既存Runner/PodsのiOS13（一部Pod9）のdeployment targetが対応下限iOS15未満として、通常の `flutter build ios --release --no-codesign` がTarget Integrityで停止した。ビルド時だけ `IPHONEOS_DEPLOYMENT_TARGET=15.0` を渡す全体Releaseコンパイル/リンクはBUILD SUCCEEDED。Runner.appのbundle IDはcom.fitnesslog.fitnessLogApp、version 1.1.1/build 10、検証成果物の最低OSは15.0。canonicalのPodfile/Runner projectの最低OS13は変更していない。FlutterCLIによるAppFrameworkInfo.plistの自動変更も正本へは入れていない。
+最低OSをiOS15以上へ変更するユーザーの明示了承により、RunnerのDebug/Profile/Release、AppFrameworkInfo.plist、Podfile platformを15.0へ揃えた。Podsのpost_installも15.0を下限とし、それ以上を要求する依存の値は下げない。iOS13/14は今回の更新対象外。
 
-実配布には、最低OS13を維持して確認できる対応toolchainを用意するか、最低OSを15へ変更する判断と設定整合が必要。この検証用overrideを、既存iOS13/14向けの配布確認が済んだものとは扱わない。Pods/既存Live Activity bridgeの非推奨・未使用警告、SPM未対応pluginの将来移行警告が残るが、今回の全体ビルドにエラーはない。
+通常の `flutter build ios --release --no-codesign` が、deployment targetの引数/環境上書きなしで成功（Xcode build 83.3秒、Runner.app 41.4MB）。生成したPods projectの対象値はすべて15.0。Runner.appのbundle IDはcom.fitnesslog.fitnessLogApp、version 1.1.1/build 10、MinimumOSVersionは15.0。Flutter SDKが生成する組込framework自身の下限値はSDKのままとし、アプリの対象OSはRunnerの15.0で制御する。Flutter SDKやグローバル設定は変更していない。
+
+今回の差分はOS設定のみのため42試験は重複実行せず、Ruby構文、plist、生成Pods/成果物の最低OS、通常の全体Release buildで確認した。既存pluginのSPM未対応警告は残る。サーバー側の署名検証経路は修復済みだが、正規購入/restoreを含む実機の全通し、署名配布、App Storeへのupload/審査/公開は未実施。
 
 再実行時は空のbuildパスを固定cacheへsymlinkし、グローバルFlutter設定を変更しない。
 
@@ -40,10 +42,7 @@ mkdir -p ~/.cache/koya-build/liftly/security-release
 # buildが存在する場合は上書きせず、現在の内容/参照先を確認する。
 ln -s ~/.cache/koya-build/liftly/security-release build
 flutter pub get --enforce-lockfile
-flutter test --concurrency 1
-flutter build ios --release --no-codesign --config-only --no-pub
-(cd ios && pod install)
-xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ~/.cache/koya-build/liftly/security-release/derived -jobs 2 CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=15.0 build
+flutter build ios --release --no-codesign
 ```
 
-署名/配布の前にサーバーの実署名検証正常系、実機の購入/復元/返金/アカウント切替と画面を確認し、ASCの最新ビルド番号より大きいbuild numberを設定する。App Storeへのupload/審査/公開は未実施。
+署名/配布の前に実機の購入/復元/返金/アカウント切替と画面を確認し、ASCの最新ビルド番号より大きいbuild numberを設定する。
