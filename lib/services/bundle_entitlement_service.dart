@@ -122,8 +122,9 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
       final raw = await client.rpc('get_bundle_status');
       if (!mounted ||
           generation != _requestGeneration ||
-          client.auth.currentUser?.id != userId)
+          client.auth.currentUser?.id != userId) {
         return;
+      }
       final data = _parseResponse(raw);
       if (data == null || data.containsKey('error')) {
         state = state.copyWith(isLoading: false);
@@ -164,8 +165,9 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
       );
       if (!mounted ||
           generation != _requestGeneration ||
-          client.auth.currentUser?.id != userId)
+          client.auth.currentUser?.id != userId) {
         return;
+      }
       final data = _parseResponse(response.data);
       if (response.status != 200 || data == null || data.containsKey('error')) {
         _sharingUnavailable();
