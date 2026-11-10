@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.1.1+10
 
 environment:
-  sdk: ^3.10.4
+  sdk: ^3.11.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -62,7 +62,9 @@ dependencies:
   google_fonts: ^6.2.1
 
   # In-App Purchase
-  in_app_purchase: ^3.2.0
+  in_app_purchase: 3.3.1
+  # StoreKit 2 の署名済みJWSとappAccountTokenを使うため固定。
+  in_app_purchase_storekit: 0.4.17
 
   # URL Launcher (for opening subscription management)
   url_launcher: ^6.2.5
@@ -97,6 +99,7 @@ dependencies:
   flutter_web_auth_2: ^4.0.0
 
 dev_dependencies:
+  http: 1.6.0
   flutter_test:
     sdk: flutter
   # integration_test は release ビルドに XCTest リンクの framework が混入し App Store 審査で

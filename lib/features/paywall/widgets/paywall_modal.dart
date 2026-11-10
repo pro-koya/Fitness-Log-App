@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../data/models/entitlement.dart';
 import '../../../providers/entitlement_provider.dart';
 import '../../../services/iap_service.dart';
 import '../../../services/bundle_entitlement_service.dart';
@@ -46,9 +45,9 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     final iapState = ref.watch(iapServiceProvider);
 
     // entitlement を監視: stream経由で購入完了 → Pro化したら自動クローズ
-    ref.listen<EntitlementState>(entitlementProvider, (previous, next) {
-      debugPrint('Paywall: EntitlementState changed: isPro=${next.isPro}');
-      if ((_isPurchasing || _isRestoring) && next.isPro) {
+    ref.listen<bool>(isProProvider, (previous, next) {
+      debugPrint('Paywall: EntitlementState changed: isPro=$next');
+      if ((_isPurchasing || _isRestoring) && next) {
         debugPrint('Paywall: Pro detected → closing modal');
         if (mounted) Navigator.pop(context, true);
       }
@@ -57,8 +56,8 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     // Safety net: ローカルの_isPurchasingがtrueなのにIAPStateがisPurchasing=false
     // → 状態の不整合を検知してUIをリセット（直接returnパスが何らかの理由で効かない場合の保険）
     if ((_isPurchasing || _isRestoring) && !iapState.isPurchasing) {
-      final entitlement = ref.read(entitlementProvider);
-      if (!entitlement.isPro) {
+      final isPro = ref.read(isProProvider);
+      if (!isPro) {
         debugPrint('Paywall: Inconsistency detected in build - '
             'local _isPurchasing=$_isPurchasing, _isRestoring=$_isRestoring, '
             'iapState.isPurchasing=${iapState.isPurchasing}');

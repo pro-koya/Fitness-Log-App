@@ -683,8 +683,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// プランセクション（Proへのアップグレード or サブスク管理）
   Widget _buildPlanSection(AppLocalizations? l10n) {
-    final entitlementState = ref.watch(entitlementProvider);
-    final isPro = entitlementState.isPro;
+    final isPro = ref.watch(isProProvider);
 
     final sectionTitle = l10n?.settingsPlanSection ?? 'Plan';
 
@@ -1547,11 +1546,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// 購入復元セクション
   Widget _buildRestorePurchasesSection(AppLocalizations? l10n) {
-    final entitlementState = ref.watch(entitlementProvider);
+    final isPro = ref.watch(isProProvider);
     final iapState = ref.watch(iapServiceProvider);
 
     // Proユーザーの場合は表示しない
-    if (entitlementState.isPro) {
+    if (isPro) {
       return const SizedBox.shrink();
     }
 
@@ -1965,7 +1964,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// 開発用セクション（デバッグモードのみ表示）
   Widget _buildDevSection() {
     final entitlementState = ref.watch(entitlementProvider);
-    final isPro = entitlementState.isPro;
+    final isPro = entitlementState.debugProOverride;
 
     return Container(
       padding: const EdgeInsets.all(16),

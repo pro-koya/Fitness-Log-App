@@ -1,17 +1,18 @@
 /// 課金状態を表すEnum
-enum Entitlement {
-  free,
-  pro,
-}
+enum Entitlement { free, pro }
 
 /// 課金状態の詳細を保持するクラス
 class EntitlementState {
   final Entitlement entitlement;
+
+  /// 明示操作でのみ有効にする開発用上書き。永続proキャッシュとは区別する。
+  final bool debugProOverride;
   final DateTime? expiresAt;
   final String? subscriptionType; // 'monthly' | 'yearly' | null
 
   const EntitlementState({
     this.entitlement = Entitlement.free,
+    this.debugProOverride = false,
     this.expiresAt,
     this.subscriptionType,
   });
@@ -33,11 +34,13 @@ class EntitlementState {
 
   EntitlementState copyWith({
     Entitlement? entitlement,
+    bool? debugProOverride,
     DateTime? expiresAt,
     String? subscriptionType,
   }) {
     return EntitlementState(
       entitlement: entitlement ?? this.entitlement,
+      debugProOverride: debugProOverride ?? this.debugProOverride,
       expiresAt: expiresAt ?? this.expiresAt,
       subscriptionType: subscriptionType ?? this.subscriptionType,
     );
@@ -54,12 +57,16 @@ class EntitlementState {
 
     return other is EntitlementState &&
         other.entitlement == entitlement &&
+        other.debugProOverride == debugProOverride &&
         other.expiresAt == expiresAt &&
         other.subscriptionType == subscriptionType;
   }
 
   @override
   int get hashCode {
-    return entitlement.hashCode ^ expiresAt.hashCode ^ subscriptionType.hashCode;
+    return entitlement.hashCode ^
+        debugProOverride.hashCode ^
+        expiresAt.hashCode ^
+        subscriptionType.hashCode;
   }
 }

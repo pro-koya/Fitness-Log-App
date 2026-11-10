@@ -25,7 +25,7 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
   static const int _maxRetries = 3;
 
   Future<void> _loadAd() async {
-    final isPro = ref.read(entitlementProvider).isPro;
+    final isPro = ref.read(isProProvider);
     if (isPro || !mounted) return;
 
     final width = MediaQuery.sizeOf(context).width.truncate();
@@ -68,7 +68,7 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isPro = ref.watch(entitlementProvider).isPro;
+    final isPro = ref.watch(isProProvider);
     if (isPro) return const SizedBox.shrink();
     if (!_loadStarted) {
       _loadStarted = true;

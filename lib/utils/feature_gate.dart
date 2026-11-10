@@ -50,8 +50,10 @@ class FeatureGate {
 
 /// 機能ゲートプロバイダー
 final featureGateProvider = Provider<FeatureGate>((ref) {
-  final entitlement = ref.watch(entitlementProvider);
-  return FeatureGate(entitlement);
+  final isPro = ref.watch(isProProvider);
+  return FeatureGate(
+    EntitlementState(entitlement: isPro ? Entitlement.pro : Entitlement.free),
+  );
 });
 
 /// 特定セッションがロックされているか（履歴制限廃止のため常に false）

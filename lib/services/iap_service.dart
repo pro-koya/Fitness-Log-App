@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/supabase_config.dart';
 
 /// Product IDs for subscriptions
 /// These must match the product IDs configured in App Store Connect and Google Play Console
@@ -13,8 +16,10 @@ class IAPProductIds {
   static const String yearlySubscription = 'com.fitnesslog.liftly.pro.yearly';
 
   // Muscle360 Pro バンドル（Phase 2-2 追加 / Option B: Liftly 名義商品）
-  static const String bundleMonthlySubscription = 'com.fitnesslog.liftly.bundle.pro.monthly';
-  static const String bundleYearlySubscription = 'com.fitnesslog.liftly.bundle.pro.yearly';
+  static const String bundleMonthlySubscription =
+      'com.fitnesslog.liftly.bundle.pro.monthly';
+  static const String bundleYearlySubscription =
+      'com.fitnesslog.liftly.bundle.pro.yearly';
 
   static const Set<String> allProductIds = {
     monthlySubscription,
@@ -113,7 +118,9 @@ class IAPState {
 
   /// バンドルサブスクリプションを持っているか
   bool get hasActiveBundleSubscription {
-    return purchasedProductIds.contains(IAPProductIds.bundleMonthlySubscription) ||
+    return purchasedProductIds.contains(
+          IAPProductIds.bundleMonthlySubscription,
+        ) ||
         purchasedProductIds.contains(IAPProductIds.bundleYearlySubscription);
   }
 
@@ -140,22 +147,11 @@ class IAPState {
 }
 
 /// 購入結果
-enum PurchaseResult {
-  success,
-  cancelled,
-  pending,
-  error,
-}
+enum PurchaseResult { success, cancelled, pending, error }
 
-/// バンドル購入完了時に呼ばれるコールバック型。
-/// [productId]: 購入した bundle 商品 ID
-/// [expiresAtEpoch]: 有効期限（epoch 秒）。不明な場合は null。
-/// [transactionId]: App Store / Google Play のトランザクション ID。
-typedef BundlePurchaseCallback = Future<void> Function({
-  required String productId,
-  required int? expiresAtEpoch,
-  required String transactionId,
-});
+/// バンドル共有には Apple 署名済み購入証明を渡す。ID/自己申告期限は送らない。
+typedef BundlePurchaseCallback =
+    Future<void> Function({required String signedTransaction});
 
 /// IAP Service Notifier
 class IAPServiceNotifier extends StateNotifier<IAPState> {
@@ -178,7 +174,7 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
     _onPurchaseStatusChanged = callback;
   }
 
-  /// バンドル購入完了時のコールバックを設定（Supabase RPC 呼び出し用）
+  /// バンドル購入完了時のコールバックを設定（購入証明のサーバー検証用）
   void setOnBundlePurchaseCompleted(BundlePurchaseCallback callback) {
     _onBundlePurchaseCompleted = callback;
   }
@@ -188,7 +184,9 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
     try {
       // デバッグモードでシミュレーター/エミュレーターの場合はスキップ
       if (kDebugMode && !Platform.isIOS && !Platform.isAndroid) {
-        debugPrint('IAP: Running on non-mobile platform in debug mode, skipping IAP initialization');
+        debugPrint(
+          'IAP: Running on non-mobile platform in debug mode, skipping IAP initialization',
+        );
         state = state.copyWith(status: IAPStatus.unavailable);
         return;
       }
@@ -199,7 +197,7 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
         isAvailable = await _inAppPurchase.isAvailable();
       } catch (e) {
         // シミュレーターやIAPが設定されていない環境ではエラーが発生する
-        debugPrint('IAP: isAvailable() failed: $e');
+        debugPrint('IAP: store availability check failed');
         state = state.copyWith(status: IAPStatus.unavailable);
         return;
       }
@@ -221,7 +219,7 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
       await _loadProducts();
     } catch (e) {
       // 初期化中の予期せぬエラー
-      debugPrint('IAP: Initialization failed: $e');
+      debugPrint('IAP: initialization failed');
       state = state.copyWith(status: IAPStatus.unavailable);
     }
   }
@@ -239,7 +237,9 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
       }
 
       if (response.error != null) {
-        debugPrint('IAP: queryProductDetails error: ${response.error!.message}');
+        debugPrint(
+          'IAP: queryProductDetails error: ${response.error!.message}',
+        );
         state = state.copyWith(
           status: IAPStatus.error,
           errorMessage: response.error!.message,
@@ -249,7 +249,9 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
 
       debugPrint('IAP: Loaded ${response.productDetails.length} products');
       for (final product in response.productDetails) {
-        debugPrint('IAP:   - ${product.id}: ${product.price} (${product.currencyCode})');
+        debugPrint(
+          'IAP:   - ${product.id}: ${product.price} (${product.currencyCode})',
+        );
       }
 
       state = state.copyWith(
@@ -257,10 +259,10 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
         products: response.productDetails,
       );
     } catch (e) {
-      debugPrint('IAP: _loadProducts exception: $e');
+      debugPrint('IAP: product lookup failed');
       state = state.copyWith(
         status: IAPStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: '購入情報を確認できませんでした。時間を置いて再試行してください。',
       );
     }
   }
@@ -307,7 +309,9 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
 
   /// 購入処理
   Future<PurchaseResult> _purchase(ProductDetails product) async {
-    debugPrint('IAP: _purchase called for ${product.id} (isPurchasing=${state.isPurchasing})');
+    debugPrint(
+      'IAP: _purchase called for ${product.id} (isPurchasing=${state.isPurchasing})',
+    );
 
     if (state.isPurchasing) {
       debugPrint('IAP: Already purchasing, returning error');
@@ -317,7 +321,33 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
     state = state.copyWith(isPurchasing: true, errorMessage: null);
 
     try {
-      final purchaseParam = PurchaseParam(productDetails: product);
+      String? appAccountToken;
+      if (IAPProductIds.bundleProductIds.contains(product.id)) {
+        if (!Platform.isIOS || product is! AppStoreProduct2Details) {
+          state = state.copyWith(
+            isPurchasing: false,
+            errorMessage: 'この端末でのバンドル購入は準備中です。',
+          );
+          return PurchaseResult.error;
+        }
+        appAccountToken = SupabaseConfig.isConfigured
+            ? Supabase.instance.client.auth.currentUser?.id
+            : null;
+        if (appAccountToken == null) {
+          state = state.copyWith(
+            isPurchasing: false,
+            errorMessage: 'バンドルを購入する前にログインしてください。',
+          );
+          return PurchaseResult.error;
+        }
+      }
+      // StoreKit 2 は applicationUserName を appAccountToken として Apple へ渡す。
+      final PurchaseParam purchaseParam = appAccountToken == null
+          ? PurchaseParam(productDetails: product)
+          : Sk2PurchaseParam(
+              productDetails: product,
+              applicationUserName: appAccountToken,
+            );
 
       debugPrint('IAP: Calling buyNonConsumable for ${product.id}');
       final success = await _inAppPurchase.buyNonConsumable(
@@ -337,7 +367,7 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
       _startPurchaseTimeout();
       return PurchaseResult.pending;
     } catch (e) {
-      debugPrint('IAP: _purchase exception: $e');
+      debugPrint('IAP: purchase request failed');
 
       // StoreKit 2: ユーザーが購入ダイアログまたはログインダイアログをキャンセルした場合
       if (e is PlatformException && e.code == 'userCancelled') {
@@ -348,7 +378,7 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
 
       state = state.copyWith(
         isPurchasing: false,
-        errorMessage: e.toString(),
+        errorMessage: '購入情報を確認できませんでした。時間を置いて再試行してください。',
       );
       return PurchaseResult.error;
     }
@@ -370,10 +400,10 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
       state = state.copyWith(isPurchasing: false);
       return true;
     } catch (e) {
-      debugPrint('IAP: restorePurchases exception: $e');
+      debugPrint('IAP: purchase restore failed');
       state = state.copyWith(
         isPurchasing: false,
-        errorMessage: e.toString(),
+        errorMessage: '購入情報を確認できませんでした。時間を置いて再試行してください。',
       );
       return false;
     }
@@ -385,7 +415,9 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
     _purchaseTimeoutTimer?.cancel();
     _purchaseTimeoutTimer = Timer(const Duration(seconds: 30), () {
       if (mounted && state.isPurchasing) {
-        debugPrint('IAP: Purchase timeout - no stream event received in 30s, resetting isPurchasing');
+        debugPrint(
+          'IAP: Purchase timeout - no stream event received in 30s, resetting isPurchasing',
+        );
         state = state.copyWith(isPurchasing: false);
       }
     });
@@ -407,10 +439,11 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
 
   /// 個別の購入を処理
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
-    debugPrint('IAP: _handlePurchase status=${purchaseDetails.status} '
-        'productID=${purchaseDetails.productID} '
-        'pendingComplete=${purchaseDetails.pendingCompletePurchase} '
-        'error=${purchaseDetails.error?.message} code=${purchaseDetails.error?.code}');
+    debugPrint(
+      'IAP: _handlePurchase status=${purchaseDetails.status} '
+      'productID=${purchaseDetails.productID} '
+      'pendingComplete=${purchaseDetails.pendingCompletePurchase}',
+    );
 
     switch (purchaseDetails.status) {
       case PurchaseStatus.pending:
@@ -419,7 +452,9 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
 
       case PurchaseStatus.purchased:
       case PurchaseStatus.restored:
-        debugPrint('IAP: Purchase completed/restored for ${purchaseDetails.productID}');
+        debugPrint(
+          'IAP: Purchase completed/restored for ${purchaseDetails.productID}',
+        );
 
         // 購入済みリストに追加
         final newPurchasedIds = Set<String>.from(state.purchasedProductIds)
@@ -434,42 +469,52 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
         String? subscriptionType;
         if (purchaseDetails.productID == IAPProductIds.monthlySubscription) {
           subscriptionType = 'monthly';
-        } else if (purchaseDetails.productID == IAPProductIds.yearlySubscription) {
+        } else if (purchaseDetails.productID ==
+            IAPProductIds.yearlySubscription) {
           subscriptionType = 'yearly';
-        } else if (purchaseDetails.productID == IAPProductIds.bundleMonthlySubscription) {
+        } else if (purchaseDetails.productID ==
+            IAPProductIds.bundleMonthlySubscription) {
           subscriptionType = 'bundle_monthly';
-        } else if (purchaseDetails.productID == IAPProductIds.bundleYearlySubscription) {
+        } else if (purchaseDetails.productID ==
+            IAPProductIds.bundleYearlySubscription) {
           subscriptionType = 'bundle_yearly';
         }
 
         // コールバックを呼び出し（EntitlementProviderに通知）
         _onPurchaseStatusChanged?.call(true, subscriptionType);
 
-        // バンドル商品の場合は Supabase RPC で購入を記録する（ソフトフェイル）
-        if (IAPProductIds.bundleProductIds.contains(purchaseDetails.productID)) {
-          final transactionId =
-              purchaseDetails.purchaseID ?? purchaseDetails.productID;
-          _onBundlePurchaseCompleted?.call(
-            productId: purchaseDetails.productID,
-            expiresAtEpoch: null, // StoreKit 2 では receipt から取得するが今は null
-            transactionId: transactionId,
-          );
+        // ローカルの購入は維持し、共有は署名済み証明がある iOS 購入だけ検証する。
+        if (IAPProductIds.bundleProductIds.contains(
+          purchaseDetails.productID,
+        )) {
+          final proof = purchaseDetails.verificationData.serverVerificationData;
+          if (Platform.isIOS &&
+              purchaseDetails is SK2PurchaseDetails &&
+              proof.split('.').length == 3) {
+            await _onBundlePurchaseCompleted?.call(signedTransaction: proof);
+          } else {
+            state = state.copyWith(
+              errorMessage: '端末の購入は維持されています。アプリ間共有は購入元のアプリで復元して確認してください。',
+            );
+          }
         }
         break;
 
       case PurchaseStatus.error:
         final code = purchaseDetails.error?.code;
-        final isUserCancelled = code == 'userCancelled' ||
-            (purchaseDetails.error?.message ?? '').toLowerCase().contains('cancel');
+        final isUserCancelled =
+            code == 'userCancelled' ||
+            (purchaseDetails.error?.message ?? '').toLowerCase().contains(
+              'cancel',
+            );
         if (isUserCancelled) {
           debugPrint('IAP: Purchase cancelled (via error status)');
           state = state.copyWith(isPurchasing: false, errorMessage: null);
         } else {
-          debugPrint('IAP: Purchase error: ${purchaseDetails.error?.message} '
-              'code=$code');
+          debugPrint('IAP: purchase update failed');
           state = state.copyWith(
             isPurchasing: false,
-            errorMessage: purchaseDetails.error?.message ?? 'Purchase failed',
+            errorMessage: '購入情報を確認できませんでした。時間を置いて再試行してください。',
           );
         }
         break;
@@ -493,10 +538,10 @@ class IAPServiceNotifier extends StateNotifier<IAPState> {
   }
 
   void _onPurchaseStreamError(dynamic error) {
-    debugPrint('IAP: Purchase stream error: $error');
+    debugPrint('IAP: purchase stream failed');
     state = state.copyWith(
       status: IAPStatus.error,
-      errorMessage: error.toString(),
+      errorMessage: '購入情報を確認できませんでした。時間を置いて再試行してください。',
     );
   }
 

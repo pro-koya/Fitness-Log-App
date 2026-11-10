@@ -17,40 +17,39 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
 
   /// 初期化
   Future<void> _initialize() async {
-    // ストレージから課金状態を読み込む（有効期限チェック含む）
-    await _loadFromStorage();
+    // 旧キャッシュは共有/端末の由来が区別できないため、本番ではStore復元を待つ。
+    if (kDebugMode) await _loadFromStorage();
 
-    // バンドル購入確定時に Supabase RPC へ記録するコールバックを設定
-    _ref.read(iapServiceProvider.notifier).setOnBundlePurchaseCompleted(
-      ({required productId, required expiresAtEpoch, required transactionId}) async {
-        await _ref.read(bundleEntitlementProvider.notifier).recordBundlePurchase(
-          productId: productId,
-          expiresAtEpoch: expiresAtEpoch,
-          transactionId: transactionId,
-        );
-      },
-    );
+    // バンドル購入確定時に サーバーで署名済み証明を確認するコールバックを設定
+    _ref.read(iapServiceProvider.notifier).setOnBundlePurchaseCompleted(({
+      required signedTransaction,
+    }) async {
+      await _ref
+          .read(bundleEntitlementProvider.notifier)
+          .recordBundlePurchase(signedTransaction: signedTransaction);
+    });
 
     // IAPサービスに購入状態変更コールバックを設定
-    _ref.read(iapServiceProvider.notifier).setOnPurchaseStatusChanged(
-      (isPro, subscriptionType) async {
-        if (isPro) {
-          state = state.copyWith(
-            entitlement: Entitlement.pro,
-            subscriptionType: subscriptionType,
-          );
-          // サブスクリプションの推定有効期限を保存
-          try {
-            final dao = _ref.read(settingsDaoProvider);
-            final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-            final expiryDays = subscriptionType == 'yearly' ? 366 : 32;
-            final expiresAt = now + (expiryDays * 24 * 60 * 60);
-            await dao.updateSubscriptionExpiresAt(expiresAt);
-          } catch (_) {}
-          await _saveToStorage();
-        }
-      },
-    );
+    _ref.read(iapServiceProvider.notifier).setOnPurchaseStatusChanged((
+      isPro,
+      subscriptionType,
+    ) async {
+      if (isPro) {
+        state = state.copyWith(
+          entitlement: Entitlement.pro,
+          subscriptionType: subscriptionType,
+        );
+        // サブスクリプションの推定有効期限を保存
+        try {
+          final dao = _ref.read(settingsDaoProvider);
+          final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+          final expiryDays = subscriptionType == 'yearly' ? 366 : 32;
+          final expiresAt = now + (expiryDays * 24 * 60 * 60);
+          await dao.updateSubscriptionExpiresAt(expiresAt);
+        } catch (_) {}
+        await _saveToStorage();
+      }
+    });
 
     // アプリ起動時にストアから課金状態を取得し、解約済みの場合は無料プランに反映する
     refreshSubscriptionStatus();
@@ -82,7 +81,9 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
         final expiresAt = settings?.subscriptionExpiresAt;
         final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         if (expiresAt != null && expiresAt < now) {
-          debugPrint('Entitlement: subscription expired at $expiresAt, downgrading to free');
+          debugPrint(
+            'Entitlement: subscription expired at $expiresAt, downgrading to free',
+          );
           state = state.copyWith(entitlement: Entitlement.free);
           await _saveToStorage();
         } else {
@@ -111,7 +112,8 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
   Future<void> togglePro() async {
     if (!kDebugMode) return;
     state = state.copyWith(
-      entitlement: state.isPro ? Entitlement.free : Entitlement.pro,
+      entitlement: state.debugProOverride ? Entitlement.free : Entitlement.pro,
+      debugProOverride: !state.debugProOverride,
     );
     await _saveToStorage();
   }
@@ -119,21 +121,27 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
   /// 開発用: Proに設定（デバッグモードのみ）
   Future<void> setPro() async {
     if (!kDebugMode) return;
-    state = state.copyWith(entitlement: Entitlement.pro);
+    state = state.copyWith(
+      entitlement: Entitlement.pro,
+      debugProOverride: true,
+    );
     await _saveToStorage();
   }
 
   /// 開発用: Freeに設定（デバッグモードのみ）
   Future<void> setFree() async {
     if (!kDebugMode) return;
-    state = state.copyWith(entitlement: Entitlement.free);
+    state = state.copyWith(
+      entitlement: Entitlement.free,
+      debugProOverride: false,
+    );
     await _saveToStorage();
   }
 
   /// 課金状態を確認（Liftly 単独 OR バンドル加入 OR 両方）
   ///
   /// バンドル状態は BundleEntitlementNotifier.refresh() の完了後に判定する。
-  /// refresh() は内部で TTL（1時間）チェックを行うため、キャッシュ有効時は
+  /// refresh() は内部で TTL（5分）チェックを行うため、キャッシュ有効時は
   /// 即時リターンし追加の Supabase RPC 呼び出しは発生しない。
   Future<void> checkEntitlement() async {
     // バンドル状態が初期値（未ロード）のまま判定するレース条件を防ぐため、
@@ -141,25 +149,21 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
     await _ref.read(bundleEntitlementProvider.notifier).refresh();
 
     final iapState = _ref.read(iapServiceProvider);
-    final bundleState = _ref.read(bundleEntitlementProvider);
 
-    // バンドル加入中はバンドル扱いで Pro 判定
-    if (bundleState.isActive) {
-      state = state.copyWith(
-        entitlement: Entitlement.pro,
-        subscriptionType: bundleState.productId ?? 'bundle',
-      );
-      await _saveToStorage();
-      return;
-    }
-
-    if (iapState.hasActiveSubscription) {
+    // サーバー共有の権利は別providerがUID/期限付きで管理し、端末proへ保存しない。
+    if (iapState.hasAnyProAccess) {
       // Liftly 単独サブスクのサブスクリプションタイプを判定
       String? subscriptionType;
-      if (iapState.purchasedProductIds.contains(IAPProductIds.monthlySubscription)) {
+      if (iapState.purchasedProductIds.contains(
+        IAPProductIds.monthlySubscription,
+      )) {
         subscriptionType = 'monthly';
-      } else if (iapState.purchasedProductIds.contains(IAPProductIds.yearlySubscription)) {
+      } else if (iapState.purchasedProductIds.contains(
+        IAPProductIds.yearlySubscription,
+      )) {
         subscriptionType = 'yearly';
+      } else if (iapState.hasActiveBundleSubscription) {
+        subscriptionType = 'bundle';
       }
 
       state = state.copyWith(
@@ -169,7 +173,9 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
       await _saveToStorage();
     } else {
       // IAPがアクティブなサブスクリプションを確認できなかった場合はFreeにダウングレード
-      debugPrint('Entitlement: no active subscription found, downgrading to free');
+      debugPrint(
+        'Entitlement: no active subscription found, downgrading to free',
+      );
       state = state.copyWith(entitlement: Entitlement.free);
       try {
         final dao = _ref.read(settingsDaoProvider);
@@ -190,6 +196,7 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
         state = state.copyWith(
           entitlement: Entitlement.pro,
           subscriptionType: 'monthly',
+          debugProOverride: true,
         );
         await _saveToStorage();
         return PurchaseResult.success;
@@ -198,7 +205,9 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
     }
 
     // 実際のIAP購入
-    final result = await _ref.read(iapServiceProvider.notifier).purchaseMonthly();
+    final result = await _ref
+        .read(iapServiceProvider.notifier)
+        .purchaseMonthly();
     return result;
   }
 
@@ -213,6 +222,7 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
         state = state.copyWith(
           entitlement: Entitlement.pro,
           subscriptionType: 'yearly',
+          debugProOverride: true,
         );
         await _saveToStorage();
         return PurchaseResult.success;
@@ -221,7 +231,9 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
     }
 
     // 実際のIAP購入
-    final result = await _ref.read(iapServiceProvider.notifier).purchaseYearly();
+    final result = await _ref
+        .read(iapServiceProvider.notifier)
+        .purchaseYearly();
     return result;
   }
 
@@ -268,30 +280,37 @@ class EntitlementNotifier extends StateNotifier<EntitlementState> {
       if (kDebugMode) {
         // デバッグモード: ストレージから読み込み
         await _loadFromStorage();
-        return state.isPro;
+        return _ref.read(isProProvider);
       }
       return false;
     }
 
     // 実際の購入復元（fire-and-forget: 結果はstreamで非同期に届く）
-    final success = await _ref.read(iapServiceProvider.notifier).restorePurchases();
+    final success = await _ref
+        .read(iapServiceProvider.notifier)
+        .restorePurchases();
     if (success) {
       // ストリームイベントが処理されるのを少し待つ
       await Future.delayed(const Duration(milliseconds: 500));
       await checkEntitlement();
     }
-    return state.isPro;
+    return _ref.read(isProProvider);
   }
 }
 
 /// 課金状態プロバイダー
-final entitlementProvider = StateNotifierProvider<EntitlementNotifier, EntitlementState>(
-  (ref) => EntitlementNotifier(ref),
-);
+final entitlementProvider =
+    StateNotifierProvider<EntitlementNotifier, EntitlementState>(
+      (ref) => EntitlementNotifier(ref),
+    );
 
 /// Proプランかどうかの簡易プロバイダー（Liftly 単独 OR バンドル加入）
 final isProProvider = Provider<bool>((ref) {
-  final entitlement = ref.watch(entitlementProvider);
+  final local = ref.watch(iapServiceProvider);
   final bundle = ref.watch(bundleEntitlementProvider);
-  return entitlement.isPro || bundle.isActive;
+  // 初期化で購入コールバックを登録する。旧永続pro bitは権利として使わない。
+  final entitlement = ref.watch(entitlementProvider);
+  return local.hasAnyProAccess ||
+      bundle.isActive ||
+      (kDebugMode && entitlement.debugProOverride);
 });
