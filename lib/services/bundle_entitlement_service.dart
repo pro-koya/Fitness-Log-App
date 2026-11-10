@@ -1,16 +1,50 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/supabase_config.dart';
 
+enum BundlePurchaseEnvironment {
+  production('Production', 'get_bundle_status'),
+  sandbox('Sandbox', 'get_sandbox_bundle_status');
+
+  const BundlePurchaseEnvironment(this.value, this.statusRPC);
+  final String value;
+  final String statusRPC;
+
+  static BundlePurchaseEnvironment? parse(String? value) {
+    for (final environment in values) {
+      if (environment.value == value) return environment;
+    }
+    return null;
+  }
+}
+
+Future<BundlePurchaseEnvironment?> _nativePurchaseEnvironment() async {
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    return BundlePurchaseEnvironment.production;
+  }
+  if (defaultTargetPlatform != TargetPlatform.iOS) return null;
+  try {
+    final value = await const MethodChannel(
+      'fitness_log_app/purchase_environment',
+    ).invokeMethod<String>('getEnvironment');
+    return BundlePurchaseEnvironment.parse(value);
+  } catch (_) {
+    return null;
+  }
+}
+
 class BundleStatusResponse {
+  final String? environment;
   final bool bundleActive;
   final String? bundleProductId;
   final int? bundleExpiresAt;
   final int checkedAt;
 
   const BundleStatusResponse({
+    this.environment,
     required this.bundleActive,
     this.bundleProductId,
     this.bundleExpiresAt,
@@ -19,6 +53,7 @@ class BundleStatusResponse {
 
   factory BundleStatusResponse.fromJson(Map<String, dynamic> json) {
     return BundleStatusResponse(
+      environment: json['environment'] as String?,
       bundleActive: json['bundle_active'] as bool? ?? false,
       bundleProductId: json['bundle_product_id'] as String?,
       bundleExpiresAt: json['bundle_expires_at'] as int?,
@@ -66,9 +101,12 @@ class BundleEntitlementState {
 
 /// 共有権利だけを管理する。購入端末の権利は IAPServiceNotifier が別に保持する。
 class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
-  BundleEntitlementNotifier({SupabaseClient? client})
-    : _injectedClient = client,
-      super(const BundleEntitlementState()) {
+  BundleEntitlementNotifier({
+    SupabaseClient? client,
+    Future<BundlePurchaseEnvironment?> Function()? environmentResolver,
+  }) : _injectedClient = client,
+       _environmentResolver = environmentResolver ?? _nativePurchaseEnvironment,
+       super(const BundleEntitlementState()) {
     _authSubscription = _client?.auth.onAuthStateChange.listen(
       (_) {
         _synchronizeUser();
@@ -78,16 +116,22 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
         debugPrint('BundleEntitlement: auth refresh unavailable');
       },
     );
+    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      unawaited(refresh());
+    });
     unawaited(refresh());
   }
 
   static const Duration _cacheTTL = Duration(minutes: 5);
   static const String _bundleId = 'com.fitnesslog.fitnessLogApp';
   final SupabaseClient? _injectedClient;
+  final Future<BundlePurchaseEnvironment?> Function() _environmentResolver;
+  BundlePurchaseEnvironment? _environment;
   DateTime? _lastCheckedAt;
   String? _userId;
   int _requestGeneration = 0;
   Timer? _expiryTimer;
+  Timer? _pollTimer;
   StreamSubscription<AuthState>? _authSubscription;
 
   SupabaseClient? get _client {
@@ -106,23 +150,51 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
     state = const BundleEntitlementState();
   }
 
-  Future<void> refresh({bool forceRefresh = false}) async {
+  Future<(String, BundlePurchaseEnvironment, int)?> _prepareContext() async {
     _synchronizeUser();
-    final client = _client;
+    if (_userId == null) return null;
+    final lookup = ++_requestGeneration;
+    BundlePurchaseEnvironment? environment;
+    try {
+      environment = await _environmentResolver();
+    } catch (_) {
+      environment = null;
+    }
+    if (!mounted || lookup != _requestGeneration) return null;
+    _synchronizeUser();
+    if (lookup != _requestGeneration) return null;
+    if (_environment != environment) {
+      _environment = environment;
+      _requestGeneration++;
+      _lastCheckedAt = null;
+      _expiryTimer?.cancel();
+      state = const BundleEntitlementState();
+    }
     final userId = _userId;
-    if (client == null || userId == null) return;
+    if (userId == null || environment == null) return null;
+    return (userId, environment, ++_requestGeneration);
+  }
+
+  Future<void> refresh({bool forceRefresh = false}) async {
+    final context = await _prepareContext();
+    final client = _client;
+    if (client == null || context == null) return;
+    final (userId, environment, generation) = context;
     if (!forceRefresh &&
         _lastCheckedAt != null &&
-        DateTime.now().difference(_lastCheckedAt!) < _cacheTTL) {
+        DateTime.now().difference(_lastCheckedAt!) <
+            (environment == BundlePurchaseEnvironment.sandbox
+                ? const Duration(seconds: 30)
+                : _cacheTTL)) {
       return;
     }
-    final generation = ++_requestGeneration;
     state = state.copyWith(isLoading: true);
     try {
-      final raw = await client.rpc('get_bundle_status');
+      final raw = await client.rpc(environment.statusRPC);
       if (!mounted ||
           generation != _requestGeneration ||
-          client.auth.currentUser?.id != userId) {
+          client.auth.currentUser?.id != userId ||
+          _environment != environment) {
         return;
       }
       final data = _parseResponse(raw);
@@ -130,7 +202,7 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
         state = state.copyWith(isLoading: false);
         return;
       }
-      _applyStatus(BundleStatusResponse.fromJson(data));
+      _applyStatus(BundleStatusResponse.fromJson(data), environment);
     } catch (_) {
       if (mounted && generation == _requestGeneration) {
         debugPrint('BundleEntitlement: status refresh unavailable');
@@ -141,17 +213,16 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
 
   /// 自己申告の取引ID/期限では権利を付けず、Appleの署名済み証明だけを送信する。
   Future<void> recordBundlePurchase({required String signedTransaction}) async {
-    _synchronizeUser();
+    final context = await _prepareContext();
     final client = _client;
-    final userId = _userId;
-    if (client == null || userId == null) return;
+    if (client == null || context == null) return;
+    final (userId, environment, generation) = context;
     if (defaultTargetPlatform != TargetPlatform.iOS ||
         signedTransaction.length > 32768 ||
         signedTransaction.split('.').length != 3) {
       _sharingUnavailable();
       return;
     }
-    final generation = ++_requestGeneration;
     try {
       var session = client.auth.currentSession;
       if (session?.isExpired ?? true) {
@@ -165,7 +236,8 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
       );
       if (!mounted ||
           generation != _requestGeneration ||
-          client.auth.currentUser?.id != userId) {
+          client.auth.currentUser?.id != userId ||
+          _environment != environment) {
         return;
       }
       final data = _parseResponse(response.data);
@@ -173,7 +245,7 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
         _sharingUnavailable();
         return;
       }
-      _applyStatus(BundleStatusResponse.fromJson(data));
+      _applyStatus(BundleStatusResponse.fromJson(data), environment);
     } catch (_) {
       if (mounted &&
           generation == _requestGeneration &&
@@ -199,7 +271,16 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
     return null;
   }
 
-  void _applyStatus(BundleStatusResponse status) {
+  void _applyStatus(
+    BundleStatusResponse status,
+    BundlePurchaseEnvironment environment,
+  ) {
+    if (status.environment != environment.value) {
+      _lastCheckedAt = null;
+      _expiryTimer?.cancel();
+      state = const BundleEntitlementState();
+      return;
+    }
     final now = DateTime.now();
     final active = status.isActiveAt(now);
     final expiresAt = active
@@ -230,6 +311,7 @@ class BundleEntitlementNotifier extends StateNotifier<BundleEntitlementState> {
   void dispose() {
     _expiryTimer?.cancel();
     _authSubscription?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 }

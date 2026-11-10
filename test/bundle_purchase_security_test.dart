@@ -17,7 +17,11 @@ import 'package:fitness_log_app/utils/feature_gate.dart';
 const firstUser = '11111111-1111-4111-8111-111111111111';
 const secondUser = '22222222-2222-4222-8222-222222222222';
 
-Map<String, dynamic> bundle(bool active) => {
+Map<String, dynamic> bundle(
+  bool active, [
+  String? environment = 'Production',
+]) => {
+  'environment': environment,
   'bundle_active': active,
   'bundle_product_id': active
       ? 'com.fitnesslog.liftly.bundle.pro.monthly'
@@ -41,6 +45,7 @@ class Fixture {
   late final SupabaseClient client;
   String userId = firstUser;
   final List<http.Request> verificationRequests = [];
+  final List<String> rpcPaths = [];
   Future<http.Response> Function()? rpc;
   http.Response verificationResponse = jsonResponse(bundle(true));
   Future<http.Response> Function()? verify;
@@ -79,7 +84,9 @@ class Fixture {
             },
           });
         }
-        if (request.url.path.endsWith('/get_bundle_status')) {
+        if (request.url.path.endsWith('/get_bundle_status') ||
+            request.url.path.endsWith('/get_sandbox_bundle_status')) {
+          rpcPaths.add(request.url.path);
           final response = rpc == null
               ? jsonResponse(bundle(false))
               : await rpc!();
@@ -159,7 +166,10 @@ void main() {
         await fixture.client.rpc('get_bundle_status'),
         isA<Map<String, dynamic>>(),
       );
-      final notifier = BundleEntitlementNotifier(client: fixture.client);
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await notifier.refresh(forceRefresh: true);
       await notifier.recordBundlePurchase(
         signedTransaction: 'header.payload.signature',
@@ -185,7 +195,10 @@ void main() {
     () async {
       final fixture = Fixture();
       await fixture.signIn();
-      final notifier = BundleEntitlementNotifier(client: fixture.client);
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await notifier.refresh(forceRefresh: true);
       await notifier.recordBundlePurchase(
         signedTransaction: 'header.payload.signature',
@@ -210,7 +223,10 @@ void main() {
     () async {
       final fixture = Fixture();
       await fixture.signIn();
-      final notifier = BundleEntitlementNotifier(client: fixture.client);
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await notifier.refresh(forceRefresh: true);
       final pending = Completer<http.Response>();
       fixture.rpc = () => pending.future;
@@ -228,7 +244,10 @@ void main() {
   test('new account cannot inherit an old account response', () async {
     final fixture = Fixture();
     await fixture.signIn();
-    final notifier = BundleEntitlementNotifier(client: fixture.client);
+    final notifier = BundleEntitlementNotifier(
+      client: fixture.client,
+      environmentResolver: () async => BundlePurchaseEnvironment.production,
+    );
     await notifier.refresh(forceRefresh: true);
     final pending = Completer<http.Response>();
     fixture.rpc = () => pending.future;
@@ -248,7 +267,10 @@ void main() {
     () async {
       final fixture = Fixture();
       await fixture.signIn();
-      final notifier = BundleEntitlementNotifier(client: fixture.client);
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await notifier.refresh(forceRefresh: true);
       final pending = Completer<http.Response>();
       fixture.rpc = () => pending.future;
@@ -287,7 +309,10 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     final fixture = Fixture();
     await fixture.signIn();
-    final notifier = BundleEntitlementNotifier(client: fixture.client);
+    final notifier = BundleEntitlementNotifier(
+      client: fixture.client,
+      environmentResolver: () async => BundlePurchaseEnvironment.production,
+    );
     await notifier.recordBundlePurchase(
       signedTransaction: 'header.payload.signature',
     );
@@ -301,7 +326,10 @@ void main() {
     () async {
       final fixture = Fixture();
       await fixture.signIn();
-      final notifier = BundleEntitlementNotifier(client: fixture.client);
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await notifier.refresh(forceRefresh: true);
       final pending = Completer<http.Response>();
       fixture.verify = () => pending.future;
@@ -323,7 +351,10 @@ void main() {
     () async {
       final fixture = Fixture();
       await fixture.signIn();
-      final shared = BundleEntitlementNotifier(client: fixture.client);
+      final shared = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await shared.refresh(forceRefresh: true);
       final local = DevicePurchases({});
       final settings = MemorySettings();
@@ -362,7 +393,10 @@ void main() {
       fixture.verificationResponse = jsonResponse({
         'error': 'PURCHASE_ACCOUNT_REQUIRED',
       }, 409);
-      final shared = BundleEntitlementNotifier(client: fixture.client);
+      final shared = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await shared.refresh(forceRefresh: true);
       final local = DevicePurchases({IAPProductIds.bundleMonthlySubscription});
       final settings = MemorySettings();
@@ -394,7 +428,10 @@ void main() {
         ...bundle(true),
         'bundle_expires_at': expires,
       });
-      final shared = BundleEntitlementNotifier(client: fixture.client);
+      final shared = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
       await shared.refresh(forceRefresh: true);
       final container = ProviderContainer(
         overrides: [
@@ -409,6 +446,176 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 1200));
       expect(container.read(isProProvider), isFalse);
       expect(container.read(featureGateProvider).isPro, isFalse);
+      container.dispose();
+      await fixture.client.dispose();
+    },
+  );
+  test(
+    'sandbox OS evidence selects only sandbox RPC and accepts only that realm',
+    () async {
+      final fixture = Fixture();
+      await fixture.signIn();
+      fixture.rpc = () async => jsonResponse(bundle(true, 'Sandbox'));
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.sandbox,
+      );
+      await Future<void>.delayed(Duration.zero);
+      await notifier.refresh(forceRefresh: true);
+      expect(
+        fixture.rpcPaths,
+        everyElement(endsWith('/get_sandbox_bundle_status')),
+      );
+      expect(notifier.state.isActive, isTrue);
+      fixture.verificationResponse = jsonResponse(bundle(true, 'Production'));
+      await notifier.recordBundlePurchase(
+        signedTransaction: 'header.payload.signature',
+      );
+      expect(notifier.state.isActive, isFalse);
+      fixture.verificationResponse = jsonResponse(bundle(true, 'Sandbox'));
+      await notifier.recordBundlePurchase(
+        signedTransaction: 'header.payload.signature',
+      );
+      expect(notifier.state.isActive, isTrue);
+      notifier.dispose();
+      await fixture.client.dispose();
+    },
+  );
+
+  test(
+    'missing or unrecognized response environment never grants shared rights',
+    () async {
+      final fixture = Fixture();
+      await fixture.signIn();
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => BundlePurchaseEnvironment.production,
+      );
+      for (final environment in [null, 'Xcode', 'Sandbox']) {
+        fixture.rpc = () async => jsonResponse(bundle(true, environment));
+        await notifier.refresh(forceRefresh: true);
+        expect(notifier.state.isActive, isFalse);
+      }
+      notifier.dispose();
+      await fixture.client.dispose();
+    },
+  );
+
+  test(
+    'unknown OS environment clears sharing without calling either RPC, then retries',
+    () async {
+      final fixture = Fixture();
+      await fixture.signIn();
+      BundlePurchaseEnvironment? environment =
+          BundlePurchaseEnvironment.production;
+      fixture.rpc = () async => jsonResponse(bundle(true));
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => environment,
+      );
+      await Future<void>.delayed(Duration.zero);
+      await notifier.refresh(forceRefresh: true);
+      expect(notifier.state.isActive, isTrue);
+      final calls = fixture.rpcPaths.length;
+      environment = null;
+      await Future<void>.delayed(Duration.zero);
+      await notifier.refresh(forceRefresh: true);
+      expect(notifier.state.isActive, isFalse);
+      expect(fixture.rpcPaths.length, calls);
+      await notifier.recordBundlePurchase(
+        signedTransaction: 'header.payload.signature',
+      );
+      expect(fixture.verificationRequests, isEmpty);
+      environment = BundlePurchaseEnvironment.production;
+      await Future<void>.delayed(Duration.zero);
+      await notifier.refresh(forceRefresh: true);
+      expect(notifier.state.isActive, isTrue);
+      notifier.dispose();
+      await fixture.client.dispose();
+    },
+  );
+
+  test(
+    'late Production POST cannot restore access after switching to Sandbox',
+    () async {
+      final fixture = Fixture();
+      await fixture.signIn();
+      var environment = BundlePurchaseEnvironment.production;
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => environment,
+      );
+      await notifier.refresh(forceRefresh: true);
+      final pending = Completer<http.Response>();
+      fixture.verify = () => pending.future;
+      final oldPost = notifier.recordBundlePurchase(
+        signedTransaction: 'header.payload.signature',
+      );
+      await Future<void>.delayed(Duration.zero);
+      environment = BundlePurchaseEnvironment.sandbox;
+      fixture.rpc = () async => jsonResponse(bundle(false, 'Sandbox'));
+      await notifier.refresh(forceRefresh: true);
+      pending.complete(jsonResponse(bundle(true)));
+      await oldPost;
+      expect(notifier.state.isActive, isFalse);
+      notifier.dispose();
+      await fixture.client.dispose();
+    },
+  );
+
+  test(
+    'late Sandbox GET cannot restore access after environment becomes unknown',
+    () async {
+      final fixture = Fixture();
+      await fixture.signIn();
+      BundlePurchaseEnvironment? environment =
+          BundlePurchaseEnvironment.sandbox;
+      final notifier = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => environment,
+      );
+      await notifier.refresh(forceRefresh: true);
+      final pending = Completer<http.Response>();
+      fixture.rpc = () => pending.future;
+      final oldGet = notifier.refresh(forceRefresh: true);
+      await Future<void>.delayed(Duration.zero);
+      environment = null;
+      await notifier.refresh(forceRefresh: true);
+      pending.complete(jsonResponse(bundle(true, 'Sandbox')));
+      await oldGet;
+      expect(notifier.state.isActive, isFalse);
+      notifier.dispose();
+      await fixture.client.dispose();
+    },
+  );
+  test(
+    'unknown or changed sharing realm preserves verified local bundle access',
+    () async {
+      final fixture = Fixture();
+      await fixture.signIn();
+      BundlePurchaseEnvironment? environment =
+          BundlePurchaseEnvironment.sandbox;
+      final shared = BundleEntitlementNotifier(
+        client: fixture.client,
+        environmentResolver: () async => environment,
+      );
+      await Future<void>.delayed(Duration.zero);
+      await shared.refresh(forceRefresh: true);
+      final container = ProviderContainer(
+        overrides: [
+          iapServiceProvider.overrideWith(
+            (_) => DevicePurchases({IAPProductIds.bundleMonthlySubscription}),
+          ),
+          bundleEntitlementProvider.overrideWith((_) => shared),
+          settingsDaoProvider.overrideWithValue(MemorySettings()),
+        ],
+      );
+      for (final next in [null, BundlePurchaseEnvironment.production]) {
+        environment = next;
+        await shared.refresh(forceRefresh: true);
+        expect(shared.state.isActive, isFalse);
+        expect(container.read(isProProvider), isTrue);
+      }
       container.dispose();
       await fixture.client.dispose();
     },

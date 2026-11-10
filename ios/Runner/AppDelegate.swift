@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import StoreKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -19,5 +20,35 @@ import UIKit
       binaryMessenger: registrar.messenger()
     )
     channel.setMethodCallHandler(TimerLiveActivityBridge.handle)
+    let purchaseChannel = FlutterMethodChannel(
+      name: "fitness_log_app/purchase_environment",
+      binaryMessenger: registrar.messenger()
+    )
+    purchaseChannel.setMethodCallHandler { call, result in
+      guard call.method == "getEnvironment" else { result(FlutterMethodNotImplemented); return }
+      Task { @MainActor in result(await Self.purchaseEnvironment()) }
+    }
+  }
+  private static func purchaseEnvironment() async -> String? {
+    if #available(iOS 16.0, *) {
+      do {
+        let verification = try await AppTransaction.shared
+        guard case .verified(let transaction) = verification else { return nil }
+        switch transaction.environment {
+        case .production: return "Production"
+        case .sandbox: return "Sandbox"
+        default: return nil
+        }
+      } catch {
+        // Retry on the next foreground refresh, purchase or restore; no forced sign-in prompt.
+      }
+    }
+    guard let receipt = Bundle.main.appStoreReceiptURL,
+          FileManager.default.fileExists(atPath: receipt.path) else { return nil }
+    switch receipt.lastPathComponent {
+    case "sandboxReceipt": return "Sandbox"
+    case "receipt": return "Production"
+    default: return nil
+    }
   }
 }
