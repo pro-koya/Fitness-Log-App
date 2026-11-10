@@ -19,8 +19,31 @@
 
 ## 配布前に残る確認
 
-全アプリのRelease build、既存全テスト、実機での購入・復元・返金・アカウント切替・広告/機能ゲート/設定画面確認は、このサービス試験だけでは検証していない。App Storeへのupload、審査提出、公開は未実施。Google Playのサーバー検証も未実装。配布されるまで旧アプリの横断同期は再開しない。
+実機での購入・復元・返金・アカウント切替・広告/機能ゲート/設定画面確認は、このサービス試験だけでは検証していない。App Storeへのupload、審査提出、公開は未実施。Google Playのサーバー検証も未実装。配布されるまで旧アプリの横断同期は再開しない。
 
 `flutter pub get --enforce-lockfile`、`flutter test`、`flutter build ios --release --no-codesign` を実行し、既存ios/fastlaneのリリース手順で署名/配布する。ビルド出力は `~/.cache/koya-build/liftly/security-release` を固定して再利用する。
 
 参照: [Apple VerificationResult](https://developer.apple.com/documentation/storekit/verificationresult)、[Supabase Swift Functions](https://supabase.com/docs/reference/swift/functions-invoke)、[Flutter StoreKit JWS](https://pub.dev/packages/in_app_purchase_storekit/changelog)。
+
+## 全体ビルドの実測と配布上の制約
+
+2026-11-10、source main `b1e3d20e2e6e7afb7e36f24f57b4d1c08794ed98` で全unit test 5ファイル42件が成功。変更した9ファイルの静的解析はerror 0。既存UIにwithOpacity等の非推奨info 5件と未使用_getTitleのwarning 1件が残る。新しい共有サービスのbrace指摘は修正済み。
+
+現在の唯一のXcode 27.2では、既存Runner/PodsのiOS13（一部Pod9）のdeployment targetが対応下限iOS15未満として、通常の `flutter build ios --release --no-codesign` がTarget Integrityで停止した。ビルド時だけ `IPHONEOS_DEPLOYMENT_TARGET=15.0` を渡す全体Releaseコンパイル/リンクはBUILD SUCCEEDED。Runner.appのbundle IDはcom.fitnesslog.fitnessLogApp、version 1.1.1/build 10、検証成果物の最低OSは15.0。canonicalのPodfile/Runner projectの最低OS13は変更していない。FlutterCLIによるAppFrameworkInfo.plistの自動変更も正本へは入れていない。
+
+実配布には、最低OS13を維持して確認できる対応toolchainを用意するか、最低OSを15へ変更する判断と設定整合が必要。この検証用overrideを、既存iOS13/14向けの配布確認が済んだものとは扱わない。Pods/既存Live Activity bridgeの非推奨・未使用警告、SPM未対応pluginの将来移行警告が残るが、今回の全体ビルドにエラーはない。
+
+再実行時は空のbuildパスを固定cacheへsymlinkし、グローバルFlutter設定を変更しない。
+
+```sh
+mkdir -p ~/.cache/koya-build/liftly/security-release
+# buildが存在する場合は上書きせず、現在の内容/参照先を確認する。
+ln -s ~/.cache/koya-build/liftly/security-release build
+flutter pub get --enforce-lockfile
+flutter test --concurrency 1
+flutter build ios --release --no-codesign --config-only --no-pub
+(cd ios && pod install)
+xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ~/.cache/koya-build/liftly/security-release/derived -jobs 2 CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=15.0 build
+```
+
+署名/配布の前にサーバーの実署名検証正常系、実機の購入/復元/返金/アカウント切替と画面を確認し、ASCの最新ビルド番号より大きいbuild numberを設定する。App Storeへのupload/審査/公開は未実施。
